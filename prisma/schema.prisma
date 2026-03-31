@@ -6,3 +6,95 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum InputMode {
+  TEXT
+  VOICE
+}
+
+enum ReviewStatus {
+  NEW
+  REVIEWED
+}
+
+model Question {
+  id              String      @id @default(cuid())
+  roleSlug        String
+  topicSlug       String
+  language        String
+  difficulty      Difficulty
+  questionText    String
+  referenceAnswer String
+  keyPoints       Json
+  tags            Json?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+
+  attempts        Attempt[]
+  reviewItems     ReviewItem[]
+
+  @@index([roleSlug, topicSlug, language])
+  @@index([isActive])
+}
+
+model PracticeSession {
+  id         String    @id @default(cuid())
+  roleSlug   String
+  topicSlug  String
+  language   String
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+
+  attempts   Attempt[]
+
+  @@index([topicSlug, language])
+}
+
+model Attempt {
+  id              String          @id @default(cuid())
+  sessionId       String
+  questionId      String
+  inputMode       InputMode
+  rawTranscript   String?
+  finalAnswer     String
+  feedbackJson    Json?
+  technicalScore  Int?
+  grammarScore    Int?
+  createdAt       DateTime        @default(now())
+
+  session         PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question        Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reviewItem      ReviewItem?
+
+  @@index([sessionId])
+  @@index([questionId])
+  @@index([createdAt])
+}
+
+model ReviewItem {
+  id                   String       @id @default(cuid())
+  attemptId            String       @unique
+  questionId           String
+  questionTextSnapshot String
+  referenceAnswerSnapshot String
+  keyPointsSnapshot    Json?
+  topicSlug            String
+  language             String
+  status               ReviewStatus @default(NEW)
+  addedAt              DateTime     @default(now())
+  lastReviewedAt       DateTime?
+  reviewCount          Int          @default(0)
+
+  attempt              Attempt      @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question             Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([topicSlug, language])
+  @@index([status])
+}
