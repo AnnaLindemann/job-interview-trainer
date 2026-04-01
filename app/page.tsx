@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-import { AnswerForm } from "@/components/practice/answer-form";
+import {
+  AnswerForm,
+  type AnswerFormSubmitPayload,
+} from "@/components/practice/answer-form";
 import { FeedbackCard } from "@/components/practice/feedback-card";
 import { PracticeSetupForm } from "@/components/practice/practice-setup-form";
 import { QuestionCard } from "@/components/practice/question-card";
@@ -29,6 +32,18 @@ type StartPracticeResponse =
       error: string;
     };
 
+type NextQuestionResponse =
+  | {
+      ok: true;
+      data: {
+        question: QuestionDto;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 type FeedbackDto = {
   summary: string;
   strengths: string[];
@@ -46,6 +61,7 @@ type CreateAttemptResponse =
           inputMode: "TEXT" | "VOICE";
           finalAnswer: string;
           rawTranscript: string | null;
+          usedVoice: boolean;
           technicalScore: number | null;
           grammarScore: number | null;
           feedbackJson: FeedbackDto | null;
@@ -55,7 +71,7 @@ type CreateAttemptResponse =
           id: string;
           status: "NEW" | "REVIEWED";
           addedAt: string;
-        };
+        } | null;
       };
     }
   | {
@@ -68,10 +84,14 @@ export default function HomePage() {
   const [language, setLanguage] = useState("en");
   const [isStarting, setIsStarting] = useState(false);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [isLoadingNextQuestion, setIsLoadingNextQuestion] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<QuestionDto | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<QuestionDto | null>(
+    null
+  );
   const [answer, setAnswer] = useState("");
+  const [answerFormResetKey, setAnswerFormResetKey] = useState(0);
 
   const [attemptResult, setAttemptResult] = useState<{
     attemptId: string;
@@ -98,6 +118,7 @@ export default function HomePage() {
     setError(null);
     setAnswer("");
     setAttemptResult(null);
+    setAnswerFormResetKey((prev) => prev + 1);
 
     try {
       const response = await fetch("/api/practice/start", {
@@ -132,15 +153,13 @@ export default function HomePage() {
     }
   }
 
-  async function handleSubmitAnswer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function handleSubmitAnswer(payload: AnswerFormSubmitPayload) {
     if (!sessionId || !currentQuestion) {
       setError("Session or question is missing");
       return;
     }
 
-    if (!answer.trim()) {
+    if (!payload.finalAnswer.trim()) {
       setError("Answer is required");
       return;
     }
@@ -158,8 +177,10 @@ export default function HomePage() {
         body: JSON.stringify({
           sessionId,
           questionId: currentQuestion.id,
-          finalAnswer: answer.trim(),
-          inputMode: "TEXT",
+          inputMode: payload.inputMode,
+          rawTranscript: payload.rawTranscript,
+          finalAnswer: payload.finalAnswer,
+          usedVoice: payload.usedVoice,
         }),
       });
 
@@ -183,9 +204,68 @@ export default function HomePage() {
     }
   }
 
+  function handleRepeatQuestion() {
+    setError(null);
+    setAnswer("");
+    setAttemptResult(null);
+    setAnswerFormResetKey((prev) => prev + 1);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  async function handleNextQuestion() {
+    if (!sessionId) {
+      setError("Session is missing");
+      return;
+    }
+
+    setIsLoadingNextQuestion(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/practice/next", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId,
+        }),
+      });
+
+      const result: NextQuestionResponse = await response.json();
+
+      if (!response.ok || !result.ok) {
+        setError(result.ok ? "Failed to load next question" : result.error);
+        return;
+      }
+
+      setCurrentQuestion(result.data.question);
+      setAnswer("");
+      setAttemptResult(null);
+      setAnswerFormResetKey((prev) => prev + 1);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } catch {
+      setError("Failed to load next question");
+    } finally {
+      setIsLoadingNextQuestion(false);
+    }
+  }
+
+  const answerFormKey = currentQuestion
+    ? `${currentQuestion.id}-${answerFormResetKey}`
+    : `empty-${answerFormResetKey}`;
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-white">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
         <section className="space-y-4">
           <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
             AI Interview Practice
@@ -204,40 +284,52 @@ export default function HomePage() {
           </div>
         </section>
 
+        <PracticeSetupForm
+          topicSlug={topicSlug}
+          language={language}
+          isStarting={isStarting}
+          onTopicChange={setTopicSlug}
+          onLanguageChange={setLanguage}
+          onSubmit={handleStartPractice}
+        />
+
         {error ? (
           <section className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
             {error}
           </section>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-          <div className="space-y-6">
-            <PracticeSetupForm
-              topicSlug={topicSlug}
-              language={language}
-              isStarting={isStarting}
-              onTopicChange={setTopicSlug}
-              onLanguageChange={setLanguage}
-              onSubmit={handleStartPractice}
-            />
-
-            {attemptResult ? (
-              <div ref={feedbackRef}>
-                <FeedbackCard
-                  attemptId={attemptResult.attemptId}
-                  technicalScore={attemptResult.technicalScore}
-                  grammarScore={attemptResult.grammarScore}
-                  feedback={attemptResult.feedback}
-                />
-              </div>
-            ) : null}
-          </div>
-
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
             <QuestionCard question={currentQuestion} />
 
+            {attemptResult ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={handleRepeatQuestion}
+                  disabled={isLoadingNextQuestion || isSubmittingAnswer}
+                  className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-3 text-sm font-medium text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Repeat question
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextQuestion}
+                  disabled={isLoadingNextQuestion || isSubmittingAnswer}
+                  className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoadingNextQuestion
+                    ? "Loading next question..."
+                    : "Next question"}
+                </button>
+              </div>
+            ) : null}
+
             {sessionId && currentQuestion ? (
               <AnswerForm
+                key={answerFormKey}
                 answer={answer}
                 isSubmitting={isSubmittingAnswer}
                 onAnswerChange={setAnswer}
@@ -248,6 +340,25 @@ export default function HomePage() {
                 <p className="text-sm text-zinc-500">
                   Start a practice session to unlock the first question and the
                   answer form.
+                </p>
+              </section>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            {attemptResult ? (
+              <div ref={feedbackRef}>
+                <FeedbackCard
+                  attemptId={attemptResult.attemptId}
+                  technicalScore={attemptResult.technicalScore}
+                  grammarScore={attemptResult.grammarScore}
+                  feedback={attemptResult.feedback}
+                />
+              </div>
+            ) : (
+              <section className="rounded-3xl border border-dashed border-teal-200 bg-white/90 p-6 shadow-sm">
+                <p className="text-sm text-zinc-500">
+                  Submit your answer to see structured feedback here.
                 </p>
               </section>
             )}

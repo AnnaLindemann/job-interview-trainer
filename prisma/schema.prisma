@@ -63,6 +63,7 @@ model Attempt {
   inputMode       InputMode
   rawTranscript   String?
   finalAnswer     String
+  usedVoice       Boolean         @default(false)
   feedbackJson    Json?
   technicalScore  Int?
   grammarScore    Int?
@@ -75,6 +76,7 @@ model Attempt {
   @@index([sessionId])
   @@index([questionId])
   @@index([createdAt])
+  @@index([usedVoice])
 }
 
 model ReviewItem {

@@ -28,56 +28,67 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
         </p>
       </div>
 
-      <form className="space-y-5" onSubmit={onSubmit}>
-        <div className="space-y-2">
-          <label htmlFor="roleSlug" className="text-sm font-medium text-zinc-700">
-            Role
-          </label>
-          <input
-            id="roleSlug"
-            value="junior-fullstack"
-            disabled
-            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 outline-none"
-          />
-        </div>
+      <form className="space-y-4 lg:space-y-0" onSubmit={onSubmit}>
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_180px] lg:items-end">
+          <div className="space-y-2">
+            <label
+              htmlFor="roleSlug"
+              className="text-sm font-medium text-zinc-700"
+            >
+              Role
+            </label>
+            <input
+              id="roleSlug"
+              value="junior-fullstack"
+              disabled
+              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 outline-none"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label htmlFor="topicSlug" className="text-sm font-medium text-zinc-700">
-            Topic
-          </label>
-          <select
-            id="topicSlug"
-            value={topicSlug}
-            onChange={(event) => onTopicChange(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
+          <div className="space-y-2">
+            <label
+              htmlFor="topicSlug"
+              className="text-sm font-medium text-zinc-700"
+            >
+              Topic
+            </label>
+            <select
+              id="topicSlug"
+              value={topicSlug}
+              onChange={(event) => onTopicChange(event.target.value)}
+              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
+            >
+              <option value="javascript">javascript</option>
+              <option value="html">html</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="language"
+              className="text-sm font-medium text-zinc-700"
+            >
+              Language
+            </label>
+            <select
+              id="language"
+              value={language}
+              onChange={(event) => onLanguageChange(event.target.value)}
+              className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
+            >
+              <option value="en">en</option>
+              <option value="de">de</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isStarting}
+            className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="javascript">javascript</option>
-            <option value="html">html</option>
-          </select>
+            {isStarting ? "Starting..." : "Start practice"}
+          </button>
         </div>
-
-        <div className="space-y-2">
-          <label htmlFor="language" className="text-sm font-medium text-zinc-700">
-            Language
-          </label>
-          <select
-            id="language"
-            value={language}
-            onChange={(event) => onLanguageChange(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
-          >
-            <option value="en">en</option>
-            <option value="de">de</option>
-          </select>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isStarting}
-          className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isStarting ? "Starting..." : "Start practice"}
-        </button>
       </form>
     </section>
   );
