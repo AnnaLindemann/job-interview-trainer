@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/app/generated/prisma/client";
 
 import { prisma } from "@/src/db/prisma";
-import { mockAnalyzeAnswer } from "@/src/features/analysis/mock-analyze-answer";
+import { analyzeAnswer } from "@/src/features/analysis/analyze-answer";
 import { createAttemptSchema } from "@/src/features/attempts/attempt.schemas";
 
 export async function POST(request: NextRequest) {
@@ -31,17 +31,6 @@ export async function POST(request: NextRequest) {
       usedVoice,
     } = parsed.data;
 
-    const attempt = await prisma.attempt.create({
-      data: {
-        sessionId,
-        questionId,
-        inputMode,
-        finalAnswer,
-        usedVoice,
-        rawTranscript: usedVoice ? rawTranscript ?? null : null,
-      },
-    });
-
     const question = await prisma.question.findUnique({
       where: { id: questionId },
     });
@@ -55,6 +44,17 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    const attempt = await prisma.attempt.create({
+      data: {
+        sessionId,
+        questionId,
+        inputMode,
+        finalAnswer,
+        usedVoice,
+        rawTranscript: usedVoice ? rawTranscript ?? null : null,
+      },
+    });
 
     const existingReviewItem = await prisma.reviewItem.findFirst({
       where: {
@@ -87,11 +87,17 @@ export async function POST(request: NextRequest) {
         },
       }));
 
-    const analysis = mockAnalyzeAnswer({
-      questionText: question.questionText,
-      referenceAnswer: question.referenceAnswer,
-      finalAnswer,
-    });
+  const analysis = await analyzeAnswer({
+  questionText: question.questionText,
+  referenceAnswer: question.referenceAnswer,
+  finalAnswer,
+});
+
+    const feedbackJson = {
+      summary: analysis.summary,
+      strengths: analysis.strengths,
+      improvements: analysis.improvements,
+    };
 
     const updatedAttempt = await prisma.attempt.update({
       where: {
@@ -100,7 +106,7 @@ export async function POST(request: NextRequest) {
       data: {
         technicalScore: analysis.technicalScore,
         grammarScore: analysis.grammarScore,
-        feedbackJson: analysis.feedbackJson as unknown as Prisma.InputJsonValue,
+        feedbackJson: feedbackJson as unknown as Prisma.InputJsonValue,
       },
       select: {
         id: true,

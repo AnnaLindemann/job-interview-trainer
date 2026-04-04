@@ -1,22 +1,8 @@
-type MockAnalyzeAnswerParams = {
-  questionText: string;
-  referenceAnswer: string;
-  finalAnswer: string;
-};
-
-type MockAnalysisResult = {
-  technicalScore: number;
-  grammarScore: number;
-  feedbackJson: {
-    summary: string;
-    strengths: string[];
-    improvements: string[];
-  };
-};
+import type {  AnalyzeAnswerParams, AnalyzeAnswerResult } from "./analysis.types";
 
 export function mockAnalyzeAnswer(
-  params: MockAnalyzeAnswerParams
-): MockAnalysisResult {
+  params: AnalyzeAnswerParams
+): AnalyzeAnswerResult {
   const { finalAnswer } = params;
 
   const normalizedAnswer = finalAnswer.trim();
@@ -49,7 +35,10 @@ export function mockAnalyzeAnswer(
     improvements.push("Add a more complete explanation.");
   }
 
-  if (normalizedAnswer.includes("let") || normalizedAnswer.includes("const")) {
+  if (
+    normalizedAnswer.includes("let") ||
+    normalizedAnswer.includes("const")
+  ) {
     strengths.push("You included concrete JavaScript terms.");
   } else {
     improvements.push("Use more concrete technical terms.");
@@ -62,15 +51,13 @@ export function mockAnalyzeAnswer(
   }
 
   return {
+    summary:
+      answerLength >= 80
+        ? "Good start. The answer covers the basics but can be more precise."
+        : "The answer is too short and should be expanded.",
+    strengths,
+    improvements,
     technicalScore,
     grammarScore,
-    feedbackJson: {
-      summary:
-        answerLength >= 80
-          ? "Good start. The answer covers the basics but can be more precise."
-          : "The answer is too short and should be expanded.",
-      strengths,
-      improvements,
-    },
   };
 }
