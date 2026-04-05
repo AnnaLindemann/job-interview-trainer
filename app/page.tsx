@@ -275,23 +275,23 @@ export default function HomePage() {
     <main className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-          <section className="space-y-4">
-            <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
-              AI Interview Practice
-            </span>
+<section className="space-y-4">
+  <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
+    AI Interview Practice
+  </span>
 
-            <div className="rounded-3xl border border-teal-100 bg-white/90 p-6 shadow-sm sm:p-8">
-              <div className="space-y-3">
-                <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-                  Practice interviews in a softer, cleaner flow
-                </h1>
-                <p className="text-sm leading-6 text-zinc-600 sm:text-base">
-                  Choose a topic, answer one question, and get structured feedback
-                  right away.
-                </p>
-              </div>
-            </div>
-          </section>
+  <div className="rounded-3xl border border-teal-100 bg-white/90 p-6 shadow-sm sm:p-8">
+    <div className="space-y-3">
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+        Practice interviews in a softer, cleaner flow
+      </h1>
+      <p className="text-sm leading-6 text-zinc-600 sm:text-base">
+        Choose a topic, answer one question, and get structured feedback
+        right away.
+      </p>
+    </div>
+  </div>
+</section>
 
           <PracticeSetupForm
             topicSlug={topicSlug}

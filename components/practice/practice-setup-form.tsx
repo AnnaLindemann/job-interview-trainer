@@ -1,4 +1,5 @@
 import { FormEvent } from "react";
+import Link from "next/link";
 
 type PracticeSetupFormProps = {
   topicSlug: string;
@@ -82,15 +83,22 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
           </div>
         </div>
 
-        <div className="flex justify-start">
-          <button
-            type="submit"
-            disabled={isStarting}
-            className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isStarting ? "Starting..." : "Start practice"}
-          </button>
-        </div>
+<div className="flex flex-col gap-3 sm:flex-row">
+  <button
+    type="submit"
+    disabled={isStarting}
+    className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    {isStarting ? "Starting..." : "Start Practice"}
+  </button>
+
+  <Link
+    href="/question-bank"
+    className="inline-flex items-center justify-center rounded-2xl border border-teal-200 bg-white px-4 py-3 text-sm font-medium text-teal-700 transition hover:bg-teal-50"
+  >
+    Open Question Bank
+  </Link>
+</div>
       </form>
     </section>
   );

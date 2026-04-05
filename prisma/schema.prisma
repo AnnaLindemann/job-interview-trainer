@@ -18,13 +18,18 @@ enum InputMode {
   VOICE
 }
 
-enum ReviewStatus {
-  NEW
-  REVIEWED
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  practiceSessions   PracticeSession[]
+  practicedQuestions PracticedQuestion[]
 }
 
 model Question {
-  id              String      @id @default(cuid())
+  id              String     @id @default(cuid())
   roleSlug        String
   topicSlug       String
   language        String
@@ -33,45 +38,47 @@ model Question {
   referenceAnswer String
   keyPoints       Json
   tags            Json?
-  isActive        Boolean     @default(true)
-  createdAt       DateTime    @default(now())
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
 
-  attempts        Attempt[]
-  reviewItems     ReviewItem[]
+  attempts           Attempt[]
+  practicedQuestions PracticedQuestion[]
 
   @@index([roleSlug, topicSlug, language])
   @@index([isActive])
 }
 
 model PracticeSession {
-  id         String    @id @default(cuid())
-  roleSlug   String
-  topicSlug  String
-  language   String
-  startedAt  DateTime  @default(now())
-  endedAt    DateTime?
+  id        String    @id @default(cuid())
+  userId    String
+  roleSlug  String
+  topicSlug String
+  language  String
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
 
-  attempts   Attempt[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts Attempt[]
 
+  @@index([userId])
   @@index([topicSlug, language])
 }
 
 model Attempt {
-  id              String          @id @default(cuid())
-  sessionId       String
-  questionId      String
-  inputMode       InputMode
-  rawTranscript   String?
-  finalAnswer     String
-  usedVoice       Boolean         @default(false)
-  feedbackJson    Json?
-  technicalScore  Int?
-  grammarScore    Int?
-  createdAt       DateTime        @default(now())
+  id             String    @id @default(cuid())
+  sessionId      String
+  questionId     String
+  inputMode      InputMode
+  rawTranscript  String?
+  finalAnswer    String
+  usedVoice      Boolean   @default(false)
+  feedbackJson   Json?
+  technicalScore Int?
+  grammarScore   Int?
+  createdAt      DateTime  @default(now())
 
-  session         PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  question        Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  reviewItem      ReviewItem?
+  session  PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([questionId])
@@ -79,41 +86,33 @@ model Attempt {
   @@index([usedVoice])
 }
 
-model ReviewItem {
-  id                   String       @id @default(cuid())
-  attemptId            String       @unique
-  questionId           String
-  questionTextSnapshot String
-  referenceAnswerSnapshot String
-  keyPointsSnapshot    Json?
-  topicSlug            String
-  language             String
-  status               ReviewStatus @default(NEW)
-  addedAt              DateTime     @default(now())
-  lastReviewedAt       DateTime?
-  reviewCount          Int          @default(0)
+model PracticedQuestion {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  addedAt    DateTime @default(now())
 
-  attempt              Attempt      @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question             Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, questionId])
+  @@index([userId, addedAt])
   @@index([questionId])
-  @@index([topicSlug, language])
-  @@index([status])
 }
 
 model LlmUsageLog {
-  id                String   @id @default(cuid())
-  feature           String
-  model             String
-  promptVersion     String?
-  promptTokens      Int
-  completionTokens  Int
-  totalTokens       Int
-  estimatedCostUsd  Decimal  @db.Decimal(12, 8)
-  latencyMs         Int?
-  status            String
-  sessionId         String?
-  questionId        String?
-  attemptId         String?
-  createdAt         DateTime @default(now())
+  id               String   @id @default(cuid())
+  feature          String
+  model            String
+  promptVersion    String?
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  estimatedCostUsd Decimal  @db.Decimal(12, 8)
+  latencyMs        Int?
+  status           String
+  sessionId        String?
+  questionId       String?
+  attemptId        String?
+  createdAt        DateTime @default(now())
 }

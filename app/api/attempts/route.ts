@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@/app/generated/prisma/client";
 
+import { auth } from "@/auth";
 import { prisma } from "@/src/db/prisma";
 import { analyzeAnswer } from "@/src/features/analysis/analyze-answer";
 import { createAttemptSchema } from "@/src/features/attempts/attempt.schemas";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body: unknown = await request.json();
     const parsed = createAttemptSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -31,8 +44,41 @@ export async function POST(request: NextRequest) {
       usedVoice,
     } = parsed.data;
 
+    const practiceSession = await prisma.practiceSession.findUnique({
+      where: { id: sessionId },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!practiceSession) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Practice session not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (practiceSession.userId !== session.user.id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Forbidden",
+        },
+        { status: 403 }
+      );
+    }
+
     const question = await prisma.question.findUnique({
       where: { id: questionId },
+      select: {
+        id: true,
+        questionText: true,
+        referenceAnswer: true,
+      },
     });
 
     if (!question) {
@@ -56,44 +102,33 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const existingReviewItem = await prisma.reviewItem.findFirst({
+    const practicedQuestion = await prisma.practicedQuestion.upsert({
       where: {
+        userId_questionId: {
+          userId: session.user.id,
+          questionId: question.id,
+        },
+      },
+      update: {},
+      create: {
+        userId: session.user.id,
         questionId: question.id,
       },
       select: {
         id: true,
-        status: true,
+        userId: true,
+        questionId: true,
         addedAt: true,
       },
     });
 
-    const reviewItem =
-      existingReviewItem ??
-      (await prisma.reviewItem.create({
-        data: {
-          attemptId: attempt.id,
-          questionId: question.id,
-          questionTextSnapshot: question.questionText,
-          referenceAnswerSnapshot: question.referenceAnswer,
-          keyPointsSnapshot:
-            question.keyPoints as unknown as Prisma.InputJsonValue,
-          topicSlug: question.topicSlug,
-          language: question.language,
-        },
-        select: {
-          id: true,
-          status: true,
-          addedAt: true,
-        },
-      }));
+    const analysis = await analyzeAnswer({
+      questionText: question.questionText,
+      referenceAnswer: question.referenceAnswer,
+      finalAnswer,
+    });
 
-  const analysis = await analyzeAnswer({
-  questionText: question.questionText,
-  referenceAnswer: question.referenceAnswer,
-  finalAnswer,
-});
-
-    const feedbackJson = {
+    const feedbackJson: Prisma.InputJsonValue = {
       summary: analysis.summary,
       strengths: analysis.strengths,
       improvements: analysis.improvements,
@@ -106,7 +141,7 @@ export async function POST(request: NextRequest) {
       data: {
         technicalScore: analysis.technicalScore,
         grammarScore: analysis.grammarScore,
-        feedbackJson: feedbackJson as unknown as Prisma.InputJsonValue,
+        feedbackJson,
       },
       select: {
         id: true,
@@ -127,7 +162,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       data: {
         attempt: updatedAttempt,
-        reviewItem,
+        practicedQuestion,
       },
     });
   } catch (error) {
