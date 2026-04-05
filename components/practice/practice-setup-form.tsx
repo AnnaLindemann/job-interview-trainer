@@ -28,8 +28,8 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
         </p>
       </div>
 
-      <form className="space-y-4 lg:space-y-0" onSubmit={onSubmit}>
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_180px] lg:items-end">
+      <form className="space-y-4" onSubmit={onSubmit}>
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <label
               htmlFor="roleSlug"
@@ -80,11 +80,13 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
               <option value="de">de</option>
             </select>
           </div>
+        </div>
 
+        <div className="flex justify-start">
           <button
             type="submit"
             disabled={isStarting}
-            className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-2xl bg-teal-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isStarting ? "Starting..." : "Start practice"}
           </button>

@@ -17,6 +17,7 @@ type QuestionDto = {
   language: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";
   questionText: string;
+  referenceAnswer: string;
 };
 
 type StartPracticeResponse =
@@ -98,6 +99,8 @@ export default function HomePage() {
     technicalScore: number | null;
     grammarScore: number | null;
     feedback: FeedbackDto | null;
+    finalAnswer: string;
+    referenceAnswer: string;
   } | null>(null);
 
   const feedbackRef = useRef<HTMLDivElement | null>(null);
@@ -196,7 +199,12 @@ export default function HomePage() {
         technicalScore: result.data.attempt.technicalScore,
         grammarScore: result.data.attempt.grammarScore,
         feedback: result.data.attempt.feedbackJson,
+        finalAnswer: payload.finalAnswer,
+        referenceAnswer: currentQuestion.referenceAnswer,
       });
+
+      setAnswer("");
+      setAnswerFormResetKey((prev) => prev + 1);
     } catch {
       setError("Failed to save answer");
     } finally {
@@ -266,103 +274,97 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-white">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
-        <section className="space-y-4">
-          <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
-            AI Interview Practice
-          </span>
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+          <section className="space-y-4">
+            <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
+              AI Interview Practice
+            </span>
 
-          <div className="rounded-3xl border border-teal-100 bg-white/90 p-6 shadow-sm sm:p-8">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-                Practice interviews in a softer, cleaner flow
-              </h1>
-              <p className="max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base">
-                Choose a topic, answer one question, and get structured feedback
-                right away.
-              </p>
+            <div className="rounded-3xl border border-teal-100 bg-white/90 p-6 shadow-sm sm:p-8">
+              <div className="space-y-3">
+                <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+                  Practice interviews in a softer, cleaner flow
+                </h1>
+                <p className="text-sm leading-6 text-zinc-600 sm:text-base">
+                  Choose a topic, answer one question, and get structured feedback
+                  right away.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
-
-        <PracticeSetupForm
-          topicSlug={topicSlug}
-          language={language}
-          isStarting={isStarting}
-          onTopicChange={setTopicSlug}
-          onLanguageChange={setLanguage}
-          onSubmit={handleStartPractice}
-        />
-
-        {error ? (
-          <section className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
-            {error}
           </section>
-        ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
-            <QuestionCard question={currentQuestion} />
+          <PracticeSetupForm
+            topicSlug={topicSlug}
+            language={language}
+            isStarting={isStarting}
+            onTopicChange={setTopicSlug}
+            onLanguageChange={setLanguage}
+            onSubmit={handleStartPractice}
+          />
 
-            {attemptResult ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={handleRepeatQuestion}
-                  disabled={isLoadingNextQuestion || isSubmittingAnswer}
-                  className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-3 text-sm font-medium text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Repeat question
-                </button>
+          {error ? (
+            <section className="rounded-3xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
+              {error}
+            </section>
+          ) : null}
 
-                <button
-                  type="button"
-                  onClick={handleNextQuestion}
-                  disabled={isLoadingNextQuestion || isSubmittingAnswer}
-                  className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isLoadingNextQuestion
-                    ? "Loading next question..."
-                    : "Next question"}
-                </button>
-              </div>
-            ) : null}
+          <QuestionCard question={currentQuestion} />
 
-            {sessionId && currentQuestion ? (
-              <AnswerForm
-                key={answerFormKey}
-                answer={answer}
-                isSubmitting={isSubmittingAnswer}
-                onAnswerChange={setAnswer}
-                onSubmit={handleSubmitAnswer}
+          {attemptResult ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={handleRepeatQuestion}
+                disabled={isLoadingNextQuestion || isSubmittingAnswer}
+                className="w-full rounded-2xl border border-teal-200 bg-white px-4 py-3 text-sm font-medium text-teal-700 transition hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Repeat question
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextQuestion}
+                disabled={isLoadingNextQuestion || isSubmittingAnswer}
+                className="w-full rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoadingNextQuestion
+                  ? "Loading next question..."
+                  : "Next question"}
+              </button>
+            </div>
+          ) : null}
+
+          {sessionId && currentQuestion && !attemptResult ? (
+            <AnswerForm
+              key={answerFormKey}
+              answer={answer}
+              isSubmitting={isSubmittingAnswer}
+              onAnswerChange={setAnswer}
+              onSubmit={handleSubmitAnswer}
+            />
+          ) : null}
+
+          {!sessionId || !currentQuestion ? (
+            <section className="rounded-3xl border border-dashed border-teal-200 bg-white/90 p-6 shadow-sm">
+              <p className="text-sm text-zinc-500">
+                Start a practice session to unlock the first question and the
+                answer form.
+              </p>
+            </section>
+          ) : null}
+
+          {attemptResult ? (
+            <div ref={feedbackRef}>
+              <FeedbackCard
+                attemptId={attemptResult.attemptId}
+                technicalScore={attemptResult.technicalScore}
+                grammarScore={attemptResult.grammarScore}
+                feedback={attemptResult.feedback}
+                finalAnswer={attemptResult.finalAnswer}
+                referenceAnswer={attemptResult.referenceAnswer}
               />
-            ) : (
-              <section className="rounded-3xl border border-dashed border-teal-200 bg-white/90 p-6 shadow-sm">
-                <p className="text-sm text-zinc-500">
-                  Start a practice session to unlock the first question and the
-                  answer form.
-                </p>
-              </section>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            {attemptResult ? (
-              <div ref={feedbackRef}>
-                <FeedbackCard
-                  attemptId={attemptResult.attemptId}
-                  technicalScore={attemptResult.technicalScore}
-                  grammarScore={attemptResult.grammarScore}
-                  feedback={attemptResult.feedback}
-                />
-              </div>
-            ) : (
-              <section className="rounded-3xl border border-dashed border-teal-200 bg-white/90 p-6 shadow-sm">
-                <p className="text-sm text-zinc-500">
-                  Submit your answer to see structured feedback here.
-                </p>
-              </section>
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

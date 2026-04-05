@@ -32,6 +32,7 @@ export async function getFirstQuestion(params: GetFirstQuestionParams) {
       language: true,
       difficulty: true,
       questionText: true,
+      referenceAnswer: true,
       isActive: true,
       createdAt: true,
     },

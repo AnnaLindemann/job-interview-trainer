@@ -100,3 +100,20 @@ model ReviewItem {
   @@index([topicSlug, language])
   @@index([status])
 }
+
+model LlmUsageLog {
+  id                String   @id @default(cuid())
+  feature           String
+  model             String
+  promptVersion     String?
+  promptTokens      Int
+  completionTokens  Int
+  totalTokens       Int
+  estimatedCostUsd  Decimal  @db.Decimal(12, 8)
+  latencyMs         Int?
+  status            String
+  sessionId         String?
+  questionId        String?
+  attemptId         String?
+  createdAt         DateTime @default(now())
+}

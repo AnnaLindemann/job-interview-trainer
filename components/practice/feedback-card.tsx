@@ -9,10 +9,19 @@ type FeedbackCardProps = {
   technicalScore: number | null;
   grammarScore: number | null;
   feedback: FeedbackDto | null;
+  finalAnswer: string;
+  referenceAnswer: string;
 };
 
 export function FeedbackCard(props: FeedbackCardProps) {
-  const { attemptId, technicalScore, grammarScore, feedback } = props;
+  const {
+    attemptId,
+    technicalScore,
+    grammarScore,
+    feedback,
+    finalAnswer,
+    referenceAnswer,
+  } = props;
 
   return (
     <section className="rounded-3xl border border-teal-100 bg-white p-5 shadow-sm sm:p-6">
@@ -91,6 +100,22 @@ export function FeedbackCard(props: FeedbackCardProps) {
               ) : (
                 <p className="text-sm text-zinc-500">No improvements yet.</p>
               )}
+            </div>
+
+            <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <p className="text-sm font-medium text-zinc-900">Your answer</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-700">
+                {finalAnswer}
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-2xl border border-teal-100 bg-teal-50 p-4">
+              <p className="text-sm font-medium text-zinc-900">
+                Reference answer
+              </p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-700">
+                {referenceAnswer}
+              </p>
             </div>
           </div>
         ) : null}

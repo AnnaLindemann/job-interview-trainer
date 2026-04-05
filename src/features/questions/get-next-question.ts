@@ -54,6 +54,7 @@ export async function getNextQuestion(params: GetNextQuestionParams) {
       language: true,
       difficulty: true,
       questionText: true,
+      referenceAnswer: true,
       isActive: true,
       createdAt: true,
     },
