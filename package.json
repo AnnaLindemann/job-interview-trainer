@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:seed": "tsx src/db/seed/seed.ts",
     "typecheck": "tsc --noEmit",
-    "generate:question-bank": "tsx tools/question-bank-generator/generate.ts"
+    "generate:question-bank": "tsx tools/question-bank-generator/generate.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
