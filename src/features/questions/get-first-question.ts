@@ -1,4 +1,4 @@
-import { prisma } from "@/src/db/prisma";
+import { getQuestionsForPractice } from "@/src/features/questions/content-question-bank";
 
 type GetFirstQuestionParams = {
   roleSlug: string;
@@ -7,38 +7,7 @@ type GetFirstQuestionParams = {
 };
 
 export async function getFirstQuestion(params: GetFirstQuestionParams) {
-  const { roleSlug, topicSlug, language } = params;
+  const questions = await getQuestionsForPractice(params);
 
-  console.log("getFirstQuestion params:", {
-    roleSlug,
-    topicSlug,
-    language,
-  });
-
-  const question = await prisma.question.findFirst({
-    where: {
-      roleSlug,
-      topicSlug,
-      language,
-      isActive: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    select: {
-      id: true,
-      roleSlug: true,
-      topicSlug: true,
-      language: true,
-      difficulty: true,
-      questionText: true,
-      referenceAnswer: true,
-      isActive: true,
-      createdAt: true,
-    },
-  });
-
-  console.log("getFirstQuestion db result:", question);
-
-  return question;
+  return questions[0] ?? null;
 }

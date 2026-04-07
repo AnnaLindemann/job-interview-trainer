@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -12,9 +12,12 @@ export type AnswerFormSubmitPayload = {
   usedVoice: boolean;
 };
 
+type PracticeLanguage = "en" | "de";
+
 type AnswerFormProps = {
   answer: string;
   isSubmitting: boolean;
+  practiceLanguage: PracticeLanguage;
   onAnswerChange: (value: string) => void;
   onSubmit: (payload: AnswerFormSubmitPayload) => void;
 };
@@ -22,14 +25,33 @@ type AnswerFormProps = {
 type InputMode = "TEXT" | "VOICE";
 type VoiceState = "idle" | "listening" | "processing" | "ready" | "error";
 
+function getSpeechRecognitionLanguage(language: PracticeLanguage): string {
+  if (language === "de") {
+    return "de-DE";
+  }
+
+  return "en-US";
+}
+
 export function AnswerForm(props: AnswerFormProps) {
-  const { answer, isSubmitting, onAnswerChange, onSubmit } = props;
+  const {
+    answer,
+    isSubmitting,
+    practiceLanguage,
+    onAnswerChange,
+    onSubmit,
+  } = props;
 
   const [inputMode, setInputMode] = useState<InputMode>("TEXT");
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [rawTranscriptValue, setRawTranscriptValue] = useState<string>("");
   const [usedVoice, setUsedVoice] = useState(false);
+
+  const speechRecognitionLanguage = useMemo(
+    () => getSpeechRecognitionLanguage(practiceLanguage),
+    [practiceLanguage],
+  );
 
   const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
     useSpeechRecognition();
@@ -48,7 +70,7 @@ export function AnswerForm(props: AnswerFormProps) {
     try {
       await SpeechRecognition.startListening({
         continuous: true,
-        language: "en-US",
+        language: speechRecognitionLanguage,
       });
     } catch {
       setVoiceError("Failed to start voice input.");
@@ -67,7 +89,9 @@ export function AnswerForm(props: AnswerFormProps) {
         setUsedVoice(true);
 
         setRawTranscriptValue((prev) =>
-          prev.trim() ? `${prev.trim()} ${normalizedTranscript}` : normalizedTranscript
+          prev.trim()
+            ? `${prev.trim()} ${normalizedTranscript}`
+            : normalizedTranscript,
         );
 
         const nextAnswer = answer.trim()
@@ -162,6 +186,10 @@ export function AnswerForm(props: AnswerFormProps) {
                 Voice input is not supported in this browser.
               </p>
             ) : null}
+
+            <p className="text-xs text-zinc-500">
+              Recognition language: {speechRecognitionLanguage}
+            </p>
 
             <div className="flex flex-col gap-2 sm:flex-row">
               <button

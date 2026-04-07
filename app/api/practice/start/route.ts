@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "Unauthorized",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "roleSlug, topicSlug and language are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "No active question found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         ok: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

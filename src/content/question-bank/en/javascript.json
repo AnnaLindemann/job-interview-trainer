@@ -1,0 +1,483 @@
+[
+  {
+    "questionKey": "var-let-const-hoisting-tdz",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens if you access a variable declared with var, let, or const before its declaration line?",
+    "referenceAnswer": "A var variable is hoisted and initialized with undefined at the top of its function scope, so accessing it early returns undefined silently. let and const are also hoisted but remain uninitialized until execution reaches the declaration — this gap is called the Temporal Dead Zone (TDZ), and any access during it throws a ReferenceError. A real-world bug happens when developers refactor var to let without noticing the variable is referenced earlier in the function: code that silently returned undefined now crashes at runtime. Remember that var is function-scoped while let and const are block-scoped, so a var inside an if block leaks into the surrounding function.",
+    "keyPoints": [
+      "var is hoisted and initialized with undefined",
+      "let and const are hoisted but stay uninitialized (TDZ)",
+      "accessing let/const before declaration throws ReferenceError",
+      "var is function-scoped, let/const are block-scoped",
+      "refactoring var to let can introduce runtime crashes"
+    ],
+    "tags": ["javascript", "variables", "hoisting", "tdz", "scope"]
+  },
+  {
+    "questionKey": "map-vs-foreach-return-value",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you use map instead of forEach, and what happens if you pick the wrong one?",
+    "referenceAnswer": "map returns a new array with the results of calling the callback on every element, while forEach returns undefined and exists purely for side effects like logging or DOM updates. A common mistake is calling map just to perform a side effect without using the returned array — this allocates a throwaway array and wastes memory. The reverse mistake is using forEach when you need a transformed array, forcing you to manually push into a separate array, which is less readable. Use map when you need a derived array, and forEach when you only need to run an action per element.",
+    "keyPoints": [
+      "map returns a new array, forEach returns undefined",
+      "map is for transformation, forEach is for side effects",
+      "using map without its return value wastes memory",
+      "forEach requires manual pushing to build a new array"
+    ],
+    "tags": ["javascript", "arrays", "iteration"]
+  },
+  {
+    "questionKey": "function-declaration-vs-expression",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you call a function declaration versus a function expression before it is defined?",
+    "referenceAnswer": "A function declaration like function greet() {} is fully hoisted — you can call it anywhere in its scope, even before the line where it appears. A function expression like const greet = function() {} is not hoisted as a function: the variable is hoisted per its keyword, but the assignment happens at runtime. Calling a var-based expression before its assignment throws a TypeError because the variable holds undefined, which is not callable. Calling a let/const-based expression throws a ReferenceError due to the TDZ. A typical bug is moving a function expression above its definition during refactoring without realizing it will fail, unlike a function declaration.",
+    "keyPoints": [
+      "function declarations are fully hoisted",
+      "function expressions are not hoisted as functions",
+      "var-based expression before assignment gives TypeError",
+      "let/const-based expression before assignment gives ReferenceError"
+    ],
+    "tags": ["javascript", "functions", "hoisting"]
+  },
+  {
+    "questionKey": "async-await-vs-promise-chaining",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens if you forget try/catch in an async function, and how does that differ from Promise chaining with .catch()?",
+    "referenceAnswer": "In Promise chaining, .catch() is explicitly attached and handles rejections inline. With async/await, if you forget try/catch around an await call, the rejection propagates as an unhandled promise rejection — in Node.js (v15+) this terminates the process by default, and in the browser it leaves the app in a broken state with no user feedback. Another frequent bug is using await inside forEach, which fires all iterations concurrently instead of waiting for each one — the fix is for...of for sequential execution or Promise.all with map for parallel. async/await is syntactic sugar over Promises that makes sequential async code more readable, but it shifts the responsibility for error handling from explicit chaining to try/catch blocks.",
+    "keyPoints": [
+      "async/await is syntactic sugar over Promises",
+      ".catch() is explicit, try/catch is easy to forget",
+      "unhandled rejections terminate Node.js (v15+) by default",
+      "await in forEach runs concurrently — use for...of or Promise.all"
+    ],
+    "tags": ["javascript", "async", "promises", "error-handling"]
+  },
+  {
+    "questionKey": "closure-scope-loop-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens when you create closures inside a for loop using var, and why does switching to let fix it?",
+    "referenceAnswer": "A closure captures variables from its outer scope by reference, not by value. When you use var in a for loop with setTimeout, all callbacks share the same function-scoped variable, so by the time they execute the loop has finished and every callback sees the final value. Switching to let fixes this because let is block-scoped — each iteration gets its own binding, so each closure captures a different value. Before ES6, the workaround was wrapping the callback in an IIFE that receives the current value as a parameter. This bug is one of the most common JavaScript interview questions because it tests closures and scoping at the same time.",
+    "keyPoints": [
+      "closures capture variables by reference, not by value",
+      "var shares one binding across all loop iterations",
+      "let creates a new binding per iteration",
+      "IIFE was the pre-ES6 workaround"
+    ],
+    "tags": ["javascript", "closures", "scope", "loops"]
+  },
+  {
+    "questionKey": "const-mutation-misconception",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you push an item into an array declared with const?",
+    "referenceAnswer": "It works without any error. const prevents reassignment of the binding, not mutation of the value it points to. So const arr = [1, 2] means you cannot do arr = [3, 4], but arr.push(3) is perfectly valid because the reference itself hasn't changed. The same applies to objects: const obj = {} still allows obj.name = 'Anna'. A common misconception among junior developers is thinking const makes the value immutable — to actually prevent mutation you need Object.freeze(), though that only freezes one level deep.",
+    "keyPoints": [
+      "const prevents reassignment, not mutation",
+      "pushing to a const array works fine",
+      "const objects can still have properties added or changed",
+      "Object.freeze() is needed for shallow immutability"
+    ],
+    "tags": ["javascript", "variables", "const", "mutation"]
+  },
+  {
+    "questionKey": "filter-reduce-when-to-use",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you use filter versus reduce, and what mistake do developers make when using reduce for simple tasks?",
+    "referenceAnswer": "filter creates a new array containing only the elements that pass a test function, while reduce accumulates all elements into a single value — a number, string, object, or even another array. A frequent mistake is using reduce for tasks that filter or map could handle more clearly: for example, using reduce to collect matching items into an array when filter does the same thing in one line with less cognitive load. reduce is most useful when you need to combine elements, like summing numbers, grouping items by a key, or flattening nested arrays. The rule is to pick the most specific method: filter for subsetting, map for transforming, and reduce only when you truly need accumulation.",
+    "keyPoints": [
+      "filter returns a subset array, reduce returns an accumulated value",
+      "reduce can replicate filter and map but is harder to read",
+      "use reduce for sums, grouping, or flattening",
+      "prefer the most specific array method for clarity"
+    ],
+    "tags": ["javascript", "arrays", "filter", "reduce"]
+  },
+  {
+    "questionKey": "foreach-cannot-break",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you try to use break or return to stop a forEach loop early?",
+    "referenceAnswer": "You cannot break out of a forEach — it always iterates over every element. Using return inside the callback only exits the current iteration's callback function, not the entire loop. This surprises developers who switch from for loops to forEach and expect break or return to work the same way. If you need early termination, use a for...of loop, a regular for loop, or the Array.some() / Array.find() methods which stop when the condition is met. A common performance bug is using forEach to search for one item in a large array when find would stop at the first match.",
+    "keyPoints": [
+      "forEach cannot be stopped with break",
+      "return inside forEach only exits the current callback",
+      "for...of or for loop supports break",
+      "Array.find() or Array.some() stop on first match"
+    ],
+    "tags": ["javascript", "arrays", "iteration", "foreach"]
+  },
+  {
+    "questionKey": "object-reference-vs-copy",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens if you assign an object to a new variable and then modify the original?",
+    "referenceAnswer": "Both variables point to the same object in memory, so modifying one affects the other. For example, const a = { name: 'Anna' }; const b = a; a.name = 'Max'; now b.name is also 'Max'. This is because objects are assigned by reference, not by value — unlike primitives such as numbers or strings. A very common bug is passing an object to a function, mutating it inside, and being surprised that the caller's original object changed too. To avoid this, create a copy using the spread operator ({ ...obj }) or Object.assign({}, obj), but be aware these only create shallow copies.",
+    "keyPoints": [
+      "objects are assigned by reference, not by value",
+      "modifying one variable affects all references to the same object",
+      "primitives (numbers, strings) are copied by value",
+      "spread operator creates a shallow copy"
+    ],
+    "tags": ["javascript", "objects", "references", "copying"]
+  },
+  {
+    "questionKey": "shallow-vs-deep-copy",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the difference between a shallow copy and a deep copy of an object, and when does a shallow copy fail?",
+    "referenceAnswer": "A shallow copy duplicates only the top-level properties — nested objects and arrays still reference the original. So if you do const copy = { ...original } and then modify copy.address.city, the original's address.city changes too because both share the same nested object. A deep copy duplicates every level, creating fully independent data. You can deep copy with structuredClone() in modern JavaScript, or JSON.parse(JSON.stringify(obj)) as a workaround, though the JSON method loses functions, undefined values, and Date objects. A common bug is using spread to copy a state object in React and then mutating a nested property, which causes stale state because React's shallow comparison doesn't detect the change.",
+    "keyPoints": [
+      "shallow copy only duplicates top-level properties",
+      "nested objects are still shared references in shallow copies",
+      "structuredClone() creates a true deep copy",
+      "JSON.parse(JSON.stringify()) loses functions and undefined"
+    ],
+    "tags": ["javascript", "objects", "copying", "immutability"]
+  },
+  {
+    "questionKey": "array-mutation-side-effects",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Which common array methods mutate the original array, and why does that matter?",
+    "referenceAnswer": "push, pop, shift, unshift, splice, sort, and reverse all mutate the original array in place. Methods like map, filter, slice, and concat return new arrays without touching the original. This matters because unexpected mutation causes bugs — for example, calling sort() on an array you received as a function argument permanently reorders the caller's data. In React, mutating an array in state instead of creating a new one means React won't detect the change and won't re-render. The safe pattern is to copy first: [...arr].sort() gives you a sorted copy without modifying the original.",
+    "keyPoints": [
+      "push, pop, splice, sort, reverse mutate in place",
+      "map, filter, slice, concat return new arrays",
+      "sorting a passed-in array mutates the caller's data",
+      "[...arr].sort() creates a sorted copy safely"
+    ],
+    "tags": ["javascript", "arrays", "mutation", "immutability"]
+  },
+  {
+    "questionKey": "event-loop-microtask-macrotask",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "What is the difference between a microtask and a macrotask, and in what order do they execute?",
+    "referenceAnswer": "The event loop processes all microtasks before moving to the next macrotask. Microtasks include Promise callbacks (.then, .catch, .finally) and queueMicrotask(), while macrotasks include setTimeout, setInterval, and I/O callbacks. So if you call setTimeout(fn, 0) and Promise.resolve().then(fn2), fn2 always runs before fn — even though both are scheduled immediately. A practical consequence is that a long chain of Promises can starve setTimeout callbacks and delay rendering in the browser because the microtask queue is drained completely before the browser gets to paint. Understanding this order is critical for debugging race conditions in async code.",
+    "keyPoints": [
+      "microtasks run before the next macrotask",
+      "Promise callbacks are microtasks",
+      "setTimeout/setInterval are macrotasks",
+      "microtask floods can starve macrotasks and delay rendering"
+    ],
+    "tags": ["javascript", "event-loop", "microtask", "macrotask"]
+  },
+  {
+    "questionKey": "settimeout-zero-not-immediate",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens when you call setTimeout with a delay of 0, and why doesn't the callback run immediately?",
+    "referenceAnswer": "setTimeout(fn, 0) does not execute fn immediately — it schedules it as a macrotask that runs after the current call stack is empty and all pending microtasks have completed. So code like console.log('A'); setTimeout(() => console.log('B'), 0); console.log('C') prints A, C, B. The 0ms delay is a minimum, not a guarantee — the actual delay depends on how busy the main thread is. In browsers, nested setTimeout calls are clamped to a minimum of 4ms after the 5th nesting level. Developers sometimes use setTimeout(fn, 0) to defer work until after the DOM has updated, but this is unreliable — requestAnimationFrame or queueMicrotask are better choices depending on the use case.",
+    "keyPoints": [
+      "setTimeout(fn, 0) defers fn to the next macrotask",
+      "the callback runs after the current stack and all microtasks",
+      "browsers clamp nested setTimeout to 4ms minimum",
+      "requestAnimationFrame is more reliable for post-render work"
+    ],
+    "tags": ["javascript", "event-loop", "setTimeout", "async"]
+  },
+  {
+    "questionKey": "promise-all-vs-allsettled",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens if one Promise in Promise.all rejects, and how does Promise.allSettled handle it differently?",
+    "referenceAnswer": "Promise.all short-circuits on the first rejection — it immediately rejects with that error and discards the results of all other promises, even those that resolved successfully. This is a problem when you need partial results, like fetching data from multiple APIs where one might be down. Promise.allSettled waits for every promise to finish and returns an array of objects with status 'fulfilled' or 'rejected' plus the value or reason, so you can handle each result individually. A common bug is using Promise.all for independent requests and losing all results when just one fails. Use Promise.all when all results are required, and Promise.allSettled when you can handle partial failures.",
+    "keyPoints": [
+      "Promise.all rejects on the first failure and discards other results",
+      "Promise.allSettled waits for all and returns status for each",
+      "use Promise.all when every result is needed",
+      "use Promise.allSettled for independent tasks that can partially fail"
+    ],
+    "tags": ["javascript", "promises", "error-handling", "async"]
+  },
+  {
+    "questionKey": "typeof-null-quirk",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What does typeof null return, and why does that cause bugs?",
+    "referenceAnswer": "typeof null returns 'object', which is a well-known bug from the first JavaScript implementation that was never fixed for backwards compatibility. This causes problems when you check if a value is an object using typeof val === 'object' — null passes that check even though it is not an object. A common bug is writing if (typeof data === 'object') { data.name } and getting a TypeError because data is null. The safe way to check for a real object is typeof val === 'object' && val !== null, or simply val && typeof val === 'object'.",
+    "keyPoints": [
+      "typeof null returns 'object' (historical bug)",
+      "null passes typeof checks for objects",
+      "accessing properties on null throws TypeError",
+      "always add a null check alongside typeof 'object'"
+    ],
+    "tags": ["javascript", "types", "null", "bugs"]
+  },
+  {
+    "questionKey": "double-vs-triple-equals",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens when you compare values with == instead of ===, and what bugs can type coercion cause?",
+    "referenceAnswer": "== performs type coercion before comparison, while === checks both value and type without conversion. This leads to surprising results: '' == 0 is true, '0' == false is true, and null == undefined is true. A classic bug is checking user input with if (input == 0) which is true when input is an empty string, leading to incorrect validation. Another trap is that [] == false is true because the array is coerced to an empty string and then to 0. The best practice is to always use === unless you intentionally want coercion — the only common exception is val == null, which conveniently checks for both null and undefined.",
+    "keyPoints": [
+      "== coerces types, === does not",
+      "'' == 0 is true, which breaks input validation",
+      "[] == false is true due to array-to-string-to-number coercion",
+      "val == null is a valid shorthand for null/undefined check"
+    ],
+    "tags": ["javascript", "comparison", "coercion", "bugs"]
+  },
+  {
+    "questionKey": "implicit-type-coercion-pitfalls",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens when you use the + operator between a string and a number, and what other coercion traps exist?",
+    "referenceAnswer": "When one operand is a string, the + operator performs string concatenation instead of addition: '5' + 3 results in '53', not 8. The reverse is also confusing: '5' - 3 returns 2 because the - operator only works with numbers and coerces the string. This causes real bugs when reading values from form inputs or query parameters, which are always strings — calculating price + tax concatenates instead of adding if you forget to parse. Other traps include Boolean coercion in conditions: 0, '', null, undefined, NaN, and false are all falsy, so if (count) fails when count is a valid 0. Use Number(), parseInt(), or the unary + to explicitly convert.",
+    "keyPoints": [
+      "string + number concatenates instead of adding",
+      "string - number coerces the string to a number",
+      "form inputs are always strings — parse before math",
+      "0 is falsy, so if (count) fails for valid zero values"
+    ],
+    "tags": ["javascript", "coercion", "types", "bugs"]
+  },
+  {
+    "questionKey": "arrow-function-this-binding",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What happens to the value of this inside an arrow function compared to a regular function?",
+    "referenceAnswer": "An arrow function does not have its own this — it captures this from the surrounding lexical scope at the time it is created. A regular function gets its this set dynamically based on how it is called: as a method, via call/apply, or as a standalone function. A classic bug is using a regular function as an event handler or callback in a class and finding that this is undefined or points to the wrong object. For example, passing this.handleClick as a callback in React without binding it loses the component's this. Arrow functions fix this because they inherit this from the enclosing scope, which is why they are commonly used for callbacks and class methods.",
+    "keyPoints": [
+      "arrow functions capture this from the enclosing scope",
+      "regular functions get this based on call site",
+      "passing a regular method as a callback loses this context",
+      "arrow functions fix the this problem in callbacks and class methods"
+    ],
+    "tags": ["javascript", "functions", "this", "arrow-functions"]
+  },
+  {
+    "questionKey": "array-sort-numeric-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens when you call .sort() on an array of numbers without a compare function?",
+    "referenceAnswer": "Without a compare function, sort() converts every element to a string and compares them lexicographically. This means [10, 9, 80, 3].sort() returns [10, 3, 80, 9] because '10' comes before '3' in string order. This is one of the most common JavaScript bugs for beginners. The fix is to pass a compare function: arr.sort((a, b) => a - b) for ascending numeric order. Additionally, sort() mutates the original array, so if you need the original order preserved, sort a copy with [...arr].sort((a, b) => a - b).",
+    "keyPoints": [
+      "sort() without a comparator uses string comparison",
+      "[10, 9, 80, 3].sort() returns [10, 3, 80, 9]",
+      "arr.sort((a, b) => a - b) for correct numeric sorting",
+      "sort() mutates the original array"
+    ],
+    "tags": ["javascript", "arrays", "sorting", "bugs"]
+  },
+  {
+    "questionKey": "optional-chaining-nullish-coalescing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What does optional chaining (?.) do, and how does the nullish coalescing operator (??) differ from ||?",
+    "referenceAnswer": "Optional chaining (?.) short-circuits to undefined if the value before the ?. is null or undefined, instead of throwing a TypeError. So user?.address?.city safely returns undefined if user or address is missing. The nullish coalescing operator (??) returns the right-hand side only when the left is null or undefined, while || returns the right-hand side for any falsy value including 0, '', and false. A common bug is using || for defaults: count || 10 replaces a valid 0 with 10, while count ?? 10 correctly keeps 0. Combined, user?.settings?.volume ?? 50 safely handles missing properties and returns 50 only when the value is actually null or undefined.",
+    "keyPoints": [
+      "?. returns undefined instead of throwing on null/undefined",
+      "?? only falls back for null and undefined",
+      "|| falls back for all falsy values including 0 and ''",
+      "count || 10 replaces valid 0, count ?? 10 does not"
+    ],
+    "tags": ["javascript", "operators", "optional-chaining", "nullish-coalescing"]
+  },
+  {
+    "questionKey": "spread-rest-operator-uses",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between the spread operator and the rest operator, even though they use the same syntax?",
+    "referenceAnswer": "The spread operator (...) expands an iterable into individual elements, while the rest operator collects multiple elements into a single array. Spread is used when calling functions or creating copies: Math.max(...numbers) or { ...obj, newProp: 1 }. Rest is used in function parameters and destructuring: function sum(...nums) {} or const [first, ...remaining] = arr. A common mistake is thinking spread creates a deep copy — it only copies one level deep, so nested objects are still shared by reference. Another gotcha is that rest parameters must be the last parameter: function(a, ...rest, b) is a syntax error.",
+    "keyPoints": [
+      "spread expands elements, rest collects them",
+      "spread is used in function calls and object/array literals",
+      "rest is used in function parameters and destructuring",
+      "spread only creates shallow copies"
+    ],
+    "tags": ["javascript", "operators", "spread", "rest"]
+  },
+  {
+    "questionKey": "truthy-falsy-gotchas",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What values are falsy in JavaScript, and what bugs does this cause with valid data?",
+    "referenceAnswer": "The falsy values are false, 0, -0, 0n (BigInt), '', null, undefined, and NaN — everything else is truthy, including empty arrays [] and empty objects {}. This causes bugs when you use short-circuit checks on data that can legitimately be 0 or ''. For example, if (user.age) fails when age is 0 because 0 is falsy, so a newborn's age is treated as missing. Similarly, if (name) fails for an empty string which might be a valid cleared input. The fix is to check explicitly: if (user.age !== undefined) or use the nullish coalescing operator ??. Another surprise is that [] and {} are truthy, so if (emptyArray) is always true — check .length instead.",
+    "keyPoints": [
+      "0, '', null, undefined, NaN, and false are falsy",
+      "empty arrays and objects are truthy",
+      "if (value) fails for valid 0 or empty string",
+      "use explicit checks or ?? instead of || for defaults"
+    ],
+    "tags": ["javascript", "types", "truthy", "falsy", "bugs"]
+  },
+  {
+    "questionKey": "destructuring-default-values",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you destructure a property that doesn't exist on the object, and how do default values work?",
+    "referenceAnswer": "Destructuring a missing property gives you undefined, not an error. You can set defaults with const { name = 'Unknown' } = obj, and the default applies only when the value is undefined — not when it's null or other falsy values. This catches developers off guard: const { count = 0 } = { count: null } sets count to null, not 0, because null is not undefined. This is different from the ?? operator which treats both null and undefined as missing. A common bug in React components is destructuring props with defaults and wondering why null values from an API aren't replaced by the default.",
+    "keyPoints": [
+      "missing properties destructure to undefined",
+      "defaults only apply when the value is undefined",
+      "null does not trigger default values in destructuring",
+      "this differs from ?? which handles both null and undefined"
+    ],
+    "tags": ["javascript", "destructuring", "objects", "defaults"]
+  },
+  {
+    "questionKey": "promise-constructor-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is a common mistake when wrapping callback-based code in a new Promise?",
+    "referenceAnswer": "The most common mistake is forgetting to call reject() in the error path, which causes the Promise to hang forever without resolving or rejecting. For example, wrapping fs.readFile in a new Promise but only handling the success case means errors leave the consumer awaiting indefinitely. Another frequent mistake is wrapping a function that already returns a Promise in a new Promise — this is called the explicit Promise construction antipattern. Instead of new Promise((resolve) => fetch(url).then(resolve)), just use fetch(url) directly. A third pitfall is throwing inside a setTimeout within the constructor: that throw is not caught by the Promise because setTimeout runs in a separate call stack.",
+    "keyPoints": [
+      "forgetting reject() causes the Promise to hang forever",
+      "wrapping an existing Promise in new Promise is an antipattern",
+      "throw inside setTimeout is not caught by the Promise constructor",
+      "always handle both success and error paths"
+    ],
+    "tags": ["javascript", "promises", "async", "antipatterns"]
+  },
+  {
+    "questionKey": "event-loop-execution-order",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "What is the output order of console.log, setTimeout, and Promise.resolve().then() when they appear in the same block?",
+    "referenceAnswer": "Synchronous console.log runs first because it's on the call stack. Promise.resolve().then() schedules a microtask, and setTimeout schedules a macrotask. After the synchronous code finishes, the event loop drains all microtasks before processing the next macrotask. So console.log('A'); setTimeout(() => console.log('B'), 0); Promise.resolve().then(() => console.log('C')) prints A, C, B. This order is guaranteed by the specification and is not a race condition. A practical consequence is that Promise chains always complete before the next setTimeout callback, which can cause UI freezes if a long microtask chain blocks the browser from processing timer-based animations.",
+    "keyPoints": [
+      "synchronous code runs first",
+      "microtasks (Promise.then) run before macrotasks (setTimeout)",
+      "output is always A, C, B — not random",
+      "long microtask chains block macrotasks and rendering"
+    ],
+    "tags": ["javascript", "event-loop", "microtask", "macrotask", "execution-order"]
+  },
+  {
+    "questionKey": "closure-private-state",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How can closures be used to create private variables, and what is the limitation?",
+    "referenceAnswer": "A closure can hide variables from external access by declaring them inside a function and only exposing getter/setter functions. For example, function createCounter() { let count = 0; return { increment() { count++; }, getCount() { return count; } }; } — count is private and cannot be accessed or modified directly from outside. This pattern was the main way to create private state in JavaScript before the # private fields syntax in classes. The limitation is that private variables in closures cannot be inspected in unit tests without exposing them, and they use more memory than shared prototype methods because each instance creates its own copy of the inner functions.",
+    "keyPoints": [
+      "closures hide variables from external access",
+      "only exposed functions can read or modify the private variable",
+      "this pattern predates # private class fields",
+      "each instance creates its own function copies, using more memory"
+    ],
+    "tags": ["javascript", "closures", "scope", "encapsulation"]
+  },
+  {
+    "questionKey": "map-chaining-transform",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the benefit of chaining map, filter, and reduce, and what performance problem can it cause?",
+    "referenceAnswer": "Chaining map().filter().reduce() lets you express data transformations as a readable pipeline where each step has a clear purpose. For example, users.filter(u => u.active).map(u => u.name) first selects active users, then extracts their names. The downside is that each method creates an intermediate array, so chaining three methods on a large array creates three temporary arrays. For performance-critical paths, a single reduce() that filters and transforms in one pass avoids the extra allocations. In practice, readability wins for most applications, and the performance difference only matters for arrays with thousands of elements or hot loops.",
+    "keyPoints": [
+      "chaining creates a readable transformation pipeline",
+      "each chained method creates an intermediate array",
+      "a single reduce can combine filter and map for performance",
+      "readability usually outweighs the performance cost"
+    ],
+    "tags": ["javascript", "arrays", "map", "filter", "reduce", "chaining"]
+  },
+  {
+    "questionKey": "async-parallel-sequential",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the difference between running multiple await calls sequentially versus using Promise.all?",
+    "referenceAnswer": "Writing const a = await fetchA(); const b = await fetchB(); runs the two requests sequentially — fetchB doesn't start until fetchA finishes, doubling the total wait time. Promise.all([fetchA(), fetchB()]) runs both concurrently, and the total wait is only as long as the slowest request. A common mistake is writing sequential awaits for independent requests inside a loop, turning what could be a 200ms parallel fetch into 2 seconds of serial waiting. However, Promise.all rejects immediately if any promise fails, losing results from the others. When you want parallel execution with fault tolerance, use Promise.allSettled instead, which always returns all results regardless of individual failures.",
+    "keyPoints": [
+      "sequential await runs one after another",
+      "Promise.all runs them concurrently",
+      "sequential awaits for independent requests waste time",
+      "Promise.all fails fast — use allSettled for partial failure tolerance"
+    ],
+    "tags": ["javascript", "async", "promises", "performance"]
+  },
+  {
+    "questionKey": "for-in-vs-for-of",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you use for...in to iterate over an array instead of for...of?",
+    "referenceAnswer": "for...in iterates over enumerable property keys, which for arrays means string indices ('0', '1', '2') rather than values. Worse, for...in also picks up any enumerable properties added to the array's prototype chain, which can include methods added by libraries. for...of iterates over values directly using the iterable protocol, which is what you want for arrays. A common bug is using for...in on an array, performing arithmetic with the keys, and getting string concatenation instead of addition because the keys are strings: '0' + 1 gives '01' instead of 1. Use for...in for objects and for...of for arrays and other iterables.",
+    "keyPoints": [
+      "for...in iterates keys as strings, for...of iterates values",
+      "for...in includes inherited enumerable properties",
+      "array indices from for...in are strings, not numbers",
+      "use for...in for objects, for...of for arrays"
+    ],
+    "tags": ["javascript", "loops", "iteration", "bugs"]
+  },
+  {
+    "questionKey": "callback-to-promise-refactor",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What problems does deeply nested callback code cause, and how do Promises and async/await solve them?",
+    "referenceAnswer": "Deeply nested callbacks — often called callback hell — make code hard to read, debug, and maintain because each async step adds another indentation level and error handling must be repeated at every level. Promises flatten this into a chain where each .then() returns the next step and errors bubble to a single .catch() at the end. async/await goes further by making the code look synchronous: each step is on its own line with natural try/catch for errors. A practical problem with nested callbacks is that a missing error handler in one level silently swallows errors, while a Promise chain surfaces them predictably. When refactoring callbacks to async/await, a common mistake is forgetting that the outer function must be declared async.",
+    "keyPoints": [
+      "nested callbacks reduce readability and complicate error handling",
+      "Promises flatten chains and centralize error handling with .catch()",
+      "async/await makes async code look synchronous",
+      "missing error handlers in callbacks silently swallow errors"
+    ],
+    "tags": ["javascript", "async", "callbacks", "promises", "refactoring"]
+  }
+]

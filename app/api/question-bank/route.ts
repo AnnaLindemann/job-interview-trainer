@@ -13,7 +13,7 @@ export async function GET() {
           ok: false,
           error: "Unauthorized",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -26,30 +26,26 @@ export async function GET() {
       },
       select: {
         id: true,
+        questionKey: true,
+        questionTextSnapshot: true,
+        referenceAnswerSnapshot: true,
+        roleSlug: true,
+        topicSlug: true,
+        language: true,
+        difficulty: true,
         addedAt: true,
-        question: {
-          select: {
-            id: true,
-            questionText: true,
-            referenceAnswer: true,
-            roleSlug: true,
-            topicSlug: true,
-            language: true,
-            difficulty: true,
-          },
-        },
       },
     });
 
     const items = practicedQuestions.map((item) => ({
       practicedQuestionId: item.id,
-      questionId: item.question.id,
-      questionText: item.question.questionText,
-      referenceAnswer: item.question.referenceAnswer,
-      roleSlug: item.question.roleSlug,
-      topicSlug: item.question.topicSlug,
-      language: item.question.language,
-      difficulty: item.question.difficulty,
+      questionId: item.questionKey,
+      questionText: item.questionTextSnapshot,
+      referenceAnswer: item.referenceAnswerSnapshot,
+      roleSlug: item.roleSlug,
+      topicSlug: item.topicSlug,
+      language: item.language,
+      difficulty: item.difficulty,
       addedAt: item.addedAt,
     }));
 
@@ -67,7 +63,7 @@ export async function GET() {
         ok: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

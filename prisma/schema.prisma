@@ -30,6 +30,7 @@ model User {
 
 model Question {
   id              String     @id @default(cuid())
+  questionKey     String
   roleSlug        String
   topicSlug       String
   language        String
@@ -41,9 +42,7 @@ model Question {
   isActive        Boolean    @default(true)
   createdAt       DateTime   @default(now())
 
-  attempts           Attempt[]
-  practicedQuestions PracticedQuestion[]
-
+  @@unique([roleSlug, topicSlug, language, questionKey])
   @@index([roleSlug, topicSlug, language])
   @@index([isActive])
 }
@@ -65,39 +64,51 @@ model PracticeSession {
 }
 
 model Attempt {
-  id             String    @id @default(cuid())
-  sessionId      String
-  questionId     String
-  inputMode      InputMode
-  rawTranscript  String?
-  finalAnswer    String
-  usedVoice      Boolean   @default(false)
-  feedbackJson   Json?
-  technicalScore Int?
-  grammarScore   Int?
-  createdAt      DateTime  @default(now())
+  id                      String    @id @default(cuid())
+  sessionId               String
+  questionKey             String
+  questionTextSnapshot    String
+  referenceAnswerSnapshot String
+  roleSlug                String
+  topicSlug               String
+  language                String
+  difficulty              Difficulty
+  inputMode               InputMode
+  rawTranscript           String?
+  finalAnswer             String
+  usedVoice               Boolean   @default(false)
+  feedbackJson            Json?
+  technicalScore          Int?
+  grammarScore            Int?
+  createdAt               DateTime  @default(now())
 
-  session  PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  question Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  session PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
-  @@index([questionId])
+  @@index([questionKey])
+  @@index([topicSlug, language])
   @@index([createdAt])
   @@index([usedVoice])
 }
 
 model PracticedQuestion {
-  id         String   @id @default(cuid())
-  userId     String
-  questionId String
-  addedAt    DateTime @default(now())
+  id                      String     @id @default(cuid())
+  userId                  String
+  questionKey             String
+  questionTextSnapshot    String
+  referenceAnswerSnapshot String
+  roleSlug                String
+  topicSlug               String
+  language                String
+  difficulty              Difficulty
+  addedAt                 DateTime   @default(now())
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, questionId])
+  @@unique([userId, roleSlug, topicSlug, language, questionKey])
   @@index([userId, addedAt])
-  @@index([questionId])
+  @@index([topicSlug, language])
+  @@index([questionKey])
 }
 
 model LlmUsageLog {

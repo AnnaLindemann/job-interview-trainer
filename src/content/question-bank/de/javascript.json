@@ -1,0 +1,483 @@
+[
+  {
+    "questionKey": "var-let-const-hoisting-tdz",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du auf eine Variable zugreifst, die mit var, let oder const deklariert wurde, bevor die Deklaration erreicht wird?",
+    "referenceAnswer": "Eine var-Variable wird gehoisted und am Anfang ihres Function Scope mit undefined initialisiert — ein Zugriff vor der Deklaration gibt also stillschweigend undefined zurück. let und const werden ebenfalls gehoisted, bleiben aber bis zur Deklaration uninitialisiert — dieser Bereich heißt Temporal Dead Zone (TDZ), und jeder Zugriff darin wirft einen ReferenceError. Ein typischer Bug entsteht beim Refactoring von var zu let, wenn die Variable weiter oben im Code referenziert wird: was vorher still mit undefined lief, crasht jetzt zur Laufzeit. Außerdem ist var function-scoped, während let und const block-scoped sind — ein var in einem if-Block leakt in die umgebende Funktion.",
+    "keyPoints": [
+      "var wird gehoisted und mit undefined initialisiert",
+      "let und const bleiben bis zur Deklaration uninitialisiert (TDZ)",
+      "Zugriff auf let/const vor der Deklaration wirft einen ReferenceError",
+      "var ist function-scoped, let/const sind block-scoped",
+      "Refactoring von var zu let kann Runtime-Crashes verursachen"
+    ],
+    "tags": ["javascript", "variables", "hoisting", "tdz", "scope"]
+  },
+  {
+    "questionKey": "map-vs-foreach-return-value",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du map statt forEach verwenden, und was passiert, wenn du die falsche Methode wählst?",
+    "referenceAnswer": "map gibt ein neues Array mit den Ergebnissen des Callbacks für jedes Element zurück, während forEach undefined zurückgibt und nur für Side Effects wie Logging oder DOM-Updates gedacht ist. Ein häufiger Fehler ist, map nur für einen Side Effect aufzurufen, ohne das zurückgegebene Array zu nutzen — das erzeugt ein überflüssiges Array und verschwendet Speicher. Umgekehrt: wenn man mit forEach ein transformiertes Array bauen will, muss man manuell in ein separates Array pushen, was schlechter lesbar ist. Faustregel: map für abgeleitete Arrays, forEach wenn man nur eine Aktion pro Element braucht.",
+    "keyPoints": [
+      "map gibt ein neues Array zurück, forEach gibt undefined zurück",
+      "map ist für Transformation, forEach für Side Effects",
+      "map ohne Nutzung des Return Values verschwendet Speicher",
+      "forEach erfordert manuelles Pushen für ein neues Array"
+    ],
+    "tags": ["javascript", "arrays", "iteration"]
+  },
+  {
+    "questionKey": "function-declaration-vs-expression",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du eine Funktionsdeklaration vor ihrer Definition aufrufst — und wie verhält sich ein Function Expression dabei?",
+    "referenceAnswer": "Eine Funktionsdeklaration wie function greet() {} wird vollständig gehoisted — man kann sie überall in ihrem Scope aufrufen, auch vor der Zeile, in der sie steht. Ein Function Expression wie const greet = function() {} wird nicht als Funktion gehoisted: Die Variable wird gemäß ihrem Keyword gehoisted, aber die Zuweisung passiert erst zur Laufzeit. Wenn ein Function Expression mit var vor der Zuweisung aufgerufen wird, bekommt man einen TypeError, weil undefined nicht aufrufbar ist. Bei let oder const wirft es einen ReferenceError wegen der TDZ. Ein typischer Bug ist, ein Function Expression beim Refactoring nach oben zu verschieben, ohne zu merken, dass es dort noch nicht verfügbar ist.",
+    "keyPoints": [
+      "Funktionsdeklarationen werden vollständig gehoisted",
+      "Function Expressions werden nicht als Funktionen gehoisted",
+      "Function Expression mit var vor Zuweisung ergibt TypeError",
+      "Function Expression mit let/const vor Zuweisung ergibt ReferenceError"
+    ],
+    "tags": ["javascript", "functions", "hoisting"]
+  },
+  {
+    "questionKey": "async-await-vs-promise-chaining",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du in einer async-Funktion try/catch vergisst, und wie unterscheidet sich das von Promise Chaining mit .catch()?",
+    "referenceAnswer": "Bei Promise Chaining wird .catch() explizit angehängt und fängt Rejections inline ab. Bei async/await propagiert eine vergessene try/catch-Behandlung die Rejection als unhandled Promise Rejection weiter — in Node.js (ab v15) wird der Prozess standardmäßig beendet, im Browser bleibt die App ohne Fehlermeldung in einem kaputten State. Ein weiterer häufiger Bug ist await in forEach: Das feuert alle Iterationen gleichzeitig ab, statt auf jede einzeln zu warten — die Lösung ist for...of für sequenzielle Ausführung oder Promise.all mit map für parallele. async/await ist syntaktischer Zucker über Promises, der sequenziellen async-Code lesbarer macht, aber die Verantwortung für Error Handling von explizitem Chaining auf try/catch verschiebt.",
+    "keyPoints": [
+      "async/await ist syntaktischer Zucker über Promises",
+      ".catch() ist explizit, try/catch wird leicht vergessen",
+      "unhandled Rejections beenden Node.js (ab v15) standardmäßig",
+      "await in forEach läuft parallel — for...of oder Promise.all verwenden"
+    ],
+    "tags": ["javascript", "async", "promises", "error-handling"]
+  },
+  {
+    "questionKey": "closure-scope-loop-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du in einer for-Schleife mit var Closures erzeugst, und warum löst let das Problem?",
+    "referenceAnswer": "Eine Closure erfasst Variablen aus ihrem äußeren Scope per Referenz, nicht per Wert. Bei var in einer for-Schleife mit setTimeout teilen sich alle Callbacks dieselbe function-scoped Variable — wenn sie ausgeführt werden, hat die Schleifenvariable bereits ihren Endwert, und jeder Callback gibt dieselbe Zahl aus. Mit let wird das behoben, weil let block-scoped ist und jede Iteration ihr eigenes Binding bekommt, sodass jede Closure einen anderen Wert erfasst. Vor ES6 war der Workaround, den Callback in ein IIFE zu wrappen, das den aktuellen Wert als Parameter erhält. Dieser Bug ist eine der häufigsten JavaScript-Interviewfragen, weil er Closures und Scoping gleichzeitig testet.",
+    "keyPoints": [
+      "Closures erfassen Variablen per Referenz, nicht per Wert",
+      "var teilt ein Binding über alle Loop-Iterationen",
+      "let erzeugt pro Iteration ein neues Binding",
+      "IIFE war der pre-ES6 Workaround"
+    ],
+    "tags": ["javascript", "closures", "scope", "loops"]
+  },
+  {
+    "questionKey": "const-mutation-misconception",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du ein Element in ein Array pushst, das mit const deklariert wurde?",
+    "referenceAnswer": "Es funktioniert ohne Fehler. const verhindert die Neuzuweisung des Bindings, nicht die Mutation des Werts. const arr = [1, 2] bedeutet, dass arr = [3, 4] nicht geht, aber arr.push(3) ist völlig gültig, weil die Referenz selbst sich nicht ändert. Dasselbe gilt für Objekte: const obj = {} erlaubt trotzdem obj.name = 'Anna'. Ein häufiges Missverständnis bei Junior-Entwicklern ist, dass const den Wert unveränderlich macht — um Mutation tatsächlich zu verhindern, braucht man Object.freeze(), wobei das nur eine Ebene tief einfriert.",
+    "keyPoints": [
+      "const verhindert Neuzuweisung, nicht Mutation",
+      "push auf ein const-Array funktioniert problemlos",
+      "const-Objekte können weiterhin Properties bekommen",
+      "Object.freeze() ist nötig für flache Immutability"
+    ],
+    "tags": ["javascript", "variables", "const", "mutation"]
+  },
+  {
+    "questionKey": "filter-reduce-when-to-use",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du filter statt reduce verwenden, und welchen Fehler machen Entwickler oft bei reduce?",
+    "referenceAnswer": "filter erzeugt ein neues Array mit nur den Elementen, die den Test bestehen, während reduce alle Elemente zu einem einzelnen Wert zusammenführt — einer Zahl, einem String, einem Objekt oder sogar einem anderen Array. Ein häufiger Fehler ist, reduce für Aufgaben zu verwenden, die filter oder map klarer lösen könnten: zum Beispiel reduce nutzen, um passende Elemente zu sammeln, wenn filter dasselbe in einer Zeile erledigt. reduce ist am nützlichsten, wenn man Elemente kombinieren muss — Summen berechnen, nach Schlüssel gruppieren oder verschachtelte Arrays flattenen. Die Regel: immer die spezifischste Methode wählen — filter für Teilmengen, map für Transformation, reduce nur bei echtem Akkumulationsbedarf.",
+    "keyPoints": [
+      "filter gibt eine Teilmenge zurück, reduce einen akkumulierten Wert",
+      "reduce kann filter und map ersetzen, ist aber schwerer zu lesen",
+      "reduce eignet sich für Summen, Gruppierung und Flattening",
+      "immer die spezifischste Array-Methode bevorzugen"
+    ],
+    "tags": ["javascript", "arrays", "filter", "reduce"]
+  },
+  {
+    "questionKey": "foreach-cannot-break",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du versuchst, eine forEach-Schleife mit break oder return vorzeitig zu beenden?",
+    "referenceAnswer": "Man kann forEach nicht mit break abbrechen — es iteriert immer über jedes Element. return im Callback beendet nur die aktuelle Callback-Ausführung, nicht die gesamte Schleife. Das überrascht Entwickler, die von for-Schleifen auf forEach umsteigen und erwarten, dass break oder return genauso funktionieren. Wenn man vorzeitigen Abbruch braucht, nimmt man for...of, eine normale for-Schleife oder Array.some() bzw. Array.find(), die beim ersten Treffer stoppen. Ein typischer Performance-Bug ist, forEach zu verwenden, um ein einzelnes Element in einem großen Array zu suchen, obwohl find beim ersten Treffer aufhört.",
+    "keyPoints": [
+      "forEach kann nicht mit break abgebrochen werden",
+      "return im Callback beendet nur die aktuelle Iteration",
+      "for...of oder for-Schleife unterstützt break",
+      "Array.find() oder Array.some() stoppen beim ersten Treffer"
+    ],
+    "tags": ["javascript", "arrays", "iteration", "foreach"]
+  },
+  {
+    "questionKey": "object-reference-vs-copy",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du ein Objekt einer neuen Variable zuweist und dann das Original änderst?",
+    "referenceAnswer": "Beide Variablen zeigen auf dasselbe Objekt im Speicher, also betrifft eine Änderung auch die andere. Zum Beispiel: const a = { name: 'Anna' }; const b = a; a.name = 'Max'; — jetzt ist b.name auch 'Max'. Das liegt daran, dass Objekte per Referenz zugewiesen werden, nicht per Wert — anders als Primitives wie Zahlen oder Strings. Ein sehr häufiger Bug ist, ein Objekt an eine Funktion zu übergeben, es dort zu mutieren und dann überrascht zu sein, dass das Original des Aufrufers sich ebenfalls geändert hat. Um das zu vermeiden, erstellt man eine Kopie mit dem Spread-Operator ({ ...obj }) oder Object.assign({}, obj), wobei diese nur Shallow Copies erzeugen.",
+    "keyPoints": [
+      "Objekte werden per Referenz zugewiesen, nicht per Wert",
+      "Änderung einer Variable betrifft alle Referenzen auf dasselbe Objekt",
+      "Primitives (Zahlen, Strings) werden per Wert kopiert",
+      "der Spread-Operator erzeugt nur eine Shallow Copy"
+    ],
+    "tags": ["javascript", "objects", "references", "copying"]
+  },
+  {
+    "questionKey": "shallow-vs-deep-copy",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was ist der Unterschied zwischen einer Shallow Copy und einer Deep Copy, und wann reicht eine Shallow Copy nicht aus?",
+    "referenceAnswer": "Eine Shallow Copy dupliziert nur die oberste Ebene — verschachtelte Objekte und Arrays referenzieren weiterhin das Original. Wenn man also const copy = { ...original } macht und dann copy.address.city ändert, ändert sich auch original.address.city, weil beide dasselbe verschachtelte Objekt teilen. Eine Deep Copy dupliziert jede Ebene und erzeugt vollständig unabhängige Daten. In modernem JavaScript kann man structuredClone() nutzen, oder JSON.parse(JSON.stringify(obj)) als Workaround — wobei die JSON-Methode Functions, undefined-Werte und Date-Objekte verliert. Ein häufiger Bug in React ist, ein State-Objekt per Spread zu kopieren und dann ein verschachteltes Property zu mutieren — Reacts Shallow Comparison erkennt die Änderung nicht.",
+    "keyPoints": [
+      "Shallow Copy dupliziert nur die oberste Ebene",
+      "verschachtelte Objekte bleiben geteilte Referenzen",
+      "structuredClone() erzeugt eine echte Deep Copy",
+      "JSON.parse(JSON.stringify()) verliert Functions und undefined"
+    ],
+    "tags": ["javascript", "objects", "copying", "immutability"]
+  },
+  {
+    "questionKey": "array-mutation-side-effects",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Welche gängigen Array-Methoden mutieren das Original-Array, und warum ist das ein Problem?",
+    "referenceAnswer": "push, pop, shift, unshift, splice, sort und reverse mutieren das Array in place. Methoden wie map, filter, slice und concat geben neue Arrays zurück, ohne das Original zu verändern. Das ist wichtig, weil unerwartete Mutation Bugs verursacht — zum Beispiel verändert sort() auf einem Array, das man als Funktionsargument erhalten hat, permanent die Daten des Aufrufers. In React bedeutet das Mutieren eines Arrays im State, dass React die Änderung nicht erkennt und kein Re-Render auslöst. Das sichere Pattern ist, erst zu kopieren: [...arr].sort() gibt eine sortierte Kopie zurück, ohne das Original zu verändern.",
+    "keyPoints": [
+      "push, pop, splice, sort, reverse mutieren in place",
+      "map, filter, slice, concat geben neue Arrays zurück",
+      "sort() auf einem übergebenen Array mutiert die Daten des Aufrufers",
+      "[...arr].sort() erzeugt eine sortierte Kopie"
+    ],
+    "tags": ["javascript", "arrays", "mutation", "immutability"]
+  },
+  {
+    "questionKey": "event-loop-microtask-macrotask",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "HARD",
+    "questionText": "Was ist der Unterschied zwischen einem Microtask und einem Macrotask, und in welcher Reihenfolge werden sie ausgeführt?",
+    "referenceAnswer": "Der Event Loop verarbeitet alle Microtasks, bevor er zum nächsten Macrotask weitergeht. Microtasks umfassen Promise-Callbacks (.then, .catch, .finally) und queueMicrotask(), während Macrotasks setTimeout, setInterval und I/O-Callbacks umfassen. Wenn man also setTimeout(fn, 0) und Promise.resolve().then(fn2) aufruft, läuft fn2 immer vor fn — obwohl beide sofort geplant werden. Eine praktische Konsequenz ist, dass eine lange Kette von Promises die setTimeout-Callbacks aushungern und das Rendering im Browser verzögern kann, weil die Microtask-Queue komplett abgearbeitet wird, bevor der Browser zum Zeichnen kommt. Dieses Verständnis ist entscheidend für das Debugging von Race Conditions in asynchronem Code.",
+    "keyPoints": [
+      "Microtasks laufen vor dem nächsten Macrotask",
+      "Promise-Callbacks sind Microtasks",
+      "setTimeout/setInterval sind Macrotasks",
+      "Microtask-Fluten können Macrotasks und Rendering blockieren"
+    ],
+    "tags": ["javascript", "event-loop", "microtask", "macrotask"]
+  },
+  {
+    "questionKey": "settimeout-zero-not-immediate",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du setTimeout mit 0 Millisekunden Verzögerung aufrufst, und warum läuft der Callback nicht sofort?",
+    "referenceAnswer": "setTimeout(fn, 0) führt fn nicht sofort aus — es plant fn als Macrotask, der erst läuft, nachdem der aktuelle Call Stack leer ist und alle Microtasks abgearbeitet sind. Code wie console.log('A'); setTimeout(() => console.log('B'), 0); console.log('C') gibt also A, C, B aus. Die 0ms sind ein Minimum, keine Garantie — die tatsächliche Verzögerung hängt davon ab, wie beschäftigt der Main Thread ist. In Browsern werden verschachtelte setTimeout-Aufrufe ab der 5. Ebene auf mindestens 4ms begrenzt. Entwickler nutzen setTimeout(fn, 0) manchmal, um Arbeit bis nach dem DOM-Update zu verschieben, aber das ist unzuverlässig — requestAnimationFrame oder queueMicrotask sind je nach Anwendungsfall die bessere Wahl.",
+    "keyPoints": [
+      "setTimeout(fn, 0) verschiebt fn zum nächsten Macrotask",
+      "der Callback läuft nach dem aktuellen Stack und allen Microtasks",
+      "Browser begrenzen verschachtelte setTimeout auf mindestens 4ms",
+      "requestAnimationFrame ist zuverlässiger für Post-Render-Arbeit"
+    ],
+    "tags": ["javascript", "event-loop", "setTimeout", "async"]
+  },
+  {
+    "questionKey": "promise-all-vs-allsettled",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn ein Promise in Promise.all rejectet, und wie geht Promise.allSettled anders damit um?",
+    "referenceAnswer": "Promise.all bricht beim ersten Reject sofort ab — es rejectet mit dem entsprechenden Fehler und verwirft die Ergebnisse aller anderen Promises, auch derer, die erfolgreich resolved haben. Das ist ein Problem, wenn man Teilergebnisse braucht, zum Beispiel beim Abrufen von Daten aus mehreren APIs, von denen eine nicht erreichbar sein könnte. Promise.allSettled wartet auf jedes Promise und gibt ein Array von Objekten mit Status 'fulfilled' oder 'rejected' plus Wert oder Grund zurück, sodass man jedes Ergebnis einzeln behandeln kann. Ein häufiger Bug ist, Promise.all für unabhängige Requests zu verwenden und alle Ergebnisse zu verlieren, wenn nur einer fehlschlägt. Promise.all wenn alle Ergebnisse nötig sind, Promise.allSettled wenn Teilfehler akzeptabel sind.",
+    "keyPoints": [
+      "Promise.all rejectet beim ersten Fehler und verwirft andere Ergebnisse",
+      "Promise.allSettled wartet auf alle und gibt den Status für jedes zurück",
+      "Promise.all verwenden, wenn jedes Ergebnis benötigt wird",
+      "Promise.allSettled für unabhängige Tasks mit möglichem Teilfehler"
+    ],
+    "tags": ["javascript", "promises", "error-handling", "async"]
+  },
+  {
+    "questionKey": "typeof-null-quirk",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was gibt typeof null zurück, und warum verursacht das Bugs?",
+    "referenceAnswer": "typeof null gibt 'object' zurück — ein bekannter Bug aus der ersten JavaScript-Implementierung, der aus Gründen der Abwärtskompatibilität nie behoben wurde. Das verursacht Probleme, wenn man prüft, ob ein Wert ein Objekt ist, mit typeof val === 'object' — null besteht diesen Check, obwohl es kein Objekt ist. Ein häufiger Bug ist if (typeof data === 'object') { data.name }, was einen TypeError wirft, wenn data null ist. Die sichere Prüfung auf ein echtes Objekt ist typeof val === 'object' && val !== null, oder einfach val && typeof val === 'object'.",
+    "keyPoints": [
+      "typeof null gibt 'object' zurück (historischer Bug)",
+      "null besteht typeof-Checks auf Objekte",
+      "Zugriff auf Properties von null wirft TypeError",
+      "immer einen null-Check zusammen mit typeof 'object' machen"
+    ],
+    "tags": ["javascript", "types", "null", "bugs"]
+  },
+  {
+    "questionKey": "double-vs-triple-equals",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du Werte mit == statt === vergleichst, und welche Bugs kann Type Coercion verursachen?",
+    "referenceAnswer": "== führt Type Coercion vor dem Vergleich durch, während === Wert und Typ ohne Umwandlung prüft. Das führt zu überraschenden Ergebnissen: '' == 0 ist true, '0' == false ist true, und null == undefined ist true. Ein klassischer Bug ist die Prüfung von Benutzereingaben mit if (input == 0), was bei einem leeren String true ergibt und zu falscher Validierung führt. Eine weitere Falle: [] == false ist true, weil das Array zu einem leeren String und dann zu 0 konvertiert wird. Best Practice ist, immer === zu verwenden, außer man will bewusst Coercion — die einzige gängige Ausnahme ist val == null, das praktischerweise sowohl null als auch undefined abdeckt.",
+    "keyPoints": [
+      "== konvertiert Typen, === nicht",
+      "'' == 0 ist true — das bricht Input-Validierung",
+      "[] == false ist true wegen Array-zu-String-zu-Number-Coercion",
+      "val == null ist ein valider Shorthand für null/undefined-Checks"
+    ],
+    "tags": ["javascript", "comparison", "coercion", "bugs"]
+  },
+  {
+    "questionKey": "implicit-type-coercion-pitfalls",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert, wenn du den +-Operator zwischen einem String und einer Zahl verwendest, und welche anderen Coercion-Fallen gibt es?",
+    "referenceAnswer": "Wenn ein Operand ein String ist, führt der +-Operator String-Konkatenation statt Addition durch: '5' + 3 ergibt '53', nicht 8. Umgekehrt ist es auch verwirrend: '5' - 3 gibt 2 zurück, weil der Minus-Operator nur mit Zahlen funktioniert und den String konvertiert. Das verursacht echte Bugs beim Lesen von Werten aus Formulareingaben oder Query-Parametern, die immer Strings sind — price + tax konkateniert statt zu addieren, wenn man das Parsen vergisst. Weitere Fallen betreffen Boolean Coercion in Bedingungen: 0, '', null, undefined, NaN und false sind alle falsy, also schlägt if (count) fehl, wenn count ein gültiger Wert von 0 ist. Man sollte Number(), parseInt() oder das unäre + zur expliziten Konvertierung verwenden.",
+    "keyPoints": [
+      "String + Number konkateniert statt zu addieren",
+      "String - Number konvertiert den String zu einer Zahl",
+      "Formulareingaben sind immer Strings — vor Berechnungen parsen",
+      "0 ist falsy, also schlägt if (count) bei gültiger Null fehl"
+    ],
+    "tags": ["javascript", "coercion", "types", "bugs"]
+  },
+  {
+    "questionKey": "arrow-function-this-binding",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert mit dem Wert von this in einer Arrow Function im Vergleich zu einer regulären Funktion?",
+    "referenceAnswer": "Eine Arrow Function hat kein eigenes this — sie übernimmt this aus dem umgebenden lexikalischen Scope zum Zeitpunkt ihrer Erstellung. Eine reguläre Funktion bekommt this dynamisch, je nachdem wie sie aufgerufen wird: als Methode, über call/apply oder als eigenständige Funktion. Ein klassischer Bug ist, eine reguläre Funktion als Event Handler oder Callback in einer Klasse zu verwenden und festzustellen, dass this undefined ist oder auf das falsche Objekt zeigt. Zum Beispiel: in React verliert this.handleClick als Callback ohne Binding den Kontext der Component. Arrow Functions beheben das, weil sie this aus dem umgebenden Scope erben — deshalb werden sie häufig für Callbacks und Klassenmethoden verwendet.",
+    "keyPoints": [
+      "Arrow Functions übernehmen this aus dem umgebenden Scope",
+      "reguläre Funktionen bekommen this basierend auf dem Aufruf",
+      "eine reguläre Methode als Callback verliert den this-Kontext",
+      "Arrow Functions lösen das this-Problem in Callbacks und Klassenmethoden"
+    ],
+    "tags": ["javascript", "functions", "this", "arrow-functions"]
+  },
+  {
+    "questionKey": "array-sort-numeric-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du .sort() auf einem Zahlen-Array ohne Compare-Funktion aufrufst?",
+    "referenceAnswer": "Ohne Compare-Funktion wandelt sort() jedes Element in einen String um und vergleicht lexikographisch. Das bedeutet, [10, 9, 80, 3].sort() gibt [10, 3, 80, 9] zurück, weil '10' in der Stringreihenfolge vor '3' kommt. Das ist einer der häufigsten JavaScript-Bugs für Anfänger. Die Lösung ist, eine Compare-Funktion zu übergeben: arr.sort((a, b) => a - b) für aufsteigende numerische Sortierung. Außerdem mutiert sort() das Original-Array — wenn man die ursprüngliche Reihenfolge beibehalten will, sortiert man eine Kopie mit [...arr].sort((a, b) => a - b).",
+    "keyPoints": [
+      "sort() ohne Comparator nutzt String-Vergleich",
+      "[10, 9, 80, 3].sort() gibt [10, 3, 80, 9] zurück",
+      "arr.sort((a, b) => a - b) für korrekte numerische Sortierung",
+      "sort() mutiert das Original-Array"
+    ],
+    "tags": ["javascript", "arrays", "sorting", "bugs"]
+  },
+  {
+    "questionKey": "optional-chaining-nullish-coalescing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was macht Optional Chaining (?.), und wie unterscheidet sich der Nullish Coalescing Operator (??) von ||?",
+    "referenceAnswer": "Optional Chaining (?.) gibt undefined zurück, wenn der Wert vor dem ?. null oder undefined ist, statt einen TypeError zu werfen. Also gibt user?.address?.city sicher undefined zurück, wenn user oder address fehlt. Der Nullish Coalescing Operator (??) gibt die rechte Seite nur zurück, wenn die linke null oder undefined ist, während || die rechte Seite für jeden falsy-Wert zurückgibt, also auch für 0, '' und false. Ein häufiger Bug ist, || für Defaults zu verwenden: count || 10 ersetzt eine gültige 0 durch 10, während count ?? 10 die 0 korrekt beibehält. Kombiniert gibt user?.settings?.volume ?? 50 sicher 50 zurück, nur wenn der Wert tatsächlich null oder undefined ist.",
+    "keyPoints": [
+      "?. gibt undefined zurück statt TypeError bei null/undefined",
+      "?? fällt nur bei null und undefined auf den Fallback zurück",
+      "|| fällt bei allen falsy-Werten zurück, einschließlich 0 und ''",
+      "count || 10 ersetzt gültige 0, count ?? 10 nicht"
+    ],
+    "tags": ["javascript", "operators", "optional-chaining", "nullish-coalescing"]
+  },
+  {
+    "questionKey": "spread-rest-operator-uses",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen dem Spread-Operator und dem Rest-Operator, obwohl sie dieselbe Syntax verwenden?",
+    "referenceAnswer": "Der Spread-Operator (...) expandiert ein Iterable in einzelne Elemente, während der Rest-Operator mehrere Elemente in ein einziges Array sammelt. Spread wird beim Aufrufen von Funktionen oder beim Erstellen von Kopien verwendet: Math.max(...numbers) oder { ...obj, newProp: 1 }. Rest wird in Funktionsparametern und beim Destructuring verwendet: function sum(...nums) {} oder const [first, ...remaining] = arr. Ein häufiger Fehler ist zu denken, Spread erzeugt eine Deep Copy — es kopiert nur eine Ebene tief, verschachtelte Objekte werden weiterhin per Referenz geteilt. Außerdem muss der Rest-Parameter immer der letzte sein: function(a, ...rest, b) ist ein Syntax Error.",
+    "keyPoints": [
+      "Spread expandiert Elemente, Rest sammelt sie",
+      "Spread wird in Funktionsaufrufen und Object/Array-Literals verwendet",
+      "Rest wird in Funktionsparametern und Destructuring verwendet",
+      "Spread erzeugt nur Shallow Copies"
+    ],
+    "tags": ["javascript", "operators", "spread", "rest"]
+  },
+  {
+    "questionKey": "truthy-falsy-gotchas",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Welche Werte sind in JavaScript falsy, und welche Bugs verursacht das bei gültigen Daten?",
+    "referenceAnswer": "Die falsy-Werte sind false, 0, -0, 0n (BigInt), '', null, undefined und NaN — alles andere ist truthy, einschließlich leerer Arrays [] und leerer Objekte {}. Das verursacht Bugs, wenn man Short-Circuit-Checks auf Daten anwendet, die legitim 0 oder '' sein können. Zum Beispiel schlägt if (user.age) fehl, wenn age 0 ist, weil 0 falsy ist — das Alter eines Neugeborenen wird als fehlend behandelt. Ebenso schlägt if (name) bei einem leeren String fehl, der eine gültige gelöschte Eingabe sein könnte. Die Lösung ist, explizit zu prüfen: if (user.age !== undefined) oder den Nullish Coalescing Operator ?? zu verwenden. Überraschenderweise sind [] und {} truthy, also ist if (emptyArray) immer true — stattdessen .length prüfen.",
+    "keyPoints": [
+      "0, '', null, undefined, NaN und false sind falsy",
+      "leere Arrays und Objekte sind truthy",
+      "if (value) schlägt bei gültiger 0 oder leerem String fehl",
+      "explizite Checks oder ?? statt || für Defaults verwenden"
+    ],
+    "tags": ["javascript", "types", "truthy", "falsy", "bugs"]
+  },
+  {
+    "questionKey": "destructuring-default-values",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du ein Property destructurest, das auf dem Objekt nicht existiert, und wie funktionieren Default Values?",
+    "referenceAnswer": "Das Destructuring eines fehlenden Properties gibt undefined, keinen Fehler. Man kann Defaults setzen mit const { name = 'Unknown' } = obj, und der Default greift nur, wenn der Wert undefined ist — nicht bei null oder anderen falsy-Werten. Das überrascht Entwickler: const { count = 0 } = { count: null } setzt count auf null, nicht auf 0, weil null nicht undefined ist. Das unterscheidet sich vom ??-Operator, der sowohl null als auch undefined als fehlend behandelt. Ein häufiger Bug in React-Components ist, Props mit Defaults zu destructuren und sich zu wundern, warum null-Werte aus einer API nicht durch den Default ersetzt werden.",
+    "keyPoints": [
+      "fehlende Properties ergeben beim Destructuring undefined",
+      "Defaults greifen nur bei undefined",
+      "null löst keine Default Values im Destructuring aus",
+      "das unterscheidet sich von ??, das null und undefined abdeckt"
+    ],
+    "tags": ["javascript", "destructuring", "objects", "defaults"]
+  },
+  {
+    "questionKey": "promise-constructor-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was ist ein häufiger Fehler beim Wrappen von Callback-basiertem Code in ein neues Promise?",
+    "referenceAnswer": "Der häufigste Fehler ist, im Fehlerfall reject() zu vergessen, wodurch das Promise für immer hängt, ohne zu resolven oder zu rejecten. Zum Beispiel: fs.readFile in ein neues Promise wrappen, aber nur den Erfolgsfall behandeln — Fehler lassen den Consumer ewig auf ein Ergebnis warten. Ein weiterer häufiger Fehler ist, eine Funktion, die bereits ein Promise zurückgibt, in ein neues Promise zu wrappen — das nennt man das explizite Promise-Constructor-Antipattern. Statt new Promise((resolve) => fetch(url).then(resolve)) nimmt man einfach fetch(url) direkt. Ein dritter Fallstrick: ein throw innerhalb von setTimeout im Constructor wird nicht vom Promise gefangen, weil setTimeout in einem eigenen Call Stack läuft.",
+    "keyPoints": [
+      "vergessenes reject() lässt das Promise ewig hängen",
+      "ein existierendes Promise in new Promise zu wrappen ist ein Antipattern",
+      "throw in setTimeout wird nicht vom Promise Constructor gefangen",
+      "immer Erfolgs- und Fehlerfall behandeln"
+    ],
+    "tags": ["javascript", "promises", "async", "antipatterns"]
+  },
+  {
+    "questionKey": "event-loop-execution-order",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "HARD",
+    "questionText": "In welcher Reihenfolge erscheint die Ausgabe von console.log, setTimeout und Promise.resolve().then(), wenn sie im selben Block stehen?",
+    "referenceAnswer": "Synchrones console.log läuft zuerst, weil es auf dem Call Stack liegt. Promise.resolve().then() plant einen Microtask, und setTimeout plant einen Macrotask. Nachdem der synchrone Code fertig ist, leert der Event Loop alle Microtasks, bevor er den nächsten Macrotask verarbeitet. Also gibt console.log('A'); setTimeout(() => console.log('B'), 0); Promise.resolve().then(() => console.log('C')) immer A, C, B aus. Diese Reihenfolge ist durch die Spezifikation garantiert und keine Race Condition. Eine praktische Konsequenz ist, dass Promise-Chains immer vor dem nächsten setTimeout-Callback abgeschlossen werden, was zu UI-Freezes führen kann, wenn eine lange Microtask-Chain den Browser am Verarbeiten von Timer-basierten Animationen hindert.",
+    "keyPoints": [
+      "synchroner Code läuft zuerst",
+      "Microtasks (Promise.then) laufen vor Macrotasks (setTimeout)",
+      "die Ausgabe ist immer A, C, B — nicht zufällig",
+      "lange Microtask-Chains blockieren Macrotasks und Rendering"
+    ],
+    "tags": ["javascript", "event-loop", "microtask", "macrotask", "execution-order"]
+  },
+  {
+    "questionKey": "closure-private-state",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Wie kann man mit Closures private Variablen erzeugen, und welche Einschränkungen gibt es?",
+    "referenceAnswer": "Eine Closure kann Variablen vor externem Zugriff verbergen, indem man sie innerhalb einer Funktion deklariert und nur Getter/Setter-Funktionen nach außen gibt. Zum Beispiel: function createCounter() { let count = 0; return { increment() { count++; }, getCount() { return count; } }; } — count ist privat und kann von außen weder gelesen noch verändert werden. Dieses Pattern war die Hauptmethode für privaten State in JavaScript, bevor die #-Private-Fields-Syntax in Klassen kam. Die Einschränkung ist, dass private Variablen in Closures in Unit Tests nicht inspiziert werden können, ohne sie nach außen zu geben, und sie mehr Speicher verbrauchen als geteilte Prototype-Methoden, weil jede Instanz eigene Kopien der inneren Funktionen erzeugt.",
+    "keyPoints": [
+      "Closures verbergen Variablen vor externem Zugriff",
+      "nur die exponierten Funktionen können die private Variable lesen oder ändern",
+      "dieses Pattern war der Vorläufer von # Private Class Fields",
+      "jede Instanz erzeugt eigene Funktionskopien und braucht mehr Speicher"
+    ],
+    "tags": ["javascript", "closures", "scope", "encapsulation"]
+  },
+  {
+    "questionKey": "map-chaining-transform",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Vorteil von Chaining mit map, filter und reduce, und welches Performance-Problem kann es verursachen?",
+    "referenceAnswer": "Das Chaining von map().filter().reduce() erlaubt es, Datentransformationen als lesbare Pipeline auszudrücken, bei der jeder Schritt einen klaren Zweck hat. Zum Beispiel: users.filter(u => u.active).map(u => u.name) wählt erst aktive User aus und extrahiert dann ihre Namen. Der Nachteil ist, dass jede Methode ein Zwischen-Array erzeugt — drei verkettete Methoden auf einem großen Array erzeugen drei temporäre Arrays. Für performancekritische Stellen kann ein einzelnes reduce(), das Filter und Transformation in einem Durchlauf kombiniert, die zusätzlichen Allokationen vermeiden. In der Praxis gewinnt Lesbarkeit bei den meisten Anwendungen, und der Performance-Unterschied zählt erst bei Arrays mit Tausenden von Elementen oder in Hot Loops.",
+    "keyPoints": [
+      "Chaining erzeugt eine lesbare Transformations-Pipeline",
+      "jede verkettete Methode erzeugt ein Zwischen-Array",
+      "ein einzelnes reduce kann filter und map für Performance kombinieren",
+      "Lesbarkeit überwiegt meist die Performance-Kosten"
+    ],
+    "tags": ["javascript", "arrays", "map", "filter", "reduce", "chaining"]
+  },
+  {
+    "questionKey": "async-parallel-sequential",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was ist der Unterschied zwischen mehreren sequenziellen await-Aufrufen und der Verwendung von Promise.all?",
+    "referenceAnswer": "Bei const a = await fetchA(); const b = await fetchB(); laufen die Requests sequenziell — fetchB startet erst, wenn fetchA fertig ist, was die Gesamtwartezeit verdoppelt. Promise.all([fetchA(), fetchB()]) startet beide gleichzeitig, und die Gesamtwartezeit ist nur so lang wie der langsamste Request. Ein häufiger Fehler ist, sequenzielle awaits für unabhängige Requests in einer Schleife zu schreiben und aus parallelen 200ms-Fetches 2 Sekunden serielles Warten zu machen. Allerdings rejectet Promise.all sofort, wenn ein Promise fehlschlägt, und die Ergebnisse der anderen gehen verloren. Wenn man parallele Ausführung mit Fehlertoleranz will, nimmt man Promise.allSettled, das immer alle Ergebnisse zurückgibt.",
+    "keyPoints": [
+      "sequenzielle awaits laufen nacheinander",
+      "Promise.all startet sie gleichzeitig",
+      "sequenzielle awaits für unabhängige Requests verschwenden Zeit",
+      "Promise.all bricht sofort ab — allSettled für partielle Fehlertoleranz"
+    ],
+    "tags": ["javascript", "async", "promises", "performance"]
+  },
+  {
+    "questionKey": "for-in-vs-for-of",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du for...in statt for...of verwendest, um über ein Array zu iterieren?",
+    "referenceAnswer": "for...in iteriert über aufzählbare Property-Keys, was bei Arrays String-Indizes ('0', '1', '2') statt Werte bedeutet. Schlimmer noch: for...in nimmt auch aufzählbare Properties aus der Prototype Chain mit, die von Libraries hinzugefügt worden sein könnten. for...of iteriert direkt über Werte mittels des Iterable-Protokolls — genau das, was man bei Arrays will. Ein häufiger Bug ist, for...in auf einem Array zu verwenden, mit den Keys zu rechnen und String-Konkatenation statt Addition zu bekommen, weil die Keys Strings sind: '0' + 1 gibt '01' statt 1. Faustregel: for...in für Objekte, for...of für Arrays und andere Iterables.",
+    "keyPoints": [
+      "for...in iteriert Keys als Strings, for...of iteriert Werte",
+      "for...in nimmt geerbte aufzählbare Properties mit",
+      "Array-Indizes aus for...in sind Strings, keine Zahlen",
+      "for...in für Objekte, for...of für Arrays verwenden"
+    ],
+    "tags": ["javascript", "loops", "iteration", "bugs"]
+  },
+  {
+    "questionKey": "callback-to-promise-refactor",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "javascript",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Welche Probleme verursacht tief verschachtelter Callback-Code, und wie lösen Promises und async/await das?",
+    "referenceAnswer": "Tief verschachtelte Callbacks — oft Callback Hell genannt — machen Code schwer lesbar, debuggbar und wartbar, weil jeder asynchrone Schritt eine weitere Einrückungsebene hinzufügt und Error Handling auf jeder Ebene wiederholt werden muss. Promises flatten das zu einer Chain, bei der jedes .then() den nächsten Schritt zurückgibt und Fehler zu einem einzelnen .catch() am Ende durchsickern. async/await geht noch weiter und lässt den Code synchron aussehen: Jeder Schritt steht in einer eigenen Zeile mit natürlichem try/catch für Fehler. Ein praktisches Problem bei verschachtelten Callbacks ist, dass ein fehlender Error Handler auf einer Ebene Fehler stillschweigend verschluckt, während eine Promise-Chain sie vorhersehbar weiterreicht. Beim Refactoring von Callbacks zu async/await vergisst man häufig, dass die äußere Funktion als async deklariert werden muss.",
+    "keyPoints": [
+      "verschachtelte Callbacks reduzieren Lesbarkeit und erschweren Error Handling",
+      "Promises flatten Chains und zentralisieren Error Handling mit .catch()",
+      "async/await lässt asynchronen Code synchron aussehen",
+      "fehlende Error Handler in Callbacks verschlucken Fehler stillschweigend"
+    ],
+    "tags": ["javascript", "async", "callbacks", "promises", "refactoring"]
+  }
+]

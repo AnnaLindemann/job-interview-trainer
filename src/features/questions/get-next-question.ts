@@ -1,11 +1,13 @@
 import { prisma } from "@/src/db/prisma";
+import { getQuestionsForPractice } from "@/src/features/questions/content-question-bank";
 
 type GetNextQuestionParams = {
   sessionId: string;
+  userId: string;
 };
 
 export async function getNextQuestion(params: GetNextQuestionParams) {
-  const { sessionId } = params;
+  const { sessionId, userId } = params;
 
   const session = await prisma.practiceSession.findUnique({
     where: {
@@ -13,13 +15,14 @@ export async function getNextQuestion(params: GetNextQuestionParams) {
     },
     select: {
       id: true,
+      userId: true,
       roleSlug: true,
       topicSlug: true,
       language: true,
     },
   });
 
-  if (!session) {
+  if (!session || session.userId !== userId) {
     return null;
   }
 
@@ -28,37 +31,22 @@ export async function getNextQuestion(params: GetNextQuestionParams) {
       sessionId,
     },
     select: {
-      questionId: true,
+      questionKey: true,
     },
   });
 
-  const attemptedQuestionIds = attempts.map((attempt) => attempt.questionId);
+  const attemptedQuestionKeys = new Set(
+    attempts.map((attempt) => attempt.questionKey),
+  );
 
-  const question = await prisma.question.findFirst({
-    where: {
-      roleSlug: session.roleSlug,
-      topicSlug: session.topicSlug,
-      language: session.language,
-      isActive: true,
-      id: {
-        notIn: attemptedQuestionIds.length > 0 ? attemptedQuestionIds : undefined,
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    select: {
-      id: true,
-      roleSlug: true,
-      topicSlug: true,
-      language: true,
-      difficulty: true,
-      questionText: true,
-      referenceAnswer: true,
-      isActive: true,
-      createdAt: true,
-    },
+  const questions = await getQuestionsForPractice({
+    roleSlug: session.roleSlug,
+    topicSlug: session.topicSlug,
+    language: session.language,
   });
 
-  return question;
+  return (
+    questions.find((question) => !attemptedQuestionKeys.has(question.questionKey)) ??
+    null
+  );
 }

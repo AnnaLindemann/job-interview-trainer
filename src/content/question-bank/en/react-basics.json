@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "props-immutability-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you try to modify a prop directly inside a child component, and why does React prevent this?",
+    "referenceAnswer": "Props are read-only in React — mutating them directly throws an error in strict mode and breaks the unidirectional data flow that makes React predictable. If a child could change its props, the parent wouldn't know, leading to the UI being out of sync with the actual data. The correct approach is to have the parent pass a callback function as a prop, and the child calls that function to request a change. A common mistake is trying to do props.name = 'new value' inside a child, which either silently fails or causes confusing bugs because the parent still holds the old value and will overwrite it on the next render.",
+    "keyPoints": [
+      "props are read-only and must not be mutated",
+      "mutating props breaks unidirectional data flow",
+      "use callback props to communicate changes to the parent",
+      "direct mutation causes parent and child to go out of sync"
+    ],
+    "tags": ["react", "props", "data-flow"]
+  },
+  {
+    "questionKey": "key-prop-list-rendering",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You render a list of items with .map() but forget to add a key prop. What problems does this cause, and why is using the array index as a key often a bad idea?",
+    "referenceAnswer": "Without a key, React cannot efficiently track which items changed, were added, or removed — it falls back to re-rendering the entire list, which hurts performance and can cause visual glitches. Using the array index as a key is problematic when items are reordered, inserted, or deleted, because the index shifts and React reuses DOM nodes for the wrong items. A classic bug is a list of inputs where each input keeps the wrong value after an item is deleted because React matched components by index instead of identity. The correct approach is to use a stable, unique identifier from the data, like a database ID.",
+    "keyPoints": [
+      "keys help React identify which list items changed",
+      "missing keys cause unnecessary re-renders and visual glitches",
+      "index keys break when items are reordered or deleted",
+      "use stable unique IDs from the data as keys"
+    ],
+    "tags": ["react", "lists", "keys", "rendering"]
+  },
+  {
+    "questionKey": "controlled-vs-uncontrolled-input",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the difference between a controlled and an uncontrolled input in React, and what bug do you get if you accidentally switch between them?",
+    "referenceAnswer": "A controlled input has its value driven by React state via the value prop and an onChange handler — React is the single source of truth. An uncontrolled input manages its own value internally via the DOM, and you read it with a ref when needed. If you start with value={undefined} (uncontrolled) and later set it to a string from state (controlled), React logs a warning about switching from uncontrolled to controlled, and the input may behave unpredictably. This commonly happens when state is initialized as undefined instead of an empty string. Always initialize the state to '' for text inputs to keep them controlled from the start.",
+    "keyPoints": [
+      "controlled inputs get their value from React state",
+      "uncontrolled inputs manage their own value in the DOM",
+      "switching between them causes a React warning and unpredictable behavior",
+      "initialize state to '' not undefined to avoid accidental switching"
+    ],
+    "tags": ["react", "forms", "controlled", "uncontrolled"]
+  },
+  {
+    "questionKey": "conditional-rendering-patterns",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What are common ways to conditionally render elements in JSX, and what bug can the && operator cause with numbers?",
+    "referenceAnswer": "The most common patterns are the ternary operator (condition ? <A /> : <B />), the logical AND (condition && <A />), and early return. The && operator has a subtle bug: if the left side is the number 0, React renders the literal '0' on screen instead of rendering nothing, because 0 is falsy but is a valid renderable value in JSX. For example, items.length && <List /> renders '0' when the array is empty. The fix is to use items.length > 0 && <List /> or a ternary to ensure the left side is a boolean. This is one of the most common React bugs in real codebases.",
+    "keyPoints": [
+      "ternary, logical AND, and early return are the main patterns",
+      "0 && <Component /> renders the literal '0' on screen",
+      "convert to boolean with > 0 or Boolean() to avoid this bug",
+      "ternary is safest when the condition might be a number"
+    ],
+    "tags": ["react", "jsx", "conditional-rendering", "bugs"]
+  },
+  {
+    "questionKey": "jsx-expressions-limitations",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What can you put inside JSX curly braces {}, and what happens if you try to render a plain object?",
+    "referenceAnswer": "JSX curly braces accept any JavaScript expression that produces a renderable value — strings, numbers, other JSX elements, arrays of elements, or null/undefined/boolean (which render nothing). If you try to render a plain object like {user}, React throws an error: 'Objects are not valid as a React child'. This commonly happens when you fetch API data and accidentally render the entire response object instead of a specific field like {user.name}. The fix is to always access a primitive property or use JSON.stringify() for debugging. Arrays are renderable because React iterates and renders each element.",
+    "keyPoints": [
+      "curly braces accept strings, numbers, JSX, arrays, null, and booleans",
+      "rendering a plain object throws 'Objects are not valid as a React child'",
+      "this often happens when rendering API data without accessing a field",
+      "arrays render each element, which is why .map() works"
+    ],
+    "tags": ["react", "jsx", "expressions", "bugs"]
+  },
+  {
+    "questionKey": "component-composition-vs-prop-overload",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When should you split a component into smaller components instead of adding more props to it?",
+    "referenceAnswer": "A component should be split when it handles multiple distinct responsibilities, when its prop list grows beyond 5-7 props, or when parts of it are reused independently elsewhere. A common antipattern is a 'god component' that takes dozens of props and renders completely different UIs based on a type or variant prop — this is hard to test, hard to read, and changes to one variant risk breaking another. Instead, extract shared logic into a base component and compose specific variants as separate components that use the base. The rule of thumb is: if you need an if/else chain or switch statement based on a prop to decide what to render, that's a sign the component should be split.",
+    "keyPoints": [
+      "split when a component handles multiple distinct responsibilities",
+      "too many props signal the need for composition",
+      "god components with variant props are hard to maintain",
+      "compose smaller components instead of adding conditional branches"
+    ],
+    "tags": ["react", "composition", "components", "patterns"]
+  },
+  {
+    "questionKey": "lifting-state-up-basic",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Two sibling components need to share the same data. Where should the state live and how do the siblings access it?",
+    "referenceAnswer": "The state should be lifted to the nearest common parent of the two siblings. The parent holds the state and passes it down to both siblings as props, along with a setter function so either sibling can update it. This keeps a single source of truth — if both siblings had their own copy, they would go out of sync. A common scenario is a search input and a results list that are siblings: the search term state lives in the parent, the input updates it via a callback, and the results list reads it. The tradeoff is that lifting state up can make the parent component more complex, but it ensures consistency.",
+    "keyPoints": [
+      "state lives in the nearest common parent",
+      "parent passes state and setter function as props",
+      "this ensures a single source of truth",
+      "duplicate state in siblings leads to sync bugs"
+    ],
+    "tags": ["react", "state", "lifting-state", "data-flow"]
+  },
+  {
+    "questionKey": "event-handling-synthetic-events",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between onClick={handleClick} and onClick={handleClick()} in JSX, and what bug does the second form cause?",
+    "referenceAnswer": "onClick={handleClick} passes a reference to the function, so it's called when the user clicks. onClick={handleClick()} calls the function immediately during rendering, not on click — and whatever it returns becomes the event handler, which is usually undefined. This causes the handler to fire on every render and do nothing on actual clicks. If the function triggers a state update, it causes an infinite re-render loop because each render calls the function, which updates state, which triggers another render. The fix for passing arguments is to wrap it in an arrow function: onClick={() => handleClick(id)}.",
+    "keyPoints": [
+      "handleClick passes a reference, handleClick() calls it immediately",
+      "calling during render can cause infinite re-render loops",
+      "the return value of handleClick() becomes the handler (usually undefined)",
+      "use an arrow function wrapper to pass arguments"
+    ],
+    "tags": ["react", "events", "jsx", "bugs"]
+  },
+  {
+    "questionKey": "children-prop-composition",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the children prop in React, and when would you use it instead of passing content as a regular prop?",
+    "referenceAnswer": "The children prop contains whatever JSX is placed between a component's opening and closing tags: <Card><p>Hello</p></Card> makes the <p> available as props.children inside Card. This is preferable to passing content as a regular prop when the content is complex JSX — writing content={<div><h2>Title</h2><p>Body</p></div>} as a prop attribute is awkward and hard to read. children is the natural pattern for wrapper components like layout containers, modals, and cards that provide structure or styling around arbitrary content. A common mistake is forgetting that children is just a regular prop and can be undefined if nothing is passed between the tags.",
+    "keyPoints": [
+      "children contains JSX placed between opening and closing tags",
+      "better than content props for complex nested JSX",
+      "ideal for wrapper components like modals, cards, and layouts",
+      "children is undefined when nothing is placed between the tags"
+    ],
+    "tags": ["react", "props", "children", "composition"]
+  },
+  {
+    "questionKey": "fragment-vs-wrapper-div",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why does React require a single root element when returning JSX, and what is the advantage of using a Fragment over a wrapper <div>?",
+    "referenceAnswer": "JSX expressions must have one root because they compile to a single React.createElement() call, which needs one parent element. A wrapper <div> solves this but adds an extra DOM node that can break CSS layouts — for example, an extra div inside a flex container creates an unintended flex child and shifts the layout. React.Fragment (<> </>) groups elements without adding a node to the DOM, keeping the markup clean. Use Fragment when you need to return multiple elements from a component without affecting the DOM structure. The short syntax <></> works for most cases, but use <Fragment key={id}> when rendering lists that need keys.",
+    "keyPoints": [
+      "JSX must return a single root element",
+      "wrapper divs add unnecessary DOM nodes that can break layout",
+      "Fragment groups elements without adding DOM nodes",
+      "use <Fragment key> when keys are needed in a list"
+    ],
+    "tags": ["react", "jsx", "fragment", "rendering"]
+  },
+  {
+    "questionKey": "map-without-return-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You use .map() to render a list, but the page shows nothing — no error, just a blank area. What is the most likely cause?",
+    "referenceAnswer": "The most likely cause is that the .map() callback uses curly braces {} (a block body) without a return statement. With a block body, the function returns undefined for every item, and React renders nothing for undefined values. The fix is to either add a return statement — return <li>{item.name}</li> — or switch to parentheses for an implicit return: items.map(item => (<li>{item.name}</li>)). This is especially common when developers add a console.log inside the callback and switch from parentheses to curly braces to do so, forgetting to add the return afterward.",
+    "keyPoints": [
+      "block body {} without return makes the callback return undefined",
+      "React renders nothing for undefined — no error, just blank",
+      "use parentheses () for implicit return or add explicit return",
+      "often happens when adding console.log and switching brace style"
+    ],
+    "tags": ["react", "lists", "rendering", "bugs"]
+  },
+  {
+    "questionKey": "component-capitalization-rule",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you name a React component starting with a lowercase letter?",
+    "referenceAnswer": "React treats lowercase tags as native HTML elements and uppercase tags as custom components. If you write <myComponent />, React renders it as an unknown HTML element rather than calling your component function, so its JSX body is ignored and you get empty or broken output. There's no error — React silently treats it as HTML, which makes this bug confusing to diagnose. The fix is to always capitalize component names: <MyComponent />. This also applies to dynamically rendered components: if the component name is in a variable, the variable must start with an uppercase letter, or you need to assign it to a capitalized variable first.",
+    "keyPoints": [
+      "lowercase tags are treated as HTML elements, uppercase as components",
+      "a lowercase component name silently renders as unknown HTML",
+      "no error is thrown, making the bug hard to diagnose",
+      "component names and variables holding components must be capitalized"
+    ],
+    "tags": ["react", "components", "jsx", "naming"]
+  },
+  {
+    "questionKey": "jsx-html-attribute-differences",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why do you write className instead of class, and htmlFor instead of for in JSX?",
+    "referenceAnswer": "JSX is JavaScript, not HTML, and class and for are reserved keywords in JavaScript. Using class in JSX would create a syntax ambiguity with ES6 class declarations, and for would conflict with for loops. React maps className to the DOM's class attribute and htmlFor to the for attribute automatically. If you accidentally write class instead of className, React logs a warning and the attribute may not be applied correctly. Similarly, event handler names use camelCase (onClick, onChange) rather than HTML's lowercase (onclick, onchange) because JSX follows JavaScript naming conventions throughout.",
+    "keyPoints": [
+      "class and for are reserved JavaScript keywords",
+      "className maps to the HTML class attribute",
+      "htmlFor maps to the HTML for attribute",
+      "event handlers use camelCase: onClick, onChange"
+    ],
+    "tags": ["react", "jsx", "attributes", "html"]
+  },
+  {
+    "questionKey": "inline-styles-object-syntax",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How does inline styling work in React, and why does style=\"color: red\" not work in JSX?",
+    "referenceAnswer": "In JSX, the style attribute expects a JavaScript object, not a CSS string. Writing style=\"color: red\" passes a string, which React ignores with a warning. The correct syntax is style={{ color: 'red' }} — the outer braces are JSX expression delimiters, and the inner braces create the object. CSS property names must be camelCase: backgroundColor instead of background-color, fontSize instead of font-size. Numeric values for pixel-based properties can omit 'px' — style={{ width: 200 }} is equivalent to 200px. Inline styles are useful for dynamic values computed in JavaScript, but for static styles, CSS classes or CSS modules are preferred to keep concerns separated.",
+    "keyPoints": [
+      "style expects a JavaScript object, not a CSS string",
+      "double braces: outer for JSX expression, inner for the object",
+      "property names must be camelCase: backgroundColor, fontSize",
+      "inline styles are for dynamic values; use classes for static styles"
+    ],
+    "tags": ["react", "jsx", "styles", "css"]
+  },
+  {
+    "questionKey": "spread-props-pattern",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What does <Input {...props} /> do, and what risk comes with spreading props onto DOM elements?",
+    "referenceAnswer": "The spread operator passes all properties of the props object as individual attributes to the Input component, which is a convenient shorthand for forwarding props in wrapper components. The risk is that if Input renders a native DOM element like <input {...props} />, non-HTML attributes from your custom props end up on the DOM node, causing React warnings like 'Unknown prop X on <input> tag'. For example, spreading an isActive prop onto an HTML input creates an invalid DOM attribute. The fix is to destructure known custom props and only spread the remaining: const { isActive, ...rest } = props; return <input {...rest} />. This separates component logic from DOM pass-through.",
+    "keyPoints": [
+      "spread passes all object properties as individual props",
+      "useful for forwarding props in wrapper components",
+      "non-HTML props spread onto DOM elements cause warnings",
+      "destructure custom props and spread the rest onto the DOM element"
+    ],
+    "tags": ["react", "props", "spread", "patterns"]
+  },
+  {
+    "questionKey": "form-onsubmit-preventdefault",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You handle a form submission with onSubmit on the <form> element, but the page reloads every time. What are you missing?",
+    "referenceAnswer": "The default behavior of an HTML form submission is to send a request to the server and reload the page. In a React application where you handle submissions client-side, you need to call event.preventDefault() at the start of your submit handler to stop the browser from performing the default action. Without it, the page reloads, your React state is lost, and any client-side processing in the handler is interrupted. A common pattern is: const handleSubmit = (e) => { e.preventDefault(); /* process form data */ }. This is not React-specific — it's standard DOM behavior, but it trips up developers who are used to frameworks that handle it automatically.",
+    "keyPoints": [
+      "HTML forms reload the page on submission by default",
+      "event.preventDefault() stops the default browser behavior",
+      "without it, React state is lost on page reload",
+      "this is DOM behavior, not React-specific"
+    ],
+    "tags": ["react", "forms", "events", "submission"]
+  },
+  {
+    "questionKey": "ref-accessing-dom-element",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When would you use a ref in React, and why should you avoid using it to read or modify values that could be handled by state instead?",
+    "referenceAnswer": "Refs provide direct access to a DOM element or a mutable value that persists across renders without triggering re-renders when changed. The main use cases are focusing an input, measuring element dimensions, or integrating with third-party DOM libraries. You should avoid using refs to track values that should drive the UI — for example, using a ref to store a counter value and manually updating the DOM text content bypasses React's rendering and can lead to the UI being out of sync with your data. State is the right tool when the value should be reflected in the UI; refs are for values that React doesn't need to know about or for imperative DOM operations.",
+    "keyPoints": [
+      "refs access DOM elements or store mutable values without triggering re-renders",
+      "use for focus, measurement, and third-party DOM library integration",
+      "don't use refs for values that should be reflected in the UI",
+      "changing a ref does not trigger a re-render"
+    ],
+    "tags": ["react", "refs", "dom", "hooks"]
+  },
+  {
+    "questionKey": "render-prop-pattern",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the render prop pattern, and what problem does it solve?",
+    "referenceAnswer": "A render prop is a function passed as a prop that returns JSX, letting the consuming component control what gets rendered while the providing component handles the logic. For example, a MouseTracker component could expose mouse coordinates via a render prop: <MouseTracker render={({ x, y }) => <span>{x}, {y}</span>} />. This solves the problem of sharing stateful logic between components without restructuring the component hierarchy. Before hooks, render props were one of the primary ways to reuse behavior. Today, custom hooks are generally preferred for sharing logic because they're simpler and don't add nesting, but render props are still useful when you need to inject dynamic rendering into a shared component.",
+    "keyPoints": [
+      "a render prop is a function prop that returns JSX",
+      "the providing component handles logic, the consumer controls rendering",
+      "solves reusing stateful behavior across components",
+      "custom hooks are now preferred for most logic-sharing use cases"
+    ],
+    "tags": ["react", "patterns", "render-props", "composition"]
+  },
+  {
+    "questionKey": "boolean-prop-shorthand",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between <Modal open /> and <Modal open={true} />, and what is a common pitfall with boolean props?",
+    "referenceAnswer": "They are equivalent — writing a prop without a value in JSX defaults to true, just like HTML boolean attributes. <Modal open /> passes open={true}. A common pitfall is passing a string instead of a boolean: open=\"false\" is actually truthy because it's a non-empty string, so the modal stays open. Developers coming from HTML sometimes write disabled=\"disabled\" or checked=\"true\" as strings, which in JSX evaluates as truthy regardless of the string content. Always pass booleans explicitly: open={false} to close, open={true} or just open to open.",
+    "keyPoints": [
+      "a prop without a value defaults to true",
+      "open=\"false\" is truthy because it's a non-empty string",
+      "always pass boolean values, not string representations",
+      "this mirrors HTML boolean attribute behavior"
+    ],
+    "tags": ["react", "props", "jsx", "booleans"]
+  },
+  {
+    "questionKey": "dangerously-set-innerhtml-risk",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is dangerouslySetInnerHTML, and why does React make it deliberately awkward to use?",
+    "referenceAnswer": "dangerouslySetInnerHTML is React's replacement for setting innerHTML on a DOM element. It takes an object with a __html key: <div dangerouslySetInnerHTML={{ __html: htmlString }} />. React makes it deliberately verbose and scary-looking because injecting raw HTML opens the door to cross-site scripting (XSS) attacks — if htmlString contains user input with <script> tags or event handler attributes, that code executes in the user's browser. React's normal rendering escapes HTML entities automatically, but dangerouslySetInnerHTML bypasses that protection. When you must use it — for example, rendering content from a CMS — always sanitize the HTML first with a library like DOMPurify before passing it in.",
+    "keyPoints": [
+      "dangerouslySetInnerHTML injects raw HTML, bypassing React's escaping",
+      "unsanitized user input enables XSS attacks",
+      "the verbose API is intentionally designed to discourage casual use",
+      "always sanitize HTML with DOMPurify or similar before injecting"
+    ],
+    "tags": ["react", "security", "xss", "dom"]
+  },
+  {
+    "questionKey": "usestate-array-destructuring",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why does useState return an array instead of an object?",
+    "referenceAnswer": "useState returns an array so you can name the destructured values whatever you want: const [count, setCount] = useState(0). If it returned an object like { state, setState }, every call to useState would need the same property names, making it impossible to use multiple useState calls without renaming — you'd need { state: count, setState: setCount } which is verbose. Array destructuring assigns by position, not name, so you can write const [name, setName] = useState('') and const [age, setAge] = useState(0) without any naming conflicts. This is a deliberate API design decision that makes the hook more ergonomic for the most common use case of having multiple state variables in one component.",
+    "keyPoints": [
+      "array destructuring lets you choose any variable names",
+      "object destructuring would require renaming for multiple useState calls",
+      "position-based assignment avoids naming conflicts",
+      "this is a deliberate API design for ergonomic use with multiple states"
+    ],
+    "tags": ["react", "hooks", "useState", "api-design"]
+  },
+  {
+    "questionKey": "returning-null-from-component",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens when a component returns null, and when is this useful?",
+    "referenceAnswer": "Returning null from a component's render tells React to render nothing — no DOM node is created, but the component instance still exists and its hooks still run. This is useful for components that should only render under certain conditions: for example, a banner that hides itself after the user dismisses it, or a feature-flagged component that returns null when the flag is off. The alternative is conditional rendering in the parent with {showBanner && <Banner />}, which unmounts the component entirely and resets its state. Returning null keeps the component mounted and preserves its internal state, which matters if you want to show it again without re-initializing.",
+    "keyPoints": [
+      "returning null renders nothing but keeps the component mounted",
+      "hooks still run even when the component returns null",
+      "useful for self-hiding components or feature flags",
+      "differs from parent conditional rendering which unmounts entirely"
+    ],
+    "tags": ["react", "rendering", "null", "conditional"]
+  },
+  {
+    "questionKey": "default-prop-object-pitfall",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You give a prop a default value of an empty array in the function signature: function List({ items = [] }). Can this cause problems?",
+    "referenceAnswer": "The default value [] creates a new array reference on every render when items is undefined. If a child component or hook uses this value in a dependency array — for example, useEffect(() => { ... }, [items]) — the effect runs on every render because the new empty array fails reference equality. The fix is to define the default outside the component as a stable reference: const DEFAULT_ITEMS = []; and then use { items = DEFAULT_ITEMS }. This also applies to default objects and functions in destructuring. The issue only matters when the value is used for reference comparisons; for simple rendering it's harmless.",
+    "keyPoints": [
+      "default [] creates a new reference each render",
+      "dependency arrays treat each new reference as a change",
+      "define defaults as constants outside the component for stable references",
+      "only matters when the value is used in dependency arrays or memoization"
+    ],
+    "tags": ["react", "props", "defaults", "performance"]
+  },
+  {
+    "questionKey": "dynamic-component-rendering",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How can you render a component whose type is determined at runtime, and what rule must you follow?",
+    "referenceAnswer": "You can store a component reference in a variable and render it as a JSX element, but the variable must start with an uppercase letter. For example: const SelectedIcon = iconMap[type]; return <SelectedIcon />. If the variable is lowercase — const selectedIcon = iconMap[type]; return <selectedIcon /> — React treats it as an HTML tag and renders an empty unknown element. A common pattern is building a lookup object: const components = { text: TextInput, select: SelectInput }; and then rendering with const Component = components[field.type]; return <Component {...field} />. This is useful for form builders, dynamic page layouts, or plugin systems where the component type comes from data.",
+    "keyPoints": [
+      "store the component in an uppercase variable to render it as JSX",
+      "lowercase variables are treated as HTML elements",
+      "lookup objects map string types to component references",
+      "useful for form builders, dynamic layouts, and plugin systems"
+    ],
+    "tags": ["react", "components", "dynamic", "patterns"]
+  },
+  {
+    "questionKey": "callback-prop-naming-convention",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between naming a callback prop onDelete versus handleDelete, and when do you use which?",
+    "referenceAnswer": "The convention is that props use the on prefix (onDelete, onChange, onSubmit) because they describe what event the component exposes, while the handler functions inside the component that implements the logic use the handle prefix (handleDelete, handleChange). So a parent passes onDelete={handleDelete} to a child, where onDelete is the prop name and handleDelete is the parent's implementation. This makes it clear at a glance whether you're looking at the interface (on) or the implementation (handle). Inconsistent naming isn't a bug, but it confuses maintainers when callback props are named handleX, because it blurs the line between the component's public API and its internal logic.",
+    "keyPoints": [
+      "on-prefix for prop names: onDelete, onChange",
+      "handle-prefix for implementation functions: handleDelete",
+      "parent passes onDelete={handleDelete} to child",
+      "consistent naming clarifies public API vs internal logic"
+    ],
+    "tags": ["react", "props", "naming", "conventions"]
+  },
+  {
+    "questionKey": "event-object-persist-issue",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You access event.target.value inside a setTimeout in an event handler, but it's null. What is happening?",
+    "referenceAnswer": "In React versions before 17, React used synthetic event pooling — the event object was reused and its properties were nullified after the handler returned. Accessing event.target.value asynchronously (inside setTimeout, a promise .then, or an async callback) would return null because the event had been recycled. The fix was to call event.persist() or extract the value into a variable before the async code: const value = event.target.value. React 17+ removed event pooling, so this specific issue no longer occurs in modern React. However, extracting values into variables before async code remains a good practice for readability and avoids confusion with stale references.",
+    "keyPoints": [
+      "React < 17 recycled synthetic events after the handler returned",
+      "async access to event properties returned null",
+      "event.persist() or extracting the value first fixed it",
+      "React 17+ removed pooling, but extracting values is still good practice"
+    ],
+    "tags": ["react", "events", "synthetic-events", "async"]
+  },
+  {
+    "questionKey": "pure-component-concept",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What does it mean for a React component to be 'pure', and what can break that purity?",
+    "referenceAnswer": "A pure component always returns the same JSX output for the same props and state, with no side effects during rendering. This means the render function shouldn't modify external variables, make API calls, or set timers — it should only compute and return JSX. Breaking purity by mutating an external variable during render can cause bugs because React may call the render function multiple times, in any order, or skip it entirely. For example, incrementing a counter outside the component during render produces different results on each call. Side effects belong in useEffect or event handlers, not in the render path. React's Strict Mode renders components twice in development to help detect impure renders.",
+    "keyPoints": [
+      "pure components return the same output for the same inputs",
+      "no side effects during rendering — no API calls, no mutations",
+      "React may call render multiple times, so impure renders cause bugs",
+      "side effects belong in useEffect or event handlers"
+    ],
+    "tags": ["react", "components", "purity", "rendering"]
+  },
+  {
+    "questionKey": "list-rendering-no-wrapper",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You need to render a list of <tr> elements from a component, but wrapping them in a <div> breaks the table layout. What do you use?",
+    "referenceAnswer": "You use a React Fragment (<> </> or <Fragment>). Table elements have strict nesting rules — <tr> must be a direct child of <thead>, <tbody>, or <table>. Wrapping <tr> elements in a <div> produces invalid HTML and breaks the table layout. Fragment lets you return multiple <tr> elements without adding a wrapper DOM node. If the rows come from a .map() call and need keys, you need the explicit <Fragment key={id}> syntax, since the shorthand <></> doesn't accept attributes. This same issue applies to <dd>/<dt> inside <dl>, <li> inside <ul>, and any other elements with strict parent-child requirements.",
+    "keyPoints": [
+      "div wrapper inside a table breaks HTML nesting rules",
+      "Fragment groups elements without adding a DOM node",
+      "<Fragment key={id}> is needed when keys are required",
+      "applies to any elements with strict parent-child DOM requirements"
+    ],
+    "tags": ["react", "fragment", "lists", "tables"]
+  },
+  {
+    "questionKey": "prop-destructuring-in-signature",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the advantage of destructuring props in the function signature versus using props.x everywhere?",
+    "referenceAnswer": "Destructuring in the function signature — function Card({ title, image, onClick }) — makes it immediately clear which props the component expects, acting as lightweight documentation. Using props.title throughout the component hides the interface because you have to read the entire body to discover what props are used. Destructuring also lets you set default values inline: { count = 0 }, and makes the code shorter. A practical benefit is that adding TypeScript or PropTypes is simpler when you've already declared the shape in the signature. The tradeoff is that if the component uses many props, a long destructuring line can hurt readability — in that case, consider splitting the component instead.",
+    "keyPoints": [
+      "destructuring makes the component's prop interface immediately visible",
+      "allows inline default values",
+      "shorter code than props.x throughout the body",
+      "very long destructuring suggests the component needs splitting"
+    ],
+    "tags": ["react", "props", "destructuring", "readability"]
+  },
+  {
+    "questionKey": "multiple-classnames-conditional",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How do you conditionally apply CSS classes in JSX, and what common mistake leads to 'undefined' appearing in the class attribute?",
+    "referenceAnswer": "The simplest approach is template literals: className={`card ${isActive ? 'active' : ''}`}. A common mistake is using && without a fallback: className={`card ${isActive && 'active'}`} — when isActive is false, the && expression evaluates to false (not an empty string), and the class becomes 'card false'. For complex cases, libraries like clsx or classnames handle this cleanly: className={clsx('card', { active: isActive })}. Another mistake is writing className={isActive ? 'active'} without the else branch, which is a syntax error. Always test that your conditional produces a string or empty string, not false or undefined.",
+    "keyPoints": [
+      "template literals work for simple conditional classes",
+      "&& with false produces 'false' in the class string",
+      "clsx or classnames library handles complex conditional classes cleanly",
+      "always ensure the expression produces a string, not false or undefined"
+    ],
+    "tags": ["react", "jsx", "css", "classNames"]
+  }
+]

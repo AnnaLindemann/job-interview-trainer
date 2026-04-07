@@ -9,10 +9,7 @@ type RouteContext = {
   }>;
 };
 
-export async function DELETE(
-  _request: Request,
-  context: RouteContext
-) {
+export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const session = await auth();
 
@@ -22,7 +19,7 @@ export async function DELETE(
           ok: false,
           error: "Unauthorized",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -44,7 +41,7 @@ export async function DELETE(
           ok: false,
           error: "Question bank item not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -54,7 +51,7 @@ export async function DELETE(
           ok: false,
           error: "Forbidden",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -78,7 +75,7 @@ export async function DELETE(
         ok: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

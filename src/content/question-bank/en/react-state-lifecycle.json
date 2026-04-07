@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "setstate-async-stale-value",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You call setCount(count + 1) three times in a row inside a click handler, but count only increases by 1. Why, and how do you fix it?",
+    "referenceAnswer": "React batches state updates within event handlers, and each call to setCount(count + 1) uses the same stale value of count captured at the start of the render. All three calls effectively say setCount(0 + 1), so the final value is 1 instead of 3. The fix is to use the functional updater form: setCount(prev => prev + 1), which always receives the latest pending state value. This is critical anytime the new state depends on the previous state. A real-world case is a rapid-fire button or a form where multiple updates happen in the same event — without the functional form, updates are silently lost.",
+    "keyPoints": [
+      "React batches state updates within event handlers",
+      "each call uses the stale count from the current render",
+      "setCount(prev => prev + 1) uses the latest pending value",
+      "always use the functional form when new state depends on previous state"
+    ],
+    "tags": ["react", "state", "batching", "useState"]
+  },
+  {
+    "questionKey": "useeffect-infinite-loop",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You write a useEffect that fetches data and calls setState, but the component re-renders infinitely. What is wrong?",
+    "referenceAnswer": "The useEffect has no dependency array, so it runs after every render. Each run calls setState, which triggers a re-render, which runs the effect again, creating an infinite loop. The fix is to add an empty dependency array [] so the effect runs only once on mount, or to include the specific values the effect depends on. A very common variation is accidentally putting an object or array in the dependency array that is recreated each render — since React uses reference equality, the effect thinks the dependency changed and runs again. Always check what's in the dependency array and whether those values are stable across renders.",
+    "keyPoints": [
+      "no dependency array means the effect runs after every render",
+      "setState inside an effect without deps creates an infinite loop",
+      "empty array [] runs the effect only on mount",
+      "objects and arrays in deps cause re-runs due to reference inequality"
+    ],
+    "tags": ["react", "useEffect", "hooks", "bugs"]
+  },
+  {
+    "questionKey": "useeffect-cleanup-subscription",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You set up a setInterval inside a useEffect, but after navigating away and back, you notice the timer is running twice. What is the cause?",
+    "referenceAnswer": "The useEffect didn't return a cleanup function to clear the interval. When the component unmounts on navigation, the old interval keeps running. When the component remounts, a new interval starts alongside the old one. Each navigation cycle adds another interval, leaking memory and causing the callback to fire multiple times. The fix is to return a cleanup function: return () => clearInterval(intervalId). This pattern applies to all subscriptions — event listeners, WebSocket connections, and timers. In React 18 Strict Mode, effects mount, unmount, and remount during development to surface exactly this kind of missing cleanup.",
+    "keyPoints": [
+      "useEffect must return a cleanup function for subscriptions",
+      "without cleanup, the old subscription keeps running after unmount",
+      "each mount adds a new subscription, causing duplicates",
+      "React 18 Strict Mode deliberately double-mounts to expose missing cleanup"
+    ],
+    "tags": ["react", "useEffect", "cleanup", "lifecycle"]
+  },
+  {
+    "questionKey": "derived-state-antipattern",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You store a filtered version of a list in a separate useState. Every time the original list changes, the filtered list is out of date. What is the better approach?",
+    "referenceAnswer": "Storing derived data in a separate state is an antipattern because you now have two sources of truth that must be kept in sync manually. Every time the original list or the filter criteria change, you'd need to remember to update the filtered list too — forgetting creates stale data bugs. The better approach is to compute the filtered list during render: const filtered = items.filter(i => i.active). This guarantees the derived data is always consistent with the source. If the computation is expensive, wrap it in useMemo with the source data and filter criteria as dependencies. The rule is: if you can calculate it from existing state, don't store it as state.",
+    "keyPoints": [
+      "derived state creates two sources of truth that can go out of sync",
+      "compute derived values during render instead of storing them",
+      "use useMemo for expensive computations",
+      "if you can calculate it from existing state, don't store it"
+    ],
+    "tags": ["react", "state", "derived-state", "antipatterns"]
+  },
+  {
+    "questionKey": "useeffect-dependency-array-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your useEffect should re-fetch data when a userId prop changes, but it only fetches on mount and ignores subsequent changes. What is likely wrong?",
+    "referenceAnswer": "The userId is missing from the dependency array. If the dependency array is [] (empty), the effect only runs on mount and never reacts to prop changes. The fix is to include userId in the dependency array: useEffect(() => { fetchUser(userId); }, [userId]). A related mistake is suppressing the eslint exhaustive-deps warning instead of fixing the dependency list — this leads to stale closures where the effect uses an outdated value of userId. Always trust the linter: if it tells you a dependency is missing, add it unless you have a very specific reason and understand the consequences.",
+    "keyPoints": [
+      "empty dependency array means the effect never re-runs",
+      "include all values from the outer scope that the effect uses",
+      "missing deps lead to stale closures with outdated values",
+      "never suppress the exhaustive-deps lint rule without understanding why"
+    ],
+    "tags": ["react", "useEffect", "dependencies", "bugs"]
+  },
+  {
+    "questionKey": "prop-drilling-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is prop drilling, and at what point does it become a problem worth solving?",
+    "referenceAnswer": "Prop drilling is passing data through multiple intermediate components that don't use the data themselves, just to get it to a deeply nested child. It becomes a problem when you have 3+ levels of pass-through, because every intermediate component is coupled to the data shape without benefiting from it — renaming or restructuring the prop requires changing every component in the chain. Small amounts of prop drilling (1-2 levels) are fine and actually make data flow explicit. When it becomes painful, the options are React Context for app-wide values like theme or auth, or a state management library like Redux for complex shared state. The decision depends on how many components consume the data and how often it changes.",
+    "keyPoints": [
+      "prop drilling is passing data through components that don't use it",
+      "1-2 levels is fine, 3+ levels signals a problem",
+      "intermediate components become coupled to data they don't need",
+      "Context or Redux solve it depending on complexity"
+    ],
+    "tags": ["react", "props", "prop-drilling", "state-management"]
+  },
+  {
+    "questionKey": "context-vs-redux-tradeoffs",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When is React Context enough for state management, and when would you reach for Redux instead?",
+    "referenceAnswer": "Context works well for values that change infrequently and are consumed by many components — theme, locale, authentication status, or feature flags. It's built into React and requires no extra library. The limitation is that any state change in a Context Provider re-renders every consumer, even if only part of the context value changed. For frequently updating state like form data, real-time feeds, or complex state with many interdependent updates, Redux is a better fit because it lets components subscribe to specific slices of state and only re-render when their slice changes. Redux also provides devtools with time-travel debugging, middleware for async logic, and predictable state transitions via reducers. The tradeoff is boilerplate — for simple cases, Context is lighter.",
+    "keyPoints": [
+      "Context is good for infrequent, widely consumed values like theme or auth",
+      "Context re-renders all consumers on any state change",
+      "Redux allows subscribing to specific slices, reducing unnecessary re-renders",
+      "Redux adds devtools, middleware, and predictable reducers but more boilerplate"
+    ],
+    "tags": ["react", "context", "redux", "state-management"]
+  },
+  {
+    "questionKey": "redux-store-actions-reducers",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Explain how data flows through a Redux application — what are the store, actions, and reducers, and how do they connect?",
+    "referenceAnswer": "The Redux store holds the entire application state as a single object. When something happens in the UI, the component dispatches an action — a plain object with a type field describing what happened, like { type: 'cart/addItem', payload: item }. The reducer is a pure function that takes the current state and the action, and returns a new state object without mutating the original. The store then notifies subscribed components about the new state, and they re-render. This one-way flow (UI → action → reducer → store → UI) makes state changes predictable and debuggable. A common mistake is mutating state directly inside a reducer instead of returning a new object, which causes components to not re-render because Redux uses reference equality to detect changes.",
+    "keyPoints": [
+      "store holds the entire application state",
+      "actions are plain objects describing what happened",
+      "reducers are pure functions that return new state without mutation",
+      "mutating state in a reducer prevents re-renders"
+    ],
+    "tags": ["react", "redux", "store", "actions", "reducers"]
+  },
+  {
+    "questionKey": "overusing-global-state",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What problems arise from putting too much state into a global store like Redux, and what state should stay local?",
+    "referenceAnswer": "Putting everything in a global store creates unnecessary coupling: form input values, toggle states, and modal open/close flags don't need to be globally accessible, and storing them in Redux means every keystroke dispatches an action and passes through reducers, adding overhead and noise to the devtools timeline. State should be global only if multiple unrelated components need it — like the current user, shopping cart, or notification count. UI-local state like hover effects, accordion open/close, or input focus should stay in local useState. A practical rule: if the state is needed only by one component or its direct children, keep it local. Moving state to Redux should be a deliberate decision, not a default.",
+    "keyPoints": [
+      "global store for form inputs adds overhead and devtools noise",
+      "global state is for data shared across unrelated components",
+      "UI-local state like toggles and hover belongs in useState",
+      "moving to Redux should be a deliberate decision, not the default"
+    ],
+    "tags": ["react", "redux", "state-management", "antipatterns"]
+  },
+  {
+    "questionKey": "usestate-vs-context-vs-redux",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "How do you decide whether to use useState, Context, or Redux for a given piece of state in a React application?",
+    "referenceAnswer": "Start with useState — if the state is only needed by one component or passed 1-2 levels down, local state is the simplest and most performant option. Move to Context when the state is needed by many components at different nesting levels and changes infrequently, like theme, locale, or authentication — Context avoids prop drilling but re-renders all consumers on every change. Choose Redux when the state is complex (interdependent fields, async flows), changes frequently, and is shared across unrelated parts of the app — Redux provides selective subscriptions, middleware for async logic, and time-travel debugging. A common mistake is jumping to Redux for everything from the start, which adds boilerplate to simple features. Another is using Context for rapidly changing data like search input, causing performance issues from blanket re-renders.",
+    "keyPoints": [
+      "useState for local or 1-2 level state — simplest and most performant",
+      "Context for infrequently changing state consumed at many levels",
+      "Redux for complex, frequently changing state shared across unrelated components",
+      "don't default to Redux — start local and escalate only when needed"
+    ],
+    "tags": ["react", "useState", "context", "redux", "state-management"]
+  },
+  {
+    "questionKey": "reducer-mutation-no-rerender",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You push a new item into the state array inside a Redux reducer, but the component doesn't re-render. What went wrong?",
+    "referenceAnswer": "Array.push() mutates the existing array in place and returns the new length, not a new array. Since the reference to the state object hasn't changed, Redux's shallow equality check sees the same reference and skips the re-render. The fix is to return a new array: return [...state.items, newItem] or return state.items.concat(newItem). The same principle applies to objects — using state.user.name = 'new' mutates in place, while return { ...state, user: { ...state.user, name: 'new' } } creates new references. Redux Toolkit's createSlice uses Immer under the hood, which lets you write mutation-style code that actually produces immutable updates, largely eliminating this class of bugs.",
+    "keyPoints": [
+      "Array.push() mutates in place — the reference doesn't change",
+      "Redux compares references, so same reference means no re-render",
+      "return a new array with spread or concat instead of mutating",
+      "Redux Toolkit's Immer lets you write mutation-style code safely"
+    ],
+    "tags": ["react", "redux", "reducers", "mutation", "bugs"]
+  },
+  {
+    "questionKey": "context-rerender-all-consumers",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You put both user data and theme in a single Context, but every theme change re-renders components that only use user data. Why?",
+    "referenceAnswer": "When any part of the Context value changes, every component that calls useContext for that Context re-renders, regardless of which part of the value it actually uses. If theme and user are in the same Context object, a theme toggle re-renders every consumer, including those that only read user. The fix is to split them into separate Contexts — ThemeContext and UserContext — so consumers only re-render when their specific data changes. Alternatively, you can use useMemo on the context value to prevent unnecessary object recreation, but that only helps when the actual data hasn't changed. For high-frequency updates, separate Contexts or a library like Redux with selective subscriptions are better choices.",
+    "keyPoints": [
+      "all consumers re-render when any part of the Context value changes",
+      "combining unrelated data in one Context causes unnecessary re-renders",
+      "split into separate Contexts for independent data",
+      "useMemo on the value prevents re-renders only when data hasn't changed"
+    ],
+    "tags": ["react", "context", "re-renders", "performance"]
+  },
+  {
+    "questionKey": "stale-closure-in-timeout",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You show an alert with the current count value after a 3-second setTimeout, but the alert always shows the old value. Why?",
+    "referenceAnswer": "The setTimeout callback captures the count value from the render in which it was created — this is a stale closure. By the time the timeout fires 3 seconds later, count may have been updated several times, but the callback still sees the original value because each render has its own scope with its own count. This is not a bug in React but a fundamental JavaScript closure behavior: the function closes over the variable at creation time. To read the latest value, store count in a ref (countRef.current = count in an effect) and read countRef.current inside the timeout. Refs are mutable and always reflect the latest assigned value.",
+    "keyPoints": [
+      "setTimeout captures the value from the render where it was created",
+      "this is a JavaScript closure behavior, not a React bug",
+      "each render has its own scope with its own state values",
+      "use a ref to always access the latest value in async callbacks"
+    ],
+    "tags": ["react", "closures", "state", "setTimeout", "bugs"]
+  },
+  {
+    "questionKey": "useeffect-async-function-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You pass an async function directly to useEffect and get a warning. What is the correct pattern for async operations in effects?",
+    "referenceAnswer": "useEffect expects its callback to return either nothing or a cleanup function. An async function always returns a Promise, which React can't use as a cleanup function and ignores — triggering a warning. The correct pattern is to define an async function inside the effect and call it immediately: useEffect(() => { async function fetchData() { const res = await fetch(url); setData(await res.json()); } fetchData(); }, [url]). This keeps the outer function synchronous so it can return a cleanup function if needed. A common alternative is useEffect(() => { fetch(url).then(res => res.json()).then(setData); }, [url]), which avoids the async declaration entirely.",
+    "keyPoints": [
+      "async functions return Promises, which useEffect can't use as cleanup",
+      "define the async function inside the effect and call it immediately",
+      "the outer effect function must stay synchronous for cleanup to work",
+      "promise chains with .then() are an alternative that avoids async"
+    ],
+    "tags": ["react", "useEffect", "async", "hooks"]
+  },
+  {
+    "questionKey": "redux-selector-broad-subscription",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A component only needs the user's name from the Redux store, but it re-renders whenever any part of the store changes. What is the likely cause?",
+    "referenceAnswer": "The component is probably selecting too broadly — using useSelector(state => state) or useSelector(state => state.user) when it only needs state.user.name. useSelector re-renders the component whenever the selected value changes by reference. If you select the entire state or a parent object, any change to any sibling field creates a new reference and triggers a re-render. The fix is to select the narrowest possible value: useSelector(state => state.user.name). For cases where you need multiple fields, you can call useSelector multiple times, each selecting a primitive value, or use a memoized selector with createSelector from Reselect to return a stable reference when the inputs haven't changed.",
+    "keyPoints": [
+      "useSelector re-renders when the selected value changes by reference",
+      "selecting too broadly causes re-renders from unrelated state changes",
+      "select the narrowest possible value — primitives when possible",
+      "createSelector memoizes derived values to stabilize references"
+    ],
+    "tags": ["react", "redux", "selectors", "performance", "re-renders"]
+  },
+  {
+    "questionKey": "lazy-state-initialization",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You initialize useState with an expensive computation like useState(calculateInitial()), and the app feels slow on every interaction. What is wrong?",
+    "referenceAnswer": "useState(calculateInitial()) calls the function on every render, but only uses the result on the first render — subsequent renders discard it. If calculateInitial() is expensive (parsing large data, reading localStorage), it adds unnecessary overhead on every state update. The fix is lazy initialization: useState(() => calculateInitial()). Passing a function makes React call it only once on the initial render. The difference is subtle — with parentheses, JavaScript evaluates the function before passing the result to useState; without parentheses (passing the function itself), React controls when it's called. This is relevant whenever the initial value involves computation beyond a simple literal.",
+    "keyPoints": [
+      "useState(fn()) runs the function on every render",
+      "useState(() => fn()) runs only on the initial render",
+      "expensive initial values should use lazy initialization",
+      "only matters when initialization involves computation, not simple literals"
+    ],
+    "tags": ["react", "useState", "initialization", "performance"]
+  },
+  {
+    "questionKey": "useeffect-mount-vs-update",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How do you make a useEffect run only on mount but not on updates, and is there a way to run it only on updates?",
+    "referenceAnswer": "An empty dependency array [] makes the effect run only after the initial render (mount). To run an effect only on updates and skip mount, there's no built-in syntax — the common pattern is to use a ref as a flag: const isMount = useRef(true); useEffect(() => { if (isMount.current) { isMount.current = false; return; } /* update logic */ }, [dependency]). This is useful when you want to save changes to a server only when the user edits data, not when the component loads initial values. In class components, componentDidMount and componentDidUpdate were separate lifecycle methods, but useEffect merges both — the ref flag pattern fills that gap.",
+    "keyPoints": [
+      "empty dependency array runs the effect only on mount",
+      "no built-in syntax for update-only effects",
+      "use a ref flag to skip the first (mount) execution",
+      "useful for saving changes without triggering on initial load"
+    ],
+    "tags": ["react", "useEffect", "lifecycle", "mount", "update"]
+  },
+  {
+    "questionKey": "redux-duplicated-server-state",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your app fetches a list of products from the API and copies them into the Redux store. Later, a user edits a product but the list shows stale data. What went wrong?",
+    "referenceAnswer": "The Redux store now holds a copy of server data that can go out of sync whenever the server state changes — through other users' edits, background processes, or even the user's own edit if the store copy isn't updated. This is a state duplication problem: the server is the source of truth, but the Redux copy becomes a second source that must be manually kept in sync. Every mutation needs to update both the server and the Redux copy, and forgetting either creates stale data. Modern solutions like React Query or RTK Query treat server data as a cache with automatic invalidation and refetching, rather than copying it into the store. Redux should hold client-side state (UI flags, selections, drafts), not duplicated server state.",
+    "keyPoints": [
+      "copying server data into Redux creates a second source of truth",
+      "edits must update both server and store — forgetting either causes staleness",
+      "React Query or RTK Query treat server data as a cache with auto-invalidation",
+      "Redux should hold client state, not duplicated server state"
+    ],
+    "tags": ["react", "redux", "server-state", "caching", "antipatterns"]
+  },
+  {
+    "questionKey": "context-provider-value-stability",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You wrap your app in a Context Provider with value={{ user, theme }}, but every component consuming the Context re-renders on every parent render, even when user and theme haven't changed. Why?",
+    "referenceAnswer": "The value={{ user, theme }} creates a new object on every render of the Provider component. Even if user and theme are the same, the new object has a different reference, so React sees the context value as changed and re-renders all consumers. The fix is to memoize the value: const contextValue = useMemo(() => ({ user, theme }), [user, theme]). Now the object reference only changes when user or theme actually change. This is a very common performance mistake with Context — the inline object literal looks harmless but defeats the purpose of unchanged data because JavaScript creates a new object each time. This doesn't apply when the value is a primitive like a string or number, since those are compared by value.",
+    "keyPoints": [
+      "inline {{ user, theme }} creates a new object on every render",
+      "new reference triggers re-render of all consumers",
+      "useMemo stabilizes the value when user and theme haven't changed",
+      "primitives don't have this problem since they're compared by value"
+    ],
+    "tags": ["react", "context", "useMemo", "performance", "bugs"]
+  },
+  {
+    "questionKey": "usereducer-vs-usestate",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you choose useReducer over useState for managing component state?",
+    "referenceAnswer": "useReducer is a better fit when state has multiple related fields that update together, or when the next state depends on complex logic rather than a simple value swap. For example, a form with fields, validation errors, loading status, and submission state involves transitions like 'submit started', 'validation failed', 'submission succeeded' — a reducer makes each transition explicit and keeps the logic in one place. With multiple useState calls, these transitions scatter across the component and it's easy to forget to update one of the fields. useReducer also makes testing easier because the reducer is a pure function you can test independently. For simple, independent values like a toggle or a single input, useState is more concise.",
+    "keyPoints": [
+      "useReducer for multiple related fields that update together",
+      "explicit transitions keep complex state logic in one place",
+      "multiple useState calls scatter transitions and increase bug risk",
+      "useState is more concise for simple, independent values"
+    ],
+    "tags": ["react", "useReducer", "useState", "state"]
+  },
+  {
+    "questionKey": "redux-async-middleware",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why can't you put async logic directly inside a Redux reducer, and what is middleware used for?",
+    "referenceAnswer": "Reducers must be pure functions — they take state and action, return new state, and must not have side effects like API calls, timers, or logging. If you put an await fetch() inside a reducer, it breaks the synchronous contract and makes state updates unpredictable and impossible to replay in devtools. Middleware sits between the dispatch call and the reducer, allowing you to intercept actions and run async logic before the action reaches the reducer. Redux Thunk is the simplest middleware — it lets you dispatch a function instead of an object, and that function can do async work and dispatch real actions when the work completes. Redux Toolkit includes Thunk by default, so most projects use it out of the box.",
+    "keyPoints": [
+      "reducers must be pure — no side effects, no async",
+      "async in a reducer breaks predictability and devtools replay",
+      "middleware intercepts actions and runs async logic before the reducer",
+      "Redux Thunk lets you dispatch functions that perform async work"
+    ],
+    "tags": ["react", "redux", "middleware", "thunk", "async"]
+  },
+  {
+    "questionKey": "state-update-after-unmount",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You fetch data in a useEffect, but if the user navigates away before the fetch completes, you see a warning about setting state on an unmounted component. How do you prevent this?",
+    "referenceAnswer": "The warning occurs because the async callback tries to call setState after the component has already unmounted. The classic fix is to use a cleanup flag: let isMounted = true; in the effect, check if (isMounted) before calling setState, and set isMounted = false in the cleanup function. With fetch, you can also use an AbortController: create one in the effect, pass its signal to fetch, and call controller.abort() in cleanup — this cancels the request entirely. Note that React 18 removed this specific warning because state updates on unmounted components are harmless in practice (React simply ignores them), but canceling unnecessary requests is still good practice to avoid wasted network traffic.",
+    "keyPoints": [
+      "async callbacks can try to setState after unmount",
+      "use an isMounted flag in the cleanup function to skip the update",
+      "AbortController cancels the fetch request entirely on cleanup",
+      "React 18 removed the warning but canceling requests is still good practice"
+    ],
+    "tags": ["react", "useEffect", "async", "unmount", "cleanup"]
+  },
+  {
+    "questionKey": "react18-automatic-batching",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "In React 17, multiple setState calls inside a setTimeout triggered multiple re-renders. How does React 18 change this?",
+    "referenceAnswer": "React 18 introduced automatic batching: all state updates are batched into a single re-render regardless of where they originate — event handlers, setTimeout, promises, or native event listeners. In React 17, batching only happened inside React event handlers; setState calls in setTimeout, promises, or native listeners each triggered their own re-render. So setA(1); setB(2); inside a setTimeout caused two re-renders in React 17 but only one in React 18. If you specifically need a state update to trigger an immediate re-render before the next line, you can wrap it in flushSync(), but this should be rare. Automatic batching is a performance improvement that requires no code changes in most cases.",
+    "keyPoints": [
+      "React 18 batches all setState calls regardless of context",
+      "React 17 only batched inside React event handlers",
+      "setTimeout and promises now batch too — fewer re-renders",
+      "flushSync() forces an immediate re-render if needed"
+    ],
+    "tags": ["react", "batching", "react18", "performance"]
+  },
+  {
+    "questionKey": "redux-normalized-state-shape",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "Your Redux store has deeply nested product data with categories containing arrays of products. Updating a single product's price requires spreading through three levels of nesting. What is a better state shape?",
+    "referenceAnswer": "The better approach is normalized state: store entities in flat lookup objects keyed by ID, and use arrays of IDs to represent relationships. Instead of { categories: [{ name: 'Books', products: [{ id: 1, price: 10 }] }] }, use { products: { 1: { id: 1, price: 10, categoryId: 'books' } }, categories: { books: { name: 'Books', productIds: [1] } } }. Updating a product's price is now state.products[id].price = newPrice (with Immer) — no nesting. This also prevents data duplication: if a product appears in multiple views, there's only one copy to update. Redux Toolkit's createEntityAdapter provides normalized CRUD operations out of the box. The tradeoff is that reading requires joining data from multiple slices, but selectors handle that cleanly.",
+    "keyPoints": [
+      "normalized state stores entities in flat objects keyed by ID",
+      "deeply nested state requires painful multi-level spreading for updates",
+      "normalization prevents data duplication across views",
+      "createEntityAdapter provides normalized CRUD helpers"
+    ],
+    "tags": ["react", "redux", "normalization", "state-shape", "patterns"]
+  },
+  {
+    "questionKey": "useeffect-vs-event-handler",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When should you put side-effect logic in a useEffect versus directly in an event handler?",
+    "referenceAnswer": "Event handlers are the right place for side effects that are triggered by a specific user action — submitting a form, clicking a button, or selecting an option. useEffect is for side effects that need to happen because of rendering itself — syncing with an external system, setting up a subscription, or fetching data when a component appears. A common mistake is putting form submission logic in a useEffect that watches a 'submitted' state flag — this adds unnecessary complexity and an extra render. Instead, call the submission function directly in the button's onClick handler. The React team's guideline is: if it's a response to a user event, put it in the handler; if it's synchronizing with something outside React, put it in an effect.",
+    "keyPoints": [
+      "event handlers for user-initiated side effects",
+      "useEffect for synchronization with external systems on render",
+      "don't use useEffect + state flag for logic that belongs in a handler",
+      "React's guideline: user event = handler, sync with outside = effect"
+    ],
+    "tags": ["react", "useEffect", "events", "patterns"]
+  },
+  {
+    "questionKey": "composition-instead-of-context",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A developer adds Context to avoid passing a user prop through 4 levels. Could component composition solve this without Context?",
+    "referenceAnswer": "Yes — instead of passing the user prop through intermediate components that don't use it, the top-level component can render the deeply nested component directly and pass it down as a children or slot prop. For example, instead of <Layout><Sidebar><UserMenu user={user} /></Sidebar></Layout> where Layout and Sidebar just forward user, the top-level component renders <Layout sidebar={<UserMenu user={user} />} />. Now Layout doesn't need to know about user at all — it just renders {props.sidebar}. This is called component composition or inversion of control, and it eliminates prop drilling without the re-render cost of Context. The tradeoff is that the top-level component becomes more aware of the page structure.",
+    "keyPoints": [
+      "pass the rendered component as children or a slot prop instead of data",
+      "intermediate components render the slot without knowing its props",
+      "avoids Context's re-render cost for simple prop drilling cases",
+      "the top-level component takes on more layout awareness"
+    ],
+    "tags": ["react", "composition", "context", "prop-drilling", "patterns"]
+  },
+  {
+    "questionKey": "state-object-spread-nested-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You update nested state with setState({ ...state, user: { ...state.user, name: 'New' } }), but other nested fields inside user disappear. What happened?",
+    "referenceAnswer": "If state.user has nested objects like address and you only spread one level — { ...state.user, name: 'New' } — the top-level fields of user are preserved but the spread is shallow. The actual problem is likely that an earlier update didn't spread correctly, or the state shape changed and a field was removed by an incomplete spread. A common concrete bug is forgetting the inner spread entirely: setState({ ...state, user: { name: 'New' } }) — this replaces the entire user object with just { name: 'New' }, losing email, address, and everything else. Deep updates with nested spreading are error-prone; useReducer or Immer (via Redux Toolkit's createSlice) makes deep immutable updates much safer.",
+    "keyPoints": [
+      "spread is shallow — only copies one level of properties",
+      "forgetting inner spread replaces the entire nested object",
+      "each nesting level needs its own spread to preserve sibling fields",
+      "useReducer or Immer makes deep immutable updates safer"
+    ],
+    "tags": ["react", "state", "immutability", "spread", "bugs"]
+  },
+  {
+    "questionKey": "effect-race-condition-fetch",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A user types quickly in a search box, triggering a fetch in useEffect for each keystroke. Sometimes the results shown don't match the current search term. What is happening?",
+    "referenceAnswer": "This is a race condition: each keystroke fires a new fetch, but network responses can arrive out of order. If the request for 're' returns after the request for 'react', the UI shows results for 're' even though the user has already typed 'react'. The fix is to use a cleanup flag or AbortController: in the effect cleanup, set a boolean ignore = true and check it before calling setState, or abort the previous request entirely. useEffect(() => { let ignore = false; fetch(url).then(res => res.json()).then(data => { if (!ignore) setResults(data); }); return () => { ignore = true; }; }, [query]). Libraries like React Query handle this automatically by canceling stale requests.",
+    "keyPoints": [
+      "out-of-order responses can show results for a previous search term",
+      "use a cleanup flag or AbortController to ignore stale responses",
+      "set ignore = true in the cleanup function",
+      "React Query handles request cancellation automatically"
+    ],
+    "tags": ["react", "useEffect", "fetch", "race-condition", "bugs"]
+  },
+  {
+    "questionKey": "redux-action-naming-conventions",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How should Redux action types be named, and what problem does poor naming cause?",
+    "referenceAnswer": "Action types should describe what happened from the user's or system's perspective, not what the reducer should do. The convention is 'domain/eventName' — for example, 'cart/itemAdded' or 'auth/loginFailed'. Poor naming like 'SET_DATA' or 'UPDATE_STATE' makes it impossible to understand what triggered the action when reading the devtools timeline. If every action is 'SET_X', you lose the primary debugging advantage of Redux: a clear log of what happened in the application. Redux Toolkit's createSlice generates action types automatically from the slice name and reducer function names, which encourages descriptive naming. Naming actions after events rather than setters also makes it natural for multiple reducers to respond to the same action when needed.",
+    "keyPoints": [
+      "name actions after what happened, not what the reducer should do",
+      "convention is domain/eventName like cart/itemAdded",
+      "generic names like SET_DATA make devtools logs unreadable",
+      "createSlice generates descriptive action types automatically"
+    ],
+    "tags": ["react", "redux", "actions", "naming", "conventions"]
+  },
+  {
+    "questionKey": "multiple-usestate-vs-object-state",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "react-state-lifecycle",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Should you use one useState with an object for all form fields or separate useState calls for each field?",
+    "referenceAnswer": "Separate useState calls are simpler and more common for forms with a few independent fields — each field gets its own setter with no risk of accidentally overwriting other fields. One useState with an object becomes useful when fields are tightly coupled and updated together, like resetting an entire form at once. The risk with object state is forgetting to spread the previous state: setState({ name: 'Anna' }) replaces the entire object instead of updating just name — it should be setState(prev => ({ ...prev, name: 'Anna' })). For complex forms with many fields, validation, and interdependent logic, useReducer is often the best choice because it centralizes all transitions. Start with separate useState calls and consolidate only when the logic demands it.",
+    "keyPoints": [
+      "separate useState for independent fields — simpler and no spread needed",
+      "object state useful when fields update together or for bulk reset",
+      "forgetting spread in object state overwrites other fields",
+      "useReducer is best for complex forms with many interdependent fields"
+    ],
+    "tags": ["react", "useState", "forms", "state", "patterns"]
+  }
+]

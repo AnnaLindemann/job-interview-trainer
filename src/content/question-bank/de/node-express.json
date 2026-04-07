@@ -1,0 +1,656 @@
+[
+  {
+    "questionKey": "req-body-undefined-express",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du loggst req.body in einem Express-POST-Route-Handler, aber es wird undefined ausgegeben, obwohl der Client gültiges JSON sendet. Was ist die wahrscheinlichste Ursache?",
+    "referenceAnswer": "Express parst Request-Bodies nicht standardmäßig. Man muss die express.json()-Middleware vor den Route-Handlern registrieren: app.use(express.json()). Ohne sie liest und parst Express den eingehenden JSON-Body nie, sodass req.body undefined bleibt. Das ist einer der häufigsten Anfängerfehler in Express. Die Middleware muss vor allen Routes registriert werden, die den Body lesen müssen — wenn sie nach der Route kommt, läuft der Handler ohne Parsing. Eine weitere Ursache kann sein, dass der Client den Content-Type: application/json Header nicht mitsendet, den express.json() prüft, bevor es versucht zu parsen.",
+    "keyPoints": [
+      "Express parst Request-Bodies nicht standardmäßig",
+      "express.json() muss als Middleware vor den Routes registriert werden",
+      "nach Routes registrierte Middleware wird für diese Routes nicht angewendet",
+      "express.json() prüft auch den Content-Type Header"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "req-body",
+      "json",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "double-response-headers-sent",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Dein Express-Route wirft den Fehler 'Cannot set headers after they are sent to the client'. Was verursacht diesen Fehler?",
+    "referenceAnswer": "Dieser Fehler tritt auf, wenn ein Route-Handler versucht, mehr als eine Response zu senden. Ein häufiges Pattern, das ihn verursacht, ist ein if-Block ohne return: if (error) { res.status(400).json({ error }); } — ohne return läuft der Code nach dem if-Block weiter und trifft auf einen weiteren res.json()-Aufruf darunter. Der erste res.json() sendet die Response und Header, und der zweite Aufruf versucht, Header auf einer bereits gesendeten Response zu setzen. Der Fix ist, immer nach dem Senden einer Response zu returnen: return res.status(400).json({ error }). Das beendet den Ausführungsfluss des Handlers nach der ersten Response.",
+    "keyPoints": [
+      "der Fehler bedeutet, dass zwei Responses in einem Request gesendet werden",
+      "häufig verursacht durch fehlendes return nach einer Error-Response",
+      "die Ausführung geht nach res.json() weiter, wenn man nicht returned",
+      "immer nach dem Senden einer Response returnen, um die Ausführung zu stoppen"
+    ],
+    "tags": [
+      "express",
+      "response",
+      "headers",
+      "bugs",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "middleware-ordering-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du fügst eine Authentication-Middleware zu deiner Express-App hinzu, aber einige Routes, die geschützt sein sollten, sind ohne Token zugänglich. Was ist die wahrscheinlichste Ursache?",
+    "referenceAnswer": "Express wendet Middleware in der Reihenfolge an, in der sie mit app.use() registriert wird. Wenn die ungeschützten Routes vor der Auth-Middleware registriert sind, laufen sie, bevor die Middleware den Token prüfen kann. Zum Beispiel: wenn app.get('/api/users', handler) vor app.use(authMiddleware) registriert wird, ist die /api/users Route ohne Authentifizierung zugänglich. Der Fix ist, die Auth-Middleware vor den zu schützenden Routes zu registrieren, oder sie selektiv auf bestimmte Routes anzuwenden: app.get('/api/users', authMiddleware, handler). Middleware-Reihenfolge ist eine der häufigsten Fehlerquellen in Express-Anwendungen, weil die Registrierungsreihenfolge die Ausführungsreihenfolge definiert.",
+    "keyPoints": [
+      "Express führt Middleware in Registrierungsreihenfolge aus",
+      "Routes, die vor der Middleware registriert sind, umgehen sie",
+      "Auth-Middleware vor den geschützten Routes registrieren",
+      "oder Middleware selektiv auf bestimmte Routes anwenden"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "ordering",
+      "auth",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "hanging-request-no-response",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Client sendet einen Request an deinen Express-Server und bekommt keine Antwort — der Request hängt, bis er einen Timeout bekommt. Es gibt keinen Fehler in den Server-Logs. Was ist die wahrscheinlichste Ursache?",
+    "referenceAnswer": "Der Route-Handler sendet nie eine Response. Express sendet nicht automatisch eine Response, wenn der Handler endet, ohne res.send(), res.json() oder res.end() aufzurufen. Das passiert häufig, wenn ein Conditional-Branch keine Response hat — zum Beispiel ein if/else, bei dem der else-Fall fehlt und keiner der Pfade res.json() aufruft. Es passiert auch bei async Code: wenn eine awaited Operation erfolgreich ist, aber danach kein Response-Aufruf kommt, oder wenn ein Fehler stillschweigend gefangen wird, ohne eine Response zu senden. Der Fix ist sicherzustellen, dass jeder mögliche Ausführungspfad mit einer Response endet.",
+    "keyPoints": [
+      "Express sendet nicht automatisch eine Response",
+      "fehlendes res.send() oder res.json() lässt den Request hängen",
+      "häufig verursacht durch Conditional-Branches ohne Response",
+      "sicherstellen, dass jeder Ausführungspfad mit einer Response endet"
+    ],
+    "tags": [
+      "express",
+      "response",
+      "hanging",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "params-query-body-express-usage",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "In einem Express-Route-Handler für GET /users/:id?sort=name — woher kommt die id und woher der sort-Wert?",
+    "referenceAnswer": "Die id kommt aus req.params.id — Route-Parameter, die mit :paramName im Route-Pfad definiert sind, sind auf dem req.params-Objekt verfügbar. Der sort-Wert kommt aus req.query.sort — Query-String-Parameter nach dem ? werden in das req.query-Objekt geparst. Ein häufiger Fehler ist, bei einem GET-Request auf req.body.id zuzugreifen, was nicht funktioniert, weil GET-Requests typischerweise keinen geparsten Body haben. Ein anderer Fehler ist, req.params und req.query zu verwechseln: Params sind Teil der URL-Pfadstruktur (/users/42), während Query-Params Key-Value-Paare nach dem Fragezeichen sind (/users?sort=name). Bei POST/PUT/PATCH geht der Request-Payload in req.body, was die express.json()-Middleware erfordert.",
+    "keyPoints": [
+      "req.params enthält Route-Parameter aus dem URL-Pfad (:id)",
+      "req.query enthält Query-String-Parameter (?sort=name)",
+      "req.body enthält den geparsten Request-Payload (POST/PUT/PATCH)",
+      "GET-Requests haben typischerweise keinen geparsten Body"
+    ],
+    "tags": [
+      "express",
+      "params",
+      "query",
+      "body",
+      "routing"
+    ]
+  },
+  {
+    "questionKey": "async-route-unhandled-error",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Dein Express-Route-Handler nutzt async/await für eine Datenbankabfrage, aber wenn die Abfrage fehlschlägt, hängt der Request statt einen 500-Error zurückzugeben. Was ist das Problem?",
+    "referenceAnswer": "Express 4 fängt Fehler aus async-Route-Handlern nicht automatisch ab. Wenn eine awaited Operation wirft, wird der Fehler zu einer unhandled Promise Rejection — Express sieht ihn nie, also wird keine Error-Response gesendet und der Request hängt. Der Fix ist, den Handler-Body in einen try/catch-Block zu wrappen und im catch next(err) aufzurufen, um den Fehler an Express' Error-Handling-Middleware weiterzuleiten. Alternativ kann man eine Wrapper-Funktion nutzen wie const asyncHandler = fn => (req, res, next) => fn(req, res, next).catch(next), um try/catch nicht in jeder Route wiederholen zu müssen. Express 5 unterstützt async-Handler nativ, aber in Express 4 werden unhandled async-Errors stillschweigend verschluckt.",
+    "keyPoints": [
+      "Express 4 fängt Fehler aus async-Handlern nicht automatisch ab",
+      "unhandled async-Errors lassen den Request hängen",
+      "in try/catch wrappen und next(err) aufrufen für Error-Forwarding",
+      "Wrapper-Funktionen oder Express 5 machen manuelles try/catch überflüssig"
+    ],
+    "tags": [
+      "express",
+      "async",
+      "error-handling",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "next-err-error-middleware",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was macht der Aufruf von next(err) in Express, und warum ist das besser, als jeden Fehler direkt im Route-Handler zu behandeln?",
+    "referenceAnswer": "next(err) mit einem Error-Argument aufzurufen überspringt alle verbleibenden regulären Middleware und Route-Handler und springt direkt zur ersten Error-Handling-Middleware — einer Funktion mit der Signatur (err, req, res, next). Das ist nützlich, weil es Error-Handling zentralisiert: statt Error-Response-Logik in jeder Route zu schreiben, definiert man sie einmal in einer Error-Middleware am Ende des Middleware-Stacks. Wenn eine Datenbankabfrage in einer von 50 Routes fehlschlägt, rufen alle next(err) auf und der zentrale Handler entscheidet über Response-Format, Status Code und Logging. Ohne dieses Pattern wird Error-Handling über jede Route dupliziert, was tendenziell inkonsistent und schwer wartbar ist. Die Error-Middleware muss genau vier Parameter haben, damit Express sie als Error-Handler erkennt.",
+    "keyPoints": [
+      "next(err) leitet den Error an die Error-Handling-Middleware weiter",
+      "Error-Middleware hat vier Parameter: (err, req, res, next)",
+      "zentralisiert Error-Handling statt es in jeder Route zu duplizieren",
+      "muss nach allen regulären Routes und Middleware registriert werden"
+    ],
+    "tags": [
+      "express",
+      "error-handling",
+      "middleware",
+      "next"
+    ]
+  },
+  {
+    "questionKey": "res-json-vs-res-send",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen res.json() und res.send() in Express beim Zurückgeben eines Objekts?",
+    "referenceAnswer": "Beide können eine JSON-Response senden, aber res.json() setzt explizit den Content-Type Header auf application/json und stringifiziert das Objekt mit JSON.stringify(). res.send() erkennt den Typ des Arguments: bei einem Objekt ruft es ebenfalls JSON.stringify() auf und setzt den Content-Type auf JSON, sodass das Ergebnis für Objekte praktisch identisch ist. Der praktische Unterschied liegt in Klarheit und Edge Cases: res.json() handhabt Werte wie null korrekt, während res.send() bestimmte Werte anders interpretieren kann — zum Beispiel konnte res.send(200) in älteren Express-Versionen mit dem Setzen eines Status Codes verwechselt werden. res.json() macht die Absicht explizit und vermeidet Mehrdeutigkeit. Für Konsistenz in JSON-APIs res.json() für alle JSON-Responses bevorzugen.",
+    "keyPoints": [
+      "res.json() setzt immer Content-Type auf application/json",
+      "res.send() erkennt den Typ automatisch, hat aber Edge Cases bei bestimmten Werten",
+      "res.json() macht die Absicht explizit und vermeidet Mehrdeutigkeit",
+      "res.status(code).json(data) für Responses mit einem bestimmten Status nutzen"
+    ],
+    "tags": [
+      "express",
+      "response",
+      "json",
+      "send"
+    ]
+  },
+  {
+    "questionKey": "validation-at-route-level",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Ein Entwickler validiert Request-Daten tief in einer Service-Funktion, die vom Route-Handler aufgerufen wird. Warum ist es besser, früh auf Route- oder Middleware-Ebene zu validieren?",
+    "referenceAnswer": "Validation auf Route- oder Middleware-Ebene fängt ungültige Daten ab, bevor sie die Business-Logik erreichen, was klarere Fehlermeldungen liefert und unnötige Verarbeitung verhindert. Wenn Validation tief in einer Service-Funktion passiert, muss der Fehler durch mehrere Schichten bubblen, bevor er zu einer HTTP-Response wird, was saubere 400-Responses mit feldspezifischen Meldungen erschwert. Frühe Validation dient auch als Dokumentationsschicht: ein Blick auf die Validation-Middleware der Route zeigt genau, welchen Input der Endpoint erwartet. Ein gängiges Pattern ist Validation-Middleware (wie express-validator oder Zod), die vor dem Handler läuft und bei ungültigem Input einen 400 sendet. Das hält Route-Handler auf Business-Logik fokussiert statt auf Input-Prüfung.",
+    "keyPoints": [
+      "frühe Validation fängt ungültige Eingaben vor der Business-Logik ab",
+      "tiefe Validation macht saubere 400-Responses schwerer",
+      "Validation-Middleware dokumentiert die erwartete Input-Shape",
+      "hält Route-Handler auf Business-Logik fokussiert"
+    ],
+    "tags": [
+      "express",
+      "validation",
+      "middleware",
+      "patterns"
+    ]
+  },
+  {
+    "questionKey": "route-order-shadowing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "HARD",
+    "questionText": "Du definierst GET /users/me für den aktuellen User und GET /users/:id für einen beliebigen User per ID. Requests an /users/me geben immer 'user not found' zurück. Was passiert?",
+    "referenceAnswer": "Express matcht Routes in der Reihenfolge, in der sie definiert werden. Wenn app.get('/users/:id', ...) vor app.get('/users/me', ...) registriert wird, matcht die :id-Route zuerst und behandelt 'me' als id-Parameter. Der Handler sucht dann einen User mit der ID 'me', der nicht existiert, und gibt einen Not-Found-Error zurück. Der Fix ist, die spezifischere statische Route (/users/me) vor der dynamischen parametrisierten Route (/users/:id) zu registrieren. Das ist ein häufiger Express-Routing-Bug: parametrisierte Routes sind gierig und matchen jeden String, sodass sie statische Routes, die nach ihnen definiert werden, verdecken. Spezifische Routes immer vor generischen parametrisierten Routes platzieren.",
+    "keyPoints": [
+      "Express matcht Routes in Registrierungsreihenfolge",
+      "parametrisierte Routes wie :id matchen jeden String, auch 'me'",
+      "die /users/:id Route fängt /users/me ab, wenn sie zuerst definiert wird",
+      "spezifische statische Routes vor generischen parametrisierten Routes registrieren"
+    ],
+    "tags": [
+      "express",
+      "routing",
+      "params",
+      "ordering",
+      "bugs"
+    ]
+  },
+  {
+    "questionKey": "payload-too-large-express-limit",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Client sendet einen großen JSON-Body an deine Express-API und bekommt einen 413 Payload Too Large Fehler — aber dein Route-Handler-Code läuft gar nicht erst. Wo wird der Request abgelehnt?",
+    "referenceAnswer": "Die express.json()-Middleware hat ein Standard-Body-Size-Limit von 100 KB. Payloads, die dieses Limit überschreiten, werden mit einem 413-Fehler abgelehnt, bevor der Request den Route-Handler erreicht. Das ist eine Sicherheitsfunktion, die Denial-of-Service-Angriffe durch überdimensionierte Payloads verhindert. Der Fix ist, das Limit zu erhöhen: app.use(express.json({ limit: '5mb' })). Wenn jedoch ein Reverse Proxy wie Nginx vor Express sitzt, hat er sein eigenes Limit (Standard 1 MB via client_max_body_size). Beide Limits müssen angepasst werden. Ein häufiger Debugging-Fehler ist, das Express-Limit zu erhöhen, aber den Proxy zu vergessen — dann kommt der gleiche 413 von einer anderen Schicht. Immer die Error-Response-Header prüfen, um zu identifizieren, welche Schicht den Request ablehnt.",
+    "keyPoints": [
+      "express.json() hat standardmäßig ein Body-Size-Limit von 100 KB",
+      "Payloads über dem Limit werden vor dem Route-Handler abgelehnt",
+      "Limit erhöhen mit express.json({ limit: '5mb' })",
+      "Reverse Proxies wie Nginx haben eigene separate Limits"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "payload",
+      "413",
+      "configuration"
+    ]
+  },
+  {
+    "questionKey": "urlencoded-vs-json-middleware",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du hast express.json() registriert, aber req.body ist beim Absenden eines HTML-Formulars via POST immer noch leer. Was ist hier los?",
+    "referenceAnswer": "HTML-Formulare senden Daten standardmäßig mit Content-Type: application/x-www-form-urlencoded — nicht als JSON. express.json() parst nur Bodies mit JSON-Content-Type, Formular-Submissions werden also ignoriert. Man braucht express.urlencoded({ extended: true }), um URL-kodierte Formulardaten zu parsen. Das ist ein typisches Problem, wenn eine App sowohl eine JSON-API für das Frontend-Framework als auch klassische HTML-Formular-Endpoints hat. Beide Middlewares können nebeneinander registriert werden: app.use(express.json()) und app.use(express.urlencoded({ extended: true })). Die Option extended: true erlaubt das Parsen von verschachtelten Objekten in den Formulardaten.",
+    "keyPoints": [
+      "HTML-Formulare senden application/x-www-form-urlencoded, kein JSON",
+      "express.json() parst nur JSON-Content-Types",
+      "express.urlencoded() wird für Formular-Submissions benötigt",
+      "beide Middlewares können zusammen für gemischte APIs registriert werden"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "forms",
+      "urlencoded",
+      "content-type"
+    ]
+  },
+  {
+    "questionKey": "blocking-event-loop-sync-code",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Eine deiner Express-Routes liest eine große Datei mit fs.readFileSync(). Während diese Route einen Request bearbeitet, reagiert der Server auf alle anderen Requests nicht mehr. Warum?",
+    "referenceAnswer": "Node.js läuft auf einem einzigen Thread mit einem Event Loop. Synchrone Operationen wie fs.readFileSync() blockieren den Event Loop während ihrer Ausführung — in dieser Zeit kann Node keine anderen eingehenden Requests, Timer oder I/O-Callbacks verarbeiten. Wenn das Lesen der Datei 2 Sekunden dauert, warten alle anderen Clients ebenfalls 2 Sekunden. Deshalb sollten synchrone I/O-Funktionen nie in Request-Handlern verwendet werden. Der Fix ist, die async-Variante fs.readFile() oder fs.promises.readFile() mit await zu verwenden — das gibt dem Event Loop die Möglichkeit, andere Requests zu verarbeiten, während auf den Datei-Read gewartet wird. Synchrone Varianten sind nur beim Start des Servers akzeptabel (z. B. beim Lesen von Config-Dateien), bevor der Server Requests annimmt.",
+    "keyPoints": [
+      "Node.js ist single-threaded — synchrones I/O blockiert alle anderen Requests",
+      "fs.readFileSync blockiert den Event Loop bis die Operation abgeschlossen ist",
+      "in Route-Handlern async fs.readFile oder fs.promises.readFile verwenden",
+      "synchrones I/O ist nur beim Server-Start akzeptabel, nicht im Request-Handling"
+    ],
+    "tags": [
+      "node",
+      "event-loop",
+      "blocking",
+      "performance",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "middleware-never-calls-next",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du schreibst eine Logging-Middleware, die Request-Methode und URL loggt — aber nachdem du sie hinzugefügt hast, hängen alle Requests. Was ist der wahrscheinliche Fehler?",
+    "referenceAnswer": "Die Middleware ruft next() nach dem Logging nicht auf. In Express muss Middleware entweder eine Response senden oder next() aufrufen, um die Kontrolle an die nächste Middleware oder den nächsten Route-Handler weiterzugeben. Tut sie keines von beidem, hängt der Request, weil Express darauf wartet, dass die Middleware fertig wird — aber sie ist bereits zurückgekehrt, ohne etwas zu tun. Der Fix ist, am Ende der Middleware-Funktion next() hinzuzufügen: app.use((req, res, next) => { console.log(req.method, req.url); next(); }). Das ist ein häufiger Fehler beim ersten Schreiben von eigener Middleware — man vergisst, dass Middleware nicht nur eine Side-Effect-Funktion ist, sondern die Kontrolle explizit weitergeben muss.",
+    "keyPoints": [
+      "Middleware muss next() aufrufen oder eine Response senden",
+      "ohne next() hängt der Request auf unbestimmte Zeit",
+      "Logging-Middleware muss nach dem Logging next() aufrufen",
+      "Middleware ist keine Fire-and-forget-Funktion"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "next",
+      "hanging",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "next-called-twice-crash",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Eine Middleware ruft next() auf und führt danach weiteren Code aus, der ebenfalls next() aufruft oder eine Response sendet. Was passiert?",
+    "referenceAnswer": "next() aufzurufen stoppt die Ausführung der Middleware-Funktion nicht — Code danach läuft weiter. Wenn dieser Code erneut next() aufruft, wird die nächste Middleware oder der nächste Route-Handler zweimal ausgeführt, was zu doppelten Datenbankoperationen, doppelten Responses oder dem Fehler 'headers already sent' führen kann. Beispiel: next(); res.json({ done: true }) — next() gibt die Kontrolle an den Route-Handler weiter, der eine Response sendet, dann versucht res.json() in der Middleware eine zweite Response zu senden. Der Fix ist return next() — durch return next() wird sichergestellt, dass kein Code nach der Übergabe der Kontrolle mehr ausgeführt wird. Das ist besonders wichtig in Middleware mit Conditional-Branches, bei denen manche Pfade next() aufrufen und andere eine Response senden.",
+    "keyPoints": [
+      "next() stoppt die Ausführung der aktuellen Funktion nicht",
+      "Code nach next() läuft weiter und kann doppelte Responses verursachen",
+      "return next() verwenden, um die Ausführung nach der Übergabe zu stoppen",
+      "besonders wichtig in Middleware mit Conditional-Branches"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "next",
+      "bugs",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "error-middleware-three-params-ignored",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du definierst eine Error-Handling-Middleware, aber Fehler aus next(err) werden von ihr nicht abgefangen — der Client bekommt stattdessen Express' Standard-HTML-Fehlerseite. Was stimmt mit der Middleware nicht?",
+    "referenceAnswer": "Express erkennt Error-Handling-Middleware an ihrer Funktionssignatur: Sie muss genau vier Parameter haben (err, req, res, next). Wenn man versehentlich (err, req, res) mit nur drei Parametern schreibt, behandelt Express sie als normale Middleware und überspringt sie beim Error-Handling. Das ist eines der verwirrendsten Verhaltensweisen in Express, weil die Middleware für einen Entwickler korrekt aussieht, aber für Fehler stillschweigend ignoriert wird. Selbst wenn der next-Parameter in der Funktion nicht verwendet wird, muss er in der Signatur deklariert sein, damit Express sie als Error-Handler erkennt. Der Fix ist, immer alle vier Parameter zu verwenden: app.use((err, req, res, next) => { ... }).",
+    "keyPoints": [
+      "Error-Middleware muss genau vier Parameter haben (err, req, res, next)",
+      "mit drei Parametern behandelt Express sie als normale Middleware",
+      "der vierte Parameter muss deklariert werden, auch wenn er nicht genutzt wird",
+      "das ist ein häufiger stiller Bug — die Middleware sieht korrekt aus, wird aber übersprungen"
+    ],
+    "tags": [
+      "express",
+      "error-handling",
+      "middleware",
+      "signature",
+      "bugs"
+    ]
+  },
+  {
+    "questionKey": "env-variable-undefined-production",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Deine Express-App funktioniert lokal, aber in Production stürzt sie mit einem Fehler über eine undefined Datenbank-URL ab. process.env.DATABASE_URL gibt undefined zurück. Was ist die wahrscheinliche Ursache?",
+    "referenceAnswer": "Umgebungsvariablen, die in einer lokalen .env-Datei gesetzt sind, werden typischerweise von einer Library wie dotenv geladen, die die .env-Datei liest und die Variablen zu process.env hinzufügt. In Production wird dotenv oft nicht verwendet — die Variablen werden über die Umgebungskonfiguration der Hosting-Plattform gesetzt (z. B. Docker, Heroku Config Vars oder System-Umgebung). Wenn die Variable in der Production-Umgebung nicht konfiguriert ist, ist process.env.DATABASE_URL undefined. Ein häufiger Fehler ist, sich auf .env-Dateien in Production zu verlassen oder zu vergessen, die Variablen auf der Deployment-Plattform zu setzen. Der Fix ist, die Variablen in der Production-Umgebung zu konfigurieren und beim Start eine Prüfung hinzuzufügen, die bei fehlenden Pflicht-Variablen sofort mit einer klaren Fehlermeldung abbricht.",
+    "keyPoints": [
+      ".env-Dateien sind für lokale Entwicklung, nicht für Production",
+      "Production-Variablen werden über die Hosting-Plattform oder das System gesetzt",
+      "vergessene Production-Env-Variablen führen zu undefined",
+      "Pflicht-Variablen beim Start prüfen und bei Fehlen sofort abbrechen"
+    ],
+    "tags": [
+      "node",
+      "environment",
+      "configuration",
+      "debugging",
+      "production"
+    ]
+  },
+  {
+    "questionKey": "global-array-memory-leak",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Die Memory-Nutzung deines Express-Servers wächst über Tage kontinuierlich an, bis er abstürzt. Du findest ein Array auf Modul-Ebene, das Request-Log-Einträge speichert, aber nie geleert wird. Warum verursacht das in Node.js ein Memory Leak?",
+    "referenceAnswer": "In Node.js bleiben Variablen auf Modul-Ebene für die gesamte Lebensdauer des Prozesses erhalten. Ein globales Array, das bei jedem Request Einträge ansammelt, wächst unbegrenzt, weil nichts alte Einträge entfernt und der Garbage Collector sie nicht einsammeln kann — sie werden noch vom Array referenziert. Nach Tausenden oder Millionen von Requests verbraucht das Array den gesamten verfügbaren Speicher und der Prozess stürzt mit einem Out-of-Memory-Fehler ab. Das unterscheidet sich von Browser-JavaScript, wo ein Seiten-Reload alles löscht. Der Fix ist, echtes externes Logging zu verwenden (in eine Datei schreiben, an einen Logging-Service senden) statt im Speicher anzusammeln, oder einen begrenzten Buffer zu implementieren, der alte Einträge verwirft. Jede Datenstruktur auf Modul-Ebene, die mit dem Traffic wächst, ist ein potenzielles Memory Leak.",
+    "keyPoints": [
+      "Variablen auf Modul-Ebene bleiben für die Lebensdauer des Node.js-Prozesses erhalten",
+      "Arrays, die bei jedem Request wachsen, verbrauchen Speicher unbegrenzt",
+      "der Garbage Collector kann nicht helfen, weil die Daten noch referenziert werden",
+      "externes Logging oder begrenzte Buffer statt unbegrenzter In-Memory-Arrays verwenden"
+    ],
+    "tags": [
+      "node",
+      "memory-leak",
+      "global-state",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "express-router-mount-path-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du mountest einen Router mit app.use('/api', userRouter) und definierst router.get('/api/users', handler) im Router. Requests an /api/users geben 404 zurück. Warum?",
+    "referenceAnswer": "Die Pfade werden gestapelt: app.use('/api', userRouter) fügt allen Routes in userRouter ein /api-Präfix hinzu. Wenn der Router zusätzlich router.get('/api/users', handler) definiert, wird der vollständige Pfad /api/api/users — nicht /api/users. Die Pfade im Router sind relativ zum Mount-Point, der korrekte Pfad im Router ist also router.get('/users', handler), was den vollständigen Pfad /api/users ergibt. Das ist ein sehr häufiger Fehler beim Auslagern von Routes in separate Router-Dateien — man schreibt das Präfix an beiden Stellen. Der Mount-Pfad in app.use() ist die Basis, und die Router-Pfade erweitern diese Basis.",
+    "keyPoints": [
+      "Router-Pfade sind relativ zum app.use()-Mount-Point",
+      "app.use('/api', router) + router.get('/api/users') = /api/api/users",
+      "der korrekte Router-Pfad ist router.get('/users')",
+      "Mount-Pfad und Router-Pfad werden zusammen zum vollständigen URL"
+    ],
+    "tags": [
+      "express",
+      "routing",
+      "router",
+      "mount-path",
+      "bugs"
+    ]
+  },
+  {
+    "questionKey": "req-query-always-strings",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Deine Express-Route prüft if (req.query.page === 1), aber der Vergleich stimmt nie überein, selbst wenn die URL ?page=1 enthält. Was ist das Problem?",
+    "referenceAnswer": "Alle Query-Parameter-Werte in req.query sind Strings, keine Zahlen. req.query.page ist der String '1', nicht die Zahl 1 — strenge Gleichheit (===) mit der Zahl 1 schlägt also fehl. Das liegt daran, dass Query-Strings aus der URL geparst werden, die immer Text ist. Der Fix ist, den Wert zu konvertieren: parseInt(req.query.page, 10) === 1, oder Loose Equality (== 1) zu verwenden — obwohl explizite Konvertierung klarer ist. Dieser Bug trifft auch auf boolean-ähnliche Params zu: ?active=true liefert den String 'true', nicht den Boolean true. Query-Parameter-Typen immer vor der Verwendung in Vergleichen oder Berechnungen validieren und konvertieren.",
+    "keyPoints": [
+      "alle req.query-Werte sind Strings, nie Zahlen oder Booleans",
+      "strenge Gleichheit mit einer Zahl schlägt für Query-Params immer fehl",
+      "parseInt() oder Number() vor dem Vergleich zur Konvertierung verwenden",
+      "?active=true liefert den String 'true', keinen Boolean"
+    ],
+    "tags": [
+      "express",
+      "query-params",
+      "types",
+      "bugs",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "multipart-form-body-empty",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Frontend sendet einen Datei-Upload mit multipart/form-data, aber req.body ist leer und req.file ist undefined in Express. express.json() ist registriert. Was fehlt?",
+    "referenceAnswer": "express.json() und express.urlencoded() verarbeiten kein multipart/form-data — sie parsen nur JSON- bzw. URL-kodierte Bodies. Datei-Uploads mit Multipart-Content brauchen eine spezialisierte Middleware wie multer oder busboy. Ohne eine davon ignoriert Express den Multipart-Body vollständig, sodass req.body und req.file undefined bleiben. Das überrascht Entwickler, weil man erwartet, dass express.json() alle Body-Typen verarbeitet. Der Fix ist, multer zu installieren und zu konfigurieren: const upload = multer({ dest: 'uploads/' }); dann auf der spezifischen Route verwenden: app.post('/upload', upload.single('avatar'), handler). multer befüllt req.file mit den Dateidaten und req.body mit allen Textfeldern des Formulars.",
+    "keyPoints": [
+      "express.json() parst kein multipart/form-data",
+      "Datei-Uploads erfordern multer oder einen ähnlichen Multipart-Parser",
+      "ohne multer sind req.body und req.file beide leer",
+      "multer wird pro Route angewendet, nicht global wie express.json()"
+    ],
+    "tags": [
+      "express",
+      "file-upload",
+      "multipart",
+      "multer",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "status-without-send-hangs",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du schreibst res.status(404) in einem Route-Handler, aber der Client bekommt nie eine Response. Was fehlt?",
+    "referenceAnswer": "res.status() setzt nur den Status Code — es sendet die Response nicht. Ohne einen verketteten Aufruf von .json(), .send() oder .end() wird die Response nie tatsächlich an den Client übertragen und der Request hängt. Der Fix ist, immer einen Send-Aufruf zu verketten: res.status(404).json({ error: 'Not found' }), oder res.sendStatus(404) zu verwenden, das Status setzt und den Status-Text in einem Aufruf als Body sendet. Das ist ein feiner API-Unterschied: res.status() gibt das Response-Objekt zum Chaining zurück, schließt die Response aber nicht ab. Entwickler, die Frameworks kennen, bei denen das Setzen eines Status implizit sendet, werden von Express' explizitem Ansatz überrascht.",
+    "keyPoints": [
+      "res.status() setzt den Status, sendet die Response aber nicht",
+      "ein .json(), .send() oder .end() Aufruf ist nötig, um tatsächlich zu senden",
+      "res.sendStatus(404) setzt Status und sendet in einem Aufruf",
+      "ohne Senden hängt der Request auf unbestimmte Zeit"
+    ],
+    "tags": [
+      "express",
+      "response",
+      "status",
+      "hanging",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "middleware-attaching-data-to-req",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Eine Auth-Middleware dekodiert ein JWT-Token und muss die User-Daten für den Route-Handler verfügbar machen. Wo sollte sie den dekodieren User speichern?",
+    "referenceAnswer": "Das gängige Pattern ist, die Daten an das req-Objekt anzuhängen: req.user = decodedToken. Express' req-Objekt ist ein normales JavaScript-Objekt, das für die Dauer des Requests bestehen bleibt — Middleware kann also Properties hinzufügen, die nachgelagerte Handler lesen können. So funktioniert die meiste Auth-Middleware: Token dekodieren, User an req.user anhängen, next() aufrufen, und der Route-Handler greift auf req.user zu, ohne den Token erneut zu dekodieren. Globale oder Modul-Level-Variablen sollten dafür nicht verwendet werden, da diese über alle gleichzeitigen Requests geteilt werden und die Daten eines Users in den Request eines anderen Users durchsickern würden. Das req-Objekt ist Request-scoped und damit sicher für Request-spezifische Daten.",
+    "keyPoints": [
+      "Request-spezifische Daten an das req-Objekt anhängen (z. B. req.user)",
+      "req bleibt für die Dauer eines Requests erhalten",
+      "globale oder Modul-Level-Variablen werden über alle Requests geteilt",
+      "req ist Request-scoped und sicher für Request-spezifische Daten"
+    ],
+    "tags": [
+      "express",
+      "middleware",
+      "req",
+      "auth",
+      "patterns"
+    ]
+  },
+  {
+    "questionKey": "json-circular-reference-crash",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Deine Express-Route stürzt mit 'Converting circular structure to JSON' ab, wenn du versuchst, eine Response zu senden. Was verursacht das?",
+    "referenceAnswer": "Das Objekt, das man an res.json() übergibt, enthält eine zirkuläre Referenz — eine Objekt-Property, die direkt oder indirekt auf das Objekt selbst verweist. JSON.stringify(), das res.json() intern verwendet, kann keine zirkulären Strukturen verarbeiten und wirft einen TypeError. Das passiert häufig beim Senden von Datenbank-Modell-Objekten, die Back-References haben (z. B. ein User-Objekt mit einem Posts-Array, bei dem jeder Post eine Referenz zurück auf den User hat), oder wenn versehentlich die req- oder res-Objekte in der Response enthalten sind. Der Fix ist, die Daten vor dem Senden zu transformieren: nur die benötigten Felder auswählen (z. B. { id: user.id, name: user.name }) oder eine Serialisierungsfunktion verwenden, die zirkuläre Referenzen behandelt oder entfernt. Rohe ORM-Modell-Instanzen nie direkt senden — immer in eine saubere Response-Shape mappen.",
+    "keyPoints": [
+      "JSON.stringify kann keine Objekte verarbeiten, die auf sich selbst referenzieren",
+      "häufig bei ORM-Modellen mit bidirektionalen Beziehungen",
+      "nur benötigte Felder auswählen statt rohe Modell-Objekte zu senden",
+      "Daten in eine saubere Response-Shape transformieren vor res.json()"
+    ],
+    "tags": [
+      "express",
+      "json",
+      "circular-reference",
+      "serialization",
+      "bugs"
+    ]
+  },
+  {
+    "questionKey": "static-middleware-route-conflict",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du servierst ein React-Frontend mit express.static('public') und hast eine API-Route GET /users. Aber Requests an /users geben die index.html der React-App zurück statt der API-Response. Was passiert?",
+    "referenceAnswer": "express.static() ist vor den API-Routes registriert, und es gibt wahrscheinlich ein Catch-all im Static-Setup oder eine Fallback-Middleware, die index.html für alle Requests sendet, die keiner statischen Datei entsprechen — ein gängiges Pattern für Single-Page-Applications mit Client-Side-Routing. Wenn ein Request für /users den Server trifft, matcht der SPA-Fallback vor der API-Route und sendet index.html. Der Fix ist, entweder API-Routes vor der Static-Middleware zu registrieren, oder API-Routes mit einem eigenen Pfad wie /api/users zu prefixen, damit sie nicht mit den Client-Side-Routes der SPA kollidieren. Ein anderer Ansatz ist, den SPA-Fallback erst nach allen API-Routes zu mounten, sodass API-Routes Priorität haben.",
+    "keyPoints": [
+      "Static-Middleware oder SPA-Fallback kann API-Route-Requests abfangen",
+      "die Middleware-Reihenfolge bestimmt, welcher Handler zuerst matcht",
+      "API-Routes mit /api prefixen, um Kollisionen mit SPA-Routes zu vermeiden",
+      "API-Routes vor der SPA-Fallback-Middleware registrieren"
+    ],
+    "tags": [
+      "express",
+      "static",
+      "routing",
+      "spa",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "graceful-shutdown-open-connections",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "HARD",
+    "questionText": "Wenn du eine neue Version deiner Express-App deployst, werden laufende Requests mitten in der Response abgebrochen und User sehen Fehler. Wie sollte man den Server-Shutdown handhaben, um das zu vermeiden?",
+    "referenceAnswer": "Das Problem ist, dass der Prozess sofort beendet wird, ohne auf den Abschluss aktiver Requests zu warten. Graceful Shutdown bedeutet, auf das SIGTERM-Signal zu lauschen, den Server mit server.close() daran zu hindern, neue Verbindungen anzunehmen, und dann zu warten, bis laufende Requests abgeschlossen sind, bevor der Prozess beendet wird. Wenn Requests nicht innerhalb eines angemessenen Timeouts (z. B. 10 Sekunden) abgeschlossen werden, wird der Prozess erzwungen beendet. Während des Shutdowns sollten auch Datenbankverbindungen und andere Ressourcen geschlossen werden. Ohne Graceful Shutdown bekommen User mit aktiven Requests Connection-Reset-Fehler, und Datenbank-Transaktionen können in einem inkonsistenten Zustand verbleiben. In containerisierten Umgebungen wie Docker oder Kubernetes sendet der Orchestrator zuerst SIGTERM und wartet eine Grace-Period, bevor SIGKILL gesendet wird — das gibt der App Zeit, sauber herunterzufahren.",
+    "keyPoints": [
+      "auf SIGTERM lauschen und server.close() aufrufen, um keine neuen Verbindungen mehr anzunehmen",
+      "warten, bis laufende Requests abgeschlossen sind, bevor der Prozess beendet wird",
+      "Timeout setzen, um den Prozess bei Bedarf zu erzwingen",
+      "Datenbankverbindungen und Ressourcen während des Shutdowns schließen"
+    ],
+    "tags": [
+      "node",
+      "express",
+      "deployment",
+      "graceful-shutdown",
+      "reliability"
+    ]
+  },
+  {
+    "questionKey": "missing-security-headers",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Security-Audit bemängelt fehlende Security-Header wie X-Content-Type-Options und Strict-Transport-Security in deiner Express-API. Was ist der einfachste Weg, diese hinzuzufügen?",
+    "referenceAnswer": "Der einfachste Ansatz ist die helmet-Middleware: app.use(helmet()). helmet setzt eine Sammlung sicherheitsrelevanter HTTP-Header mit sinnvollen Standardwerten, darunter X-Content-Type-Options: nosniff (verhindert MIME-Type-Sniffing), Strict-Transport-Security (erzwingt HTTPS), X-Frame-Options (verhindert Clickjacking) und weitere. Ohne diese Header wenden Browser permissivere Standards an, die ausgenutzt werden können — ohne X-Content-Type-Options kann ein Browser zum Beispiel eine JSON-Response als HTML interpretieren und injizierte Scripts ausführen. Header manuell mit res.setHeader() in jeder Route zu setzen ist fehleranfällig und leicht zu vergessen. helmet erledigt das global in einer Zeile und gilt als grundlegende Sicherheitsanforderung für Express-Anwendungen.",
+    "keyPoints": [
+      "helmet-Middleware setzt Security-Header mit sinnvollen Standardwerten",
+      "X-Content-Type-Options verhindert MIME-Type-Sniffing-Angriffe",
+      "Strict-Transport-Security erzwingt HTTPS-Verbindungen",
+      "Header manuell pro Route zu setzen ist fehleranfällig — helmet global verwenden"
+    ],
+    "tags": [
+      "express",
+      "security",
+      "headers",
+      "helmet",
+      "middleware"
+    ]
+  },
+  {
+    "questionKey": "trust-proxy-wrong-ip",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Der Rate-Limiter deiner Express-App nutzt req.ip zur Client-Identifikation, aber hinter einem Load Balancer zeigt jeder Request die gleiche IP — die Adresse des Load Balancers. Wie bekommst du die echte Client-IP?",
+    "referenceAnswer": "Hinter einem Reverse Proxy oder Load Balancer gibt req.ip die IP des Proxys zurück, weil der Proxy die direkte Verbindung zum Express-Server ist. Die echte Client-IP wird vom Proxy im X-Forwarded-For-Header weitergeleitet. Damit Express diesen Header verwendet, muss app.set('trust proxy', true) gesetzt werden, oder die Anzahl der Proxys angegeben werden. Ohne diese Einstellung ignoriert Express X-Forwarded-For aus Sicherheitsgründen — es standardmäßig zu vertrauen würde Clients erlauben, ihre IP durch Setzen des Headers selbst zu fälschen. Sobald Trust Proxy aktiviert ist, liest req.ip aus X-Forwarded-For. Das ist entscheidend für Rate-Limiting, Logging und Geolokalisierung. Nur Proxys vertrauen, die man selbst kontrolliert — zu breites Trust-Proxy-Setting kann IP-Spoofing ermöglichen.",
+    "keyPoints": [
+      "hinter einem Proxy gibt req.ip standardmäßig die Proxy-Adresse zurück",
+      "die echte Client-IP steht im X-Forwarded-For-Header",
+      "app.set('trust proxy', true) lässt Express X-Forwarded-For verwenden",
+      "nur Proxys vertrauen, die man selbst kontrolliert, um IP-Spoofing zu verhindern"
+    ],
+    "tags": [
+      "express",
+      "proxy",
+      "ip-address",
+      "configuration",
+      "security"
+    ]
+  },
+  {
+    "questionKey": "cors-middleware-options-not-handled",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du setzt CORS-Header manuell in deinen Express-Routes, aber Cross-Origin-POST-Requests mit JSON schlagen trotzdem fehl. GET-Requests funktionieren problemlos. Was fehlt wahrscheinlich?",
+    "referenceAnswer": "Der Preflight-OPTIONS-Request wird wahrscheinlich nicht behandelt. Cross-Origin-POST-Requests mit Content-Type: application/json lösen im Browser einen Preflight aus: der Browser sendet zuerst einen OPTIONS-Request, um die Berechtigungen zu prüfen. Wenn CORS-Header nur in den Route-Handlern (GET, POST usw.) gesetzt werden, aber kein Handler für OPTIONS existiert, bekommt der Preflight eine Standard-Response ohne CORS-Header — und der Browser blockiert den eigentlichen Request. Der Fix ist, OPTIONS explizit zu behandeln — entweder mit app.options('*', corsHandler) oder durch Verwendung des cors-Middleware-Pakets, das Preflight automatisch verarbeitet. Deshalb wird das cors-Middleware-Paket gegenüber manuellem Header-Setzen bevorzugt: es deckt sowohl normale Requests als auch Preflight in einer Konfiguration ab.",
+    "keyPoints": [
+      "POST mit JSON löst einen Preflight-OPTIONS-Request aus",
+      "CORS-Header müssen auch auf der OPTIONS-Response gesetzt werden",
+      "GET funktioniert, weil einfache GET-Requests keinen Preflight auslösen",
+      "das cors-Middleware-Paket verwenden, um beide Fälle automatisch zu behandeln"
+    ],
+    "tags": [
+      "express",
+      "cors",
+      "options",
+      "preflight",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "async-callback-double-response",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "node-express",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Ein Route-Handler hat ein try/catch um einen async Datenbankaufruf. Im catch-Block sendet er einen 500-Fehler. Aber manchmal stürzt die Route mit 'headers already sent' ab. Wie kann der catch-Block eine doppelte Response verursachen?",
+    "referenceAnswer": "Wenn die async-Operation teilweise erfolgreich ist — zum Beispiel die Datenbankabfrage zurückkommt, aber eine Transformation des Ergebnisses wirft — kann der Fehler auftreten, nachdem die Response bereits angefangen hat zu senden. Ein anderes Szenario: der Handler sendet eine Success-Response, dann wirft ein späterer async-Callback (z. B. ein Logging-Schritt, der nicht awaited wird) und trifft ein catch, das versucht, eine Error-Response zu senden. Der Fix ist, vor dem Senden im catch-Block res.headersSent zu prüfen: if (!res.headersSent) { res.status(500).json({ error: 'Internal error' }); }. Dieser Guard verhindert den Double-Send-Crash. Das zeigt auch, wie wichtig es ist, async-Code so zu strukturieren, dass die Response genau einmal, an einem klar definierten Punkt im Flow, gesendet wird.",
+    "keyPoints": [
+      "Fehler können auftreten, nachdem die Response bereits angefangen hat zu senden",
+      "nicht-awaited async-Operationen können nach der Haupt-Response werfen",
+      "res.headersSent im catch-Block prüfen, bevor Error-Responses gesendet werden",
+      "async-Code so strukturieren, dass es einen einzigen, klaren Response-Punkt gibt"
+    ],
+    "tags": [
+      "express",
+      "async",
+      "double-response",
+      "debugging",
+      "error-handling"
+    ]
+  }
+]

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/db/prisma";
 import { analyzeAnswer } from "@/src/features/analysis/analyze-answer";
 import { createAttemptSchema } from "@/src/features/attempts/attempt.schemas";
+import { findQuestionInContentBank } from "@/src/features/questions/content-question-bank";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "Unauthorized",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -31,24 +32,49 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: firstIssue?.message ?? "Invalid request body",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const {
       sessionId,
-      questionId,
       inputMode,
       rawTranscript,
       finalAnswer,
       usedVoice,
     } = parsed.data;
 
+    const questionKey =
+      "questionKey" in parsed.data &&
+      typeof parsed.data.questionKey === "string" &&
+      parsed.data.questionKey.trim().length > 0
+        ? parsed.data.questionKey.trim()
+        : "questionId" in parsed.data &&
+            typeof parsed.data.questionId === "string" &&
+            parsed.data.questionId.trim().length > 0
+          ? parsed.data.questionId.trim()
+          : "";
+
+    if (!questionKey) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "questionKey is required",
+        },
+        { status: 400 },
+      );
+    }
+
     const practiceSession = await prisma.practiceSession.findUnique({
-      where: { id: sessionId },
+      where: {
+        id: sessionId,
+      },
       select: {
         id: true,
         userId: true,
+        roleSlug: true,
+        topicSlug: true,
+        language: true,
       },
     });
 
@@ -58,7 +84,7 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "Practice session not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -68,56 +94,75 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "Forbidden",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
-    const question = await prisma.question.findUnique({
-      where: { id: questionId },
-      select: {
-        id: true,
-        questionText: true,
-        referenceAnswer: true,
-      },
+    const question = await findQuestionInContentBank({
+      roleSlug: practiceSession.roleSlug,
+      topicSlug: practiceSession.topicSlug,
+      language: practiceSession.language,
+      questionKey,
     });
 
     if (!question) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Question not found",
+          error: "Question not found in content bank",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const attempt = await prisma.attempt.create({
       data: {
         sessionId,
-        questionId,
+        questionKey: question.questionKey,
+        questionTextSnapshot: question.questionText,
+        referenceAnswerSnapshot: question.referenceAnswer,
+        roleSlug: question.roleSlug,
+        topicSlug: question.topicSlug,
+        language: question.language,
+        difficulty: question.difficulty,
         inputMode,
-        finalAnswer,
+        finalAnswer: finalAnswer.trim(),
         usedVoice,
-        rawTranscript: usedVoice ? rawTranscript ?? null : null,
+        rawTranscript: usedVoice ? rawTranscript?.trim() ?? null : null,
       },
     });
 
     const practicedQuestion = await prisma.practicedQuestion.upsert({
       where: {
-        userId_questionId: {
+        userId_roleSlug_topicSlug_language_questionKey: {
           userId: session.user.id,
-          questionId: question.id,
+          roleSlug: question.roleSlug,
+          topicSlug: question.topicSlug,
+          language: question.language,
+          questionKey: question.questionKey,
         },
       },
       update: {},
       create: {
         userId: session.user.id,
-        questionId: question.id,
+        questionKey: question.questionKey,
+        questionTextSnapshot: question.questionText,
+        referenceAnswerSnapshot: question.referenceAnswer,
+        roleSlug: question.roleSlug,
+        topicSlug: question.topicSlug,
+        language: question.language,
+        difficulty: question.difficulty,
       },
       select: {
         id: true,
         userId: true,
-        questionId: true,
+        questionKey: true,
+        questionTextSnapshot: true,
+        referenceAnswerSnapshot: true,
+        roleSlug: true,
+        topicSlug: true,
+        language: true,
+        difficulty: true,
         addedAt: true,
       },
     });
@@ -125,7 +170,7 @@ export async function POST(request: NextRequest) {
     const analysis = await analyzeAnswer({
       questionText: question.questionText,
       referenceAnswer: question.referenceAnswer,
-      finalAnswer,
+      finalAnswer: finalAnswer.trim(),
     });
 
     const feedbackJson: Prisma.InputJsonValue = {
@@ -146,7 +191,13 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         sessionId: true,
-        questionId: true,
+        questionKey: true,
+        questionTextSnapshot: true,
+        referenceAnswerSnapshot: true,
+        roleSlug: true,
+        topicSlug: true,
+        language: true,
+        difficulty: true,
         inputMode: true,
         usedVoice: true,
         finalAnswer: true,
@@ -173,7 +224,7 @@ export async function POST(request: NextRequest) {
         ok: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

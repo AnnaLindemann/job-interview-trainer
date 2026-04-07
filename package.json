@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx src/db/seed/seed.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:question-bank": "tsx tools/question-bank-generator/generate.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",

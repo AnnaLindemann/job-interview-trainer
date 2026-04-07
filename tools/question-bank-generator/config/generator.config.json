@@ -1,0 +1,29 @@
+{
+  "provider": "groq",
+  "model": "llama-3.3-70b-versatile",
+  "defaults": {
+    "questionsPerFile": 10,
+    "temperature": 0.2,
+    "overwrite": true,
+    "maxRetries": 2
+  },
+  "output": {
+    "enDir": "src/content/question-bank/en",
+    "deDir": "src/content/question-bank/de"
+  },
+  "topics": [
+  {
+      "slug": "html-css",
+      "title": "HTML and CSS",
+      "roleSlug": "junior-fullstack",
+      "focusAreas": [
+        "html structure",
+        "semantic tags",
+        "css selectors",
+        "box model",
+        "responsive basics"
+      ]
+    }
+    
+  ]
+}

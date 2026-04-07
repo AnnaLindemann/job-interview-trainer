@@ -4,6 +4,8 @@ import Link from "next/link";
 type PracticeSetupFormProps = {
   topicSlug: string;
   language: string;
+  topicOptions: string[];
+  languageOptions: string[];
   isStarting: boolean;
   onTopicChange: (value: string) => void;
   onLanguageChange: (value: string) => void;
@@ -14,6 +16,8 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
   const {
     topicSlug,
     language,
+    topicOptions,
+    languageOptions,
     isStarting,
     onTopicChange,
     onLanguageChange,
@@ -59,8 +63,11 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
               onChange={(event) => onTopicChange(event.target.value)}
               className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
             >
-              <option value="javascript">javascript</option>
-              <option value="html">html</option>
+              {topicOptions.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -77,8 +84,11 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
               onChange={(event) => onLanguageChange(event.target.value)}
               className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
             >
-              <option value="en">en</option>
-              <option value="de">de</option>
+              {languageOptions.map((currentLanguage) => (
+                <option key={currentLanguage} value={currentLanguage}>
+                  {currentLanguage}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -86,7 +96,7 @@ export function PracticeSetupForm(props: PracticeSetupFormProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="submit"
-            disabled={isStarting}
+            disabled={isStarting || topicOptions.length === 0 || languageOptions.length === 0}
             className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isStarting ? "Starting..." : "Start Practice"}

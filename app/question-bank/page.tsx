@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/db/prisma";
 import { QuestionBankClient } from "@/components/question-bank/question-bank-client";
 
+
 export type QuestionBankItem = {
   practicedQuestionId: string;
   questionId: string;
@@ -30,30 +31,26 @@ async function getQuestionBankForCurrentUser(): Promise<QuestionBankItem[]> {
     },
     select: {
       id: true,
+      questionKey: true,
+      questionTextSnapshot: true,
+      referenceAnswerSnapshot: true,
+      roleSlug: true,
+      topicSlug: true,
+      language: true,
+      difficulty: true,
       addedAt: true,
-      question: {
-        select: {
-          id: true,
-          questionText: true,
-          referenceAnswer: true,
-          roleSlug: true,
-          topicSlug: true,
-          language: true,
-          difficulty: true,
-        },
-      },
     },
   });
 
   return practicedQuestions.map((item) => ({
     practicedQuestionId: item.id,
-    questionId: item.question.id,
-    questionText: item.question.questionText,
-    referenceAnswer: item.question.referenceAnswer,
-    roleSlug: item.question.roleSlug,
-    topicSlug: item.question.topicSlug,
-    language: item.question.language,
-    difficulty: item.question.difficulty,
+    questionId: item.questionKey,
+    questionText: item.questionTextSnapshot,
+    referenceAnswer: item.referenceAnswerSnapshot,
+    roleSlug: item.roleSlug,
+    topicSlug: item.topicSlug,
+    language: item.language,
+    difficulty: item.difficulty,
     addedAt: item.addedAt.toISOString(),
   }));
 }

@@ -73,23 +73,19 @@ export default async function PrintQuestionBankPage({
     },
     select: {
       id: true,
+      questionKey: true,
+      questionTextSnapshot: true,
+      referenceAnswerSnapshot: true,
+      roleSlug: true,
+      topicSlug: true,
+      language: true,
+      difficulty: true,
       addedAt: true,
-      question: {
-        select: {
-          id: true,
-          questionText: true,
-          referenceAnswer: true,
-          roleSlug: true,
-          topicSlug: true,
-          language: true,
-          difficulty: true,
-        },
-      },
     },
   });
 
   const itemsById = new Map(
-    practicedQuestions.map((item) => [item.id, item] as const)
+    practicedQuestions.map((item) => [item.id, item] as const),
   );
 
   const orderedItems = ids
@@ -132,17 +128,17 @@ export default async function PrintQuestionBankPage({
               <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium text-gray-500">
                 <span>#{index + 1}</span>
                 <span>•</span>
-                <span>{item.question.roleSlug}</span>
+                <span>{item.roleSlug}</span>
                 <span>•</span>
-                <span>{item.question.topicSlug}</span>
+                <span>{item.topicSlug}</span>
                 <span>•</span>
-                <span>{item.question.language}</span>
+                <span>{item.language}</span>
                 <span>•</span>
-                <span>{item.question.difficulty}</span>
+                <span>{item.difficulty}</span>
               </div>
 
               <h2 className="text-lg font-semibold text-gray-900">
-                {item.question.questionText}
+                {item.questionTextSnapshot}
               </h2>
 
               <div className="mt-5 rounded-xl bg-gray-50 p-4">
@@ -150,7 +146,7 @@ export default async function PrintQuestionBankPage({
                   Reference answer
                 </p>
                 <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                  {item.question.referenceAnswer}
+                  {item.referenceAnswerSnapshot}
                 </p>
               </div>
 

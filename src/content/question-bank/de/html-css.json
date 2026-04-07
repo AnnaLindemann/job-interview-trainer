@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "box-sizing-overflow-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du setzt ein Element auf width: 100% und gibst 20px Padding dazu, aber jetzt ragt es über den Parent-Container hinaus. Was passiert da und wie behebst du das?",
+    "referenceAnswer": "Standardmäßig verwendet der Browser box-sizing: content-box — das heißt, width gilt nur für den Inhalt, und Padding sowie Border kommen oben drauf. Dadurch wird die tatsächlich gerenderte Breite größer als 100% des Parents. Die Lösung ist box-sizing: border-box auf dem Element, damit width Padding und Border mit einschließt. Die meisten Projekte setzen * { box-sizing: border-box; } global, um genau dieses Problem zu vermeiden. Zum Debuggen öffnet man die DevTools und schaut sich das Box-Model-Diagramm an — wenn die Gesamtbreite den Parent übersteigt, ist content-box fast immer die Ursache.",
+    "keyPoints": [
+      "content-box rechnet Padding und Border zur deklarierten Breite dazu",
+      "border-box schließt Padding und Border in die deklarierte Breite ein",
+      "globales * { box-sizing: border-box } verhindert diese Fehlerklasse",
+      "das Box-Model-Diagramm in den DevTools zeigt die tatsächlichen Maße"
+    ],
+    "tags": ["css", "box-model", "box-sizing", "debugging"]
+  },
+  {
+    "questionKey": "div-as-button-problems",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Kollege hat ein <div> mit onClick als Button gestylt. Welche konkreten Probleme entstehen dadurch im Vergleich zu einem <button>-Element?",
+    "referenceAnswer": "Ein <div> ist standardmäßig nicht fokussierbar, also können Keyboard-User weder per Tab dorthin navigieren noch es mit Enter oder Space aktivieren — sie sind komplett ausgesperrt. Screenreader kündigen es auch nicht als Button an, sodass sehbehinderte User nicht wissen, dass es interaktiv ist. Um das div nachträglich zu reparieren, bräuchte man role=\"button\", tabindex=\"0\" und einen keydown-Handler für Enter und Space — viel fragiler Code, den <button> nativ mitbringt. In der Praxis führt das zu fehlgeschlagenen Accessibility-Audits und kann gegen WCAG-Anforderungen verstoßen.",
+    "keyPoints": [
+      "ein div ist nicht per Keyboard fokussierbar oder aktivierbar",
+      "Screenreader kündigen ein div nicht als interaktives Element an",
+      "button liefert Focus, Keyboard-Handling und Semantik von Haus aus",
+      "ein div nachzurüsten erfordert role, tabindex und keydown — fehleranfällig"
+    ],
+    "tags": ["html", "semantic", "accessibility", "forms"]
+  },
+  {
+    "questionKey": "flexbox-vs-grid-card-layout",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du brauchst ein Card-Layout mit 3 Spalten auf Desktop und 1 Spalte auf Mobile. Würdest du Flexbox oder Grid nehmen, und warum?",
+    "referenceAnswer": "CSS Grid passt hier besser, weil man mit einer einzigen Deklaration wie grid-template-columns: repeat(3, 1fr) explizite Kontrolle über Spalten und Zeilen bekommt und in einer Media Query einfach auf 1 Spalte umstellen kann. Mit repeat(auto-fill, minmax(280px, 1fr)) wird das Layout sogar ohne Media Query responsiv. Flexbox kann das zwar mit flex-wrap erreichen, aber man muss die Item-Breiten manuell über Prozente oder flex-basis berechnen, und die letzte Zeile hat oft unschöne Lücken, wenn die Items sie nicht komplett füllen. Grid handhabt unvollständige letzte Zeilen sauber, weil die Spaltenstruktur am Container definiert ist.",
+    "keyPoints": [
+      "Grid definiert Spalten am Container — das Layout ist vorhersagbar",
+      "auto-fill mit minmax macht Grid ohne Media Queries responsiv",
+      "Flexbox erfordert manuelle Breitenberechnung und Wrapping",
+      "die letzte Zeile bei Flexbox hat oft unschöne Lücken"
+    ],
+    "tags": ["css", "layout", "flexbox", "grid", "responsive"]
+  },
+  {
+    "questionKey": "specificity-override-debugging",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du schreibst .card { background: white; }, aber die Cards zeigen trotzdem einen grauen Hintergrund. Was sind die wahrscheinlichsten Ursachen, und wie gehst du beim Debugging vor?",
+    "referenceAnswer": "Die häufigste Ursache ist, dass ein anderer Selector mit höherer Specificity den Hintergrund setzt — zum Beispiel ein ID-Selector wie #content .card oder ein Inline Style. Man öffnet die DevTools, inspiziert das Card-Element und schaut im Styles-Panel: überschriebene Styles werden durchgestrichen angezeigt, und der gewinnende Selector steht oben. Eine weitere häufige Ursache ist die Reihenfolge im Stylesheet: Bei gleicher Specificity gewinnt die Regel, die weiter unten steht. Ein Quick Fix ist, die Specificity des eigenen Selectors zu erhöhen, aber langfristig ist es besser, die Specificity der konkurrierenden Regel zu senken, damit die Styles wartbar bleiben.",
+    "keyPoints": [
+      "ein Selector mit höherer Specificity überschreibt den Class-Selector",
+      "das DevTools Styles-Panel zeigt, welche Regel gewinnt und welche durchgestrichen ist",
+      "bei gleicher Specificity gewinnt die Regel, die im Stylesheet später kommt",
+      "Specificity der konkurrierenden Regel senken ist besser als !important"
+    ],
+    "tags": ["css", "specificity", "selectors", "debugging"]
+  },
+  {
+    "questionKey": "image-blurry-on-retina",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Ein Bild sieht auf einem normalen Bildschirm gut aus, aber auf einem MacBook oder Handy mit High-DPI-Display ist es unscharf. Was ist die Ursache und wie behebst du das?",
+    "referenceAnswer": "High-DPI-Screens (Retina) haben ein Device Pixel Ratio von 2x oder 3x — sie nutzen also 2 oder 3 physische Pixel pro CSS-Pixel. Wenn die Bilddatei nur so groß ist wie die CSS-Anzeigegröße, streckt der Browser sie auf die zusätzlichen physischen Pixel, was zu Unschärfe führt. Die Lösung ist, höher aufgelöste Quellbilder bereitzustellen — entweder über das srcset-Attribut mit 1x- und 2x-Deskriptoren, damit der Browser die richtige Datei wählt, oder indem man ein Bild in 2x-Größe liefert und es per CSS herunterskaliert. Für Icons und einfache Grafiken löst SVG das Problem komplett, weil SVGs auflösungsunabhängig sind.",
+    "keyPoints": [
+      "High-DPI-Screens nutzen 2x oder 3x physische Pixel pro CSS-Pixel",
+      "ein Bild in CSS-Größe wird gestreckt und wirkt unscharf",
+      "srcset mit 1x/2x-Deskriptoren lässt den Browser die richtige Auflösung wählen",
+      "SVG vermeidet das Problem bei Icons und einfachen Grafiken komplett"
+    ],
+    "tags": ["html", "images", "responsive", "retina"]
+  },
+  {
+    "questionKey": "label-input-association",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein User klickt auf ein Label neben einer Checkbox, aber es passiert nichts. Was stimmt wahrscheinlich mit dem HTML nicht?",
+    "referenceAnswer": "Das Label ist nicht mit der Checkbox verknüpft — entweder stimmt das for-Attribut des Labels nicht mit der id der Checkbox überein, oder die Checkbox ist nicht innerhalb des Labels verschachtelt. Bei korrekter Verknüpfung toggelt ein Klick auf das Label die Checkbox, was besonders auf Mobile wichtig ist, wo kleine Checkboxen schwer zu treffen sind. Die Lösung ist entweder <label for=\"agree\"><input id=\"agree\" type=\"checkbox\"> mit passendem for/id, oder das Input direkt im Label-Element zu verschachteln. Ohne die Verknüpfung können Screenreader außerdem nicht ansagen, wofür die Checkbox steht.",
+    "keyPoints": [
+      "das for-Attribut des Labels muss mit der id des Inputs übereinstimmen",
+      "alternativ verknüpft das Verschachteln des Inputs im Label sie implizit",
+      "klickbare Labels sind auf Mobile für kleine Zielgrößen entscheidend",
+      "unverknüpfte Labels brechen Screenreader-Ansagen"
+    ],
+    "tags": ["html", "forms", "accessibility", "labels"]
+  },
+  {
+    "questionKey": "button-vs-link-choice",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann sollte man ein <a>-Tag verwenden und wann ein <button>, und was geht schief, wenn man das Falsche nimmt?",
+    "referenceAnswer": "Man verwendet <a>, wenn die Aktion den User zu einer neuen URL oder Stelle auf der Seite navigiert, und <button>, wenn die Aktion etwas auf der aktuellen Seite auslöst — ein Modal öffnen, ein Formular absenden oder UI-State umschalten. Wenn man <a href=\"#\"> mit einem onClick für eine Nicht-Navigations-Aktion nutzt, kündigen Screenreader es als Link an, Keyboard-User erwarten Navigation, und Rechtsklick \"In neuem Tab öffnen\" macht nichts Sinnvolles. Umgekehrt: ein <button> für echte Navigation verhindert, dass User per Mittelklick einen neuen Tab öffnen oder den Link kopieren können. Der semantische Unterschied ist wichtig, weil Assistive Technologies und Browser-Features sich bei Links und Buttons unterschiedlich verhalten.",
+    "keyPoints": [
+      "Links sind für Navigation, Buttons für Aktionen",
+      "a href='#' mit onClick irritiert Screenreader und Keyboard-User",
+      "Buttons unterstützen kein Öffnen-in-neuem-Tab und kein Link-Kopieren",
+      "Assistive Technologies behandeln Links und Buttons unterschiedlich"
+    ],
+    "tags": ["html", "semantic", "accessibility", "navigation"]
+  },
+  {
+    "questionKey": "button-type-default-submit",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du fügst einen <button> in ein Formular ein, um ein Passwort-Sichtbarkeits-Icon zu toggeln, aber beim Klick wird das gesamte Formular abgeschickt. Warum passiert das?",
+    "referenceAnswer": "Der Default-Typ eines <button>-Elements innerhalb eines Formulars ist type=\"submit\", nicht type=\"button\". Jeder <button> ohne explizites type-Attribut löst also beim Klick die Formularübermittlung aus. Die Lösung ist, type=\"button\" zu setzen, wenn der Button das Formular nicht absenden soll. Das ist einer der häufigsten Form-Bugs in echten Projekten — Entwickler fügen Utility-Buttons in Formulare ein und sind überrascht, wenn die Seite neu lädt oder die Formulardaten gesendet werden. Man sollte das type-Attribut bei jedem Button innerhalb eines Formulars immer explizit setzen.",
+    "keyPoints": [
+      "der Default-Typ von <button> in einem Formular ist submit",
+      "type=\"button\" verhindert die Formularübermittlung",
+      "ohne type-Attribut führt ein Klick zu unerwarteter Submission und Seitenreload",
+      "immer das type-Attribut explizit setzen bei Buttons in Formularen"
+    ],
+    "tags": ["html", "forms", "buttons", "bugs"]
+  },
+  {
+    "questionKey": "div-inside-p-invalid-nesting",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was passiert im Browser, wenn du ein <div> innerhalb eines <p>-Elements platzierst?",
+    "referenceAnswer": "Laut HTML-Spezifikation darf <p> nur Phrasing Content (Inline-Elemente und Text) enthalten, keine Block-Elemente wie <div>. Wenn der Parser des Browsers ein <div> innerhalb eines <p> findet, schließt er das <p> automatisch vor dem <div>, was die Markup-Struktur aufteilt: ein <p>, dann ein <div>, dann eventuell ein weiteres leeres <p>. Das bedeutet, der tatsächliche DOM unterscheidet sich vom Quellcode, was CSS-Selektoren und JavaScript bricht, die auf die erwartete Parent-Child-Beziehung zugreifen. Ein typisches Beispiel sind CMS- oder Rich-Text-Editoren, die Benutzerinhalte in <p>-Tags wrappen, aber Usern erlauben, Block-Elemente einzufügen — das Ergebnis ist ein kaputtes Layout.",
+    "keyPoints": [
+      "p-Elemente dürfen nur Inline- bzw. Phrasing Content enthalten",
+      "der Browser schließt das p automatisch vor dem div",
+      "der resultierende DOM unterscheidet sich vom Quellcode",
+      "CSS und JavaScript, die das erwartete Nesting ansprechen, brechen"
+    ],
+    "tags": ["html", "structure", "parsing", "validation"]
+  },
+  {
+    "questionKey": "semantic-section-article-div",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wie entscheidest du, ob du <section>, <article> oder <div> für einen Inhaltsbereich verwendest?",
+    "referenceAnswer": "Man nimmt <article>, wenn der Inhalt für sich allein stehen kann — ein Blogpost, ein Kommentar, eine Produktkarte — etwas, das man unabhängig teilen oder wiederverwenden könnte. <section> gruppiert zusammengehörige Inhalte unter einem thematischen Heading innerhalb einer Seite, zum Beispiel der \"Features\"- oder \"Pricing\"-Bereich einer Landing Page. <div> nutzt man, wenn man einen Container rein für Styling oder Layout braucht, ohne semantische Bedeutung. Der praktische Test: Wenn man allen umgebenden Inhalt entfernt — ergibt der Block noch Sinn? Dann ist es ein <article>. Ist es eine logische Gruppe mit Überschrift? Dann <section>. Ist es nur ein Wrapper? Dann <div>.",
+    "keyPoints": [
+      "article ist für eigenständigen, unabhängig sinnvollen Inhalt",
+      "section gruppiert thematisch zusammenhängende Inhalte mit Heading",
+      "div hat keine semantische Bedeutung — nur für Layout und Styling",
+      "Test: steht der Inhalt allein? article. Hat ein Heading-Thema? section."
+    ],
+    "tags": ["html", "semantic", "structure"]
+  },
+  {
+    "questionKey": "heading-hierarchy-skip",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ist es ein Problem, wenn eine Seite von einem <h1> direkt zu einem <h3> springt und <h2> auslässt?",
+    "referenceAnswer": "Ja, das Überspringen von Heading-Leveln bricht die Dokumentstruktur, die Screenreader zur Navigation nutzen. User, die auf Screenreader angewiesen sind, springen oft zwischen Headings, um den Inhalt zu scannen — wenn die Hierarchie von h1 zu h3 springt, suggeriert das einen Unterabschnitt eines h2, das gar nicht existiert, was verwirrend ist. Auch Suchmaschinen interpretieren eine inkonsistente Heading-Struktur als qualitativ schwächer, was sich negativ auf SEO auswirken kann. Die Lösung: Heading-Level sequenziell verwenden und die visuelle Darstellung über CSS-Klassen steuern, statt ein Heading-Level nach der gewünschten Schriftgröße auszuwählen.",
+    "keyPoints": [
+      "Screenreader nutzen Heading-Level zur Navigation",
+      "übersprungene Level erzeugen eine verwirrende oder kaputte Dokumentstruktur",
+      "Heading-Level sollte die Hierarchie widerspiegeln, nicht die visuelle Größe",
+      "CSS-Klassen steuern das Aussehen unabhängig vom Level"
+    ],
+    "tags": ["html", "semantic", "accessibility", "headings"]
+  },
+  {
+    "questionKey": "input-type-email-vs-text",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Welchen praktischen Unterschied macht es, type=\"email\" statt type=\"text\" bei einem Input zu verwenden?",
+    "referenceAnswer": "type=\"email\" bringt drei Dinge, die type=\"text\" nicht hat: Der Browser führt bei Formularabsendung eine grundlegende E-Mail-Format-Validierung durch, mobile Keyboards zeigen das @-Zeichen und .com-Shortcuts prominent an, und Autofill kann gespeicherte E-Mail-Adressen vorschlagen. Bei type=\"text\" muss man eigene Validierung schreiben, der mobile User muss das Keyboard-Layout wechseln, um @ einzugeben, und Autofill erkennt das Feld möglicherweise nicht als E-Mail-Feld. Ein häufiger Fehler ist, type=\"text\" mit einem eigenen Regex-Pattern für E-Mail-Validierung zu nutzen, obwohl type=\"email\" den Standardfall nativ abdeckt.",
+    "keyPoints": [
+      "type email löst eingebaute Browser-Validierung für das E-Mail-Format aus",
+      "mobile Keyboards zeigen @ und .com-Shortcuts bei E-Mail-Inputs",
+      "Autofill kann gespeicherte E-Mails bei type email vorschlagen",
+      "type text erfordert eigene Validierung und bietet ein schlechteres Mobile-Erlebnis"
+    ],
+    "tags": ["html", "forms", "inputs", "mobile"]
+  },
+  {
+    "questionKey": "alt-text-empty-vs-missing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen einem Bild mit alt=\"\" und einem Bild ganz ohne alt-Attribut?",
+    "referenceAnswer": "alt=\"\" signalisiert Screenreadern, dass das Bild dekorativ ist und übersprungen werden soll — der Screenreader gibt nichts aus. Fehlt das alt-Attribut komplett, hat der Screenreader keine Information und liest stattdessen den Dateinamen vor, was verwirrende Ansagen wie \"banner-final-v3.png\" erzeugt. Jedes <img> sollte ein alt-Attribut haben: aussagekräftigen Text für informative Bilder und einen leeren String für rein dekorative. Ein häufiger Fehler ist, alt bei Layout- oder Dekorationsbildern wegzulassen, was die Screenreader-Experience mit sinnlosen Dateinamen überfrachtet.",
+    "keyPoints": [
+      "alt='' kennzeichnet das Bild als dekorativ — Screenreader überspringen es",
+      "fehlendes alt führt dazu, dass Screenreader den Dateinamen vorlesen",
+      "jedes img muss ein alt-Attribut haben",
+      "dekorative Bilder bekommen alt='', informative einen beschreibenden Text"
+    ],
+    "tags": ["html", "accessibility", "images", "alt-text"]
+  },
+  {
+    "questionKey": "margin-collapse-vertical",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Zwei gestapelte Elemente haben je margin-top: 20px und margin-bottom: 20px, aber der Abstand zwischen ihnen beträgt nur 20px statt 40px. Warum?",
+    "referenceAnswer": "Das ist vertikales Margin Collapsing — wenn zwei vertikale Margins von Block-Elementen aufeinandertreffen, verschmelzen sie zu einem einzigen Margin, der dem größeren der beiden entspricht, statt sich zu addieren. 20px unten trifft auf 20px oben und ergibt 20px, nicht 40px. Das passiert nur vertikal, nie horizontal, und tritt in Flex- oder Grid-Containern nicht auf. Wenn man die vollen 40px braucht, kann man stattdessen Padding verwenden oder die Elemente in einen Flex-Container setzen, der Collapsing deaktiviert. Entwickler, die Margin Collapsing nicht kennen, fügen oft zusätzliche Margins hinzu und verstehen nicht, warum die Werte sich nicht summieren.",
+    "keyPoints": [
+      "angrenzende vertikale Margins verschmelzen zum größeren Wert, nicht zur Summe",
+      "Margin Collapsing passiert nur vertikal, nicht horizontal",
+      "Flex- und Grid-Container deaktivieren Margin Collapsing",
+      "Padding oder Flex-Container sind gängige Workarounds"
+    ],
+    "tags": ["css", "box-model", "margin", "layout"]
+  },
+  {
+    "questionKey": "position-absolute-relative-parent",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du positionierst ein Element mit position: absolute und top: 0, aber es landet ganz oben auf der Seite statt am oberen Rand seines Parents. Was ist das Problem?",
+    "referenceAnswer": "position: absolute positioniert das Element relativ zum nächsten positionierten Vorfahren — einem Vorfahren mit position relative, absolute, fixed oder sticky. Wenn kein Vorfahre eine Position gesetzt hat, fällt das Element auf den initialen Containing Block zurück, was praktisch dem Viewport entspricht, und landet ganz oben auf der Seite. Die Lösung ist, position: relative auf dem gewünschten Parent-Element zu setzen, das als Bezugspunkt dienen soll. Das ist das Erste, was man prüfen sollte, wenn ein absolut positioniertes Element an der falschen Stelle erscheint — die Vorfahren inspizieren und sicherstellen, dass mindestens einer eine nicht-statische Position hat.",
+    "keyPoints": [
+      "absolute positioniert relativ zum nächsten positionierten Vorfahren",
+      "ohne positionierten Vorfahren fällt es auf den Viewport zurück",
+      "position: relative auf dem Parent setzt den Bezugspunkt",
+      "position: static (der Default) zählt nicht als positionierter Vorfahre"
+    ],
+    "tags": ["css", "positioning", "layout", "debugging"]
+  },
+  {
+    "questionKey": "z-index-stacking-context",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "HARD",
+    "questionText": "Du setzt z-index: 9999 auf ein Dropdown-Menü, aber es erscheint trotzdem hinter einem Modal-Overlay mit z-index: 10. Wie ist das möglich?",
+    "referenceAnswer": "z-index vergleicht Elemente nur innerhalb desselben Stacking Context. Wenn der Parent des Dropdowns einen neuen Stacking Context erzeugt (durch Properties wie opacity unter 1, transform, filter oder einen z-index auf einem positionierten Element), ist der z-index des Dropdowns auf diesen Parent-Kontext beschränkt und kann nicht daraus ausbrechen. Der Stacking Context des Modals kann höher im Baum liegen, und sein z-index von 10 schlägt den gesamten Parent-Kontext. Zum Debuggen inspiziert man die Vorfahren des Dropdowns in den DevTools und sucht nach Properties, die Stacking Contexts erzeugen. Die Lösung ist meist, das DOM so umzustrukturieren, dass das Dropdown nicht in einem niedrigeren Stacking Context gefangen ist, oder das Property zu entfernen, das den ungewollten Context erzeugt.",
+    "keyPoints": [
+      "z-index vergleicht nur innerhalb desselben Stacking Context",
+      "opacity, transform und filter erzeugen neue Stacking Contexts",
+      "ein hoher z-index in einem niedrigeren Stacking Context verliert trotzdem",
+      "DOM umstrukturieren oder das contexterzeugende Property entfernen"
+    ],
+    "tags": ["css", "z-index", "stacking-context", "debugging"]
+  },
+  {
+    "questionKey": "flexbox-centering-both-axes",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der einfachste Weg, ein Element sowohl horizontal als auch vertikal innerhalb seines Parents zu zentrieren?",
+    "referenceAnswer": "Der einfachste moderne Ansatz ist, den Parent auf display: flex; justify-content: center; align-items: center zu setzen — das zentriert das Kind auf beiden Achsen mit drei Deklarationen, unabhängig von den Abmessungen des Kinds. Eine noch kürzere Alternative ist display: grid; place-items: center auf dem Parent, was dasselbe in zwei Deklarationen erreicht. Ältere Ansätze wie position: absolute mit top: 50%; left: 50%; transform: translate(-50%, -50%) funktionieren weiterhin, sind aber ausführlicher und erfordern einen positionierten Parent. In Flexbox zentriert sich ein Kind mit margin: auto auf allen Seiten auch automatisch.",
+    "keyPoints": [
+      "Flex mit justify-content und align-items center ist der Standardansatz",
+      "Grid mit place-items: center ist noch kürzer",
+      "absolute Positionierung mit transform funktioniert, ist aber ausführlicher",
+      "margin: auto auf einem Flex-Kind zentriert es ebenfalls"
+    ],
+    "tags": ["css", "flexbox", "grid", "centering", "layout"]
+  },
+  {
+    "questionKey": "rem-em-px-usage",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du rem, em oder px für Schriftgrößen und Abstände verwenden, und welches Problem löst rem, das em nicht löst?",
+    "referenceAnswer": "px liefert eine feste Größe, die sich nicht an User-Einstellungen anpasst — wenn ein User die Standard-Schriftgröße im Browser erhöht, bleiben px-Werte gleich. rem ist relativ zur Schriftgröße des Root-Elements (typischerweise 16px) und skaliert konsistent über die gesamte Seite, wenn der User seine Einstellung ändert. em ist relativ zur Schriftgröße des Parent-Elements, was zu Kompoundierung führt: wenn ein Parent 1.2em hat und ein Kind auch 1.2em, landet das Kind bei 1.44x der Root-Größe, was bei verschachtelten Komponenten überraschende Größen erzeugt. rem für die meisten Schrift- und Abstandsgrößen verwenden, um User-Präferenzen zu respektieren, px für Dinge, die wirklich nicht skalieren sollen wie Borders oder Shadows, und em nur, wenn man bewusst eine relative Größe zum Parent-Text will.",
+    "keyPoints": [
+      "px ist fest und skaliert nicht mit User-Schriftgrößen-Einstellungen",
+      "rem skaliert relativ zur Root-Schriftgröße, konsistent über die Seite",
+      "em kompoundiert bei verschachtelten Elementen und erzeugt unerwartete Größen",
+      "rem für Schrift und Abstände, px für Borders, em für bewusst parent-relative Größen"
+    ],
+    "tags": ["css", "units", "responsive", "accessibility"]
+  },
+  {
+    "questionKey": "overflow-hidden-side-effects",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du setzt overflow: hidden auf einen Container, um ein Layout-Problem zu lösen, aber jetzt wird ein Dropdown-Menü darin abgeschnitten. Was passiert da?",
+    "referenceAnswer": "overflow: hidden schneidet allen Inhalt ab, der über die Grenzen des Elements hinausgeht, einschließlich positionierter Kinder wie Dropdown-Menüs, die absichtlich aus ihrem Parent herausragen. Das Dropdown wird visuell am Rand des Containers abgeschnitten, auch wenn es einen hohen z-index hat, weil overflow: hidden eine Clipping-Grenze erzeugt, die z-index nicht überwinden kann. Lösungen sind: overflow: hidden entfernen, wenn es nur zum Clearen von Floats genutzt wurde (stattdessen Clearfix oder display: flow-root verwenden), oder das DOM so umstrukturieren, dass das Dropdown außerhalb des geclippten Containers gerendert wird, zum Beispiel über ein Portal. Das ist ein sehr häufiges Problem mit Tooltips, Dropdowns und Popovers in scrollbaren oder geclippten Containern.",
+    "keyPoints": [
+      "overflow: hidden schneidet allen Inhalt ab, der über die Grenzen hinausgeht",
+      "z-index kann die Clipping-Grenze von overflow: hidden nicht überwinden",
+      "display: flow-root ist eine bessere Alternative zum Clearen von Floats",
+      "Portale oder DOM-Umstrukturierung verschieben Dropdowns aus dem geclippten Container"
+    ],
+    "tags": ["css", "overflow", "layout", "debugging"]
+  },
+  {
+    "questionKey": "transition-display-none",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du willst ein Element per Transition einblenden, indem du von display: none auf display: block wechselst und die Opacity animierst, aber die Transition spielt nicht. Warum?",
+    "referenceAnswer": "CSS-Transitions können die display-Property nicht animieren, weil es keinen interpolierbaren Wert zwischen none und block gibt. Beim Wechsel von display: none auf display: block erscheint das Element sofort, und der Browser löst keine Transition für opacity aus, auch wenn sie deklariert ist. Der Workaround ist, die Verantwortlichkeiten zu trennen: visibility: hidden mit opacity: 0 zum Verstecken verwenden (das Element bleibt im Layout, ist aber unsichtbar), dann opacity auf 1 transitionieren. Alternativ kann man display: none nutzen und über element.offsetHeight einen Reflow erzwingen, bevor man die Klasse mit opacity: 1 hinzufügt — das ist aber fragil. Seit 2024 bieten @starting-style und transition-behavior: allow-discrete native Lösungen für Transitions von display: none.",
+    "keyPoints": [
+      "display ist keine interpolierbare Property — Transitions überspringen sie",
+      "Wechsel von none auf block erzeugt sofortiges Erscheinen ohne Animation",
+      "visibility: hidden mit opacity für Fade-Transitions verwenden",
+      "@starting-style und transition-behavior: allow-discrete sind moderne Lösungen"
+    ],
+    "tags": ["css", "transitions", "animation", "display"]
+  },
+  {
+    "questionKey": "pseudo-element-content-required",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du fügst ein ::before-Pseudo-Element mit Hintergrundfarbe und Größe hinzu, aber auf der Seite erscheint nichts. Was hast du wahrscheinlich vergessen?",
+    "referenceAnswer": "Die content-Property ist Pflicht, damit ::before und ::after Pseudo-Elemente gerendert werden — ohne sie existiert das Pseudo-Element überhaupt nicht im Rendering Tree. Selbst wenn man nur eine dekorative Form mit Hintergrund will, muss man content: '' (leerer String) setzen, damit es erscheint. Das ist wahrscheinlich der häufigste Fehler beim ersten Arbeiten mit Pseudo-Elementen. Außerdem sind Pseudo-Elemente standardmäßig inline, also braucht man zusätzlich display: block oder display: inline-block und explizite Dimensionen, damit der Hintergrund sichtbar wird.",
+    "keyPoints": [
+      "die content-Property ist Pflicht, damit Pseudo-Elemente gerendert werden",
+      "content: '' (leerer String) ist auch für rein dekorative Formen nötig",
+      "ohne content existiert das Pseudo-Element nicht im Rendering Tree",
+      "Pseudo-Elemente sind standardmäßig inline — display und Dimensionen setzen"
+    ],
+    "tags": ["css", "pseudo-elements", "common-mistakes"]
+  },
+  {
+    "questionKey": "mobile-first-media-queries",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was ist der Unterschied zwischen Media Queries mit min-width und max-width, und welcher Ansatz skaliert besser?",
+    "referenceAnswer": "min-width Media Queries folgen einem Mobile-First-Ansatz: Die Basis-Styles zielen auf kleine Screens, und man fügt Overrides hinzu, wenn der Viewport größer wird. max-width folgt einem Desktop-First-Ansatz: Basis-Styles für große Screens, Overrides für kleinere Viewports. Mobile-First skaliert besser, weil das Basis-CSS einfacher und leichter ist — kleine Screens brauchen meist ein einspaltiges Layout mit minimalem Styling — und man fügt progressiv Komplexität für größere Screens hinzu. Desktop-First produziert oft mehr Overrides und Resets für Mobile, was das CSS schwerer wartbar macht. Die meisten modernen CSS-Frameworks und Design-Systeme setzen standardmäßig auf Mobile-First mit min-width Breakpoints.",
+    "keyPoints": [
+      "min-width ist Mobile-First — Basis-Styles für kleine Screens, Ergänzungen für größere",
+      "max-width ist Desktop-First — Basis-Styles für große Screens, Reduktionen für kleinere",
+      "Mobile-First erzeugt einfacheres Basis-CSS mit progressiver Erweiterung",
+      "die meisten modernen Frameworks setzen auf Mobile-First mit min-width"
+    ],
+    "tags": ["css", "responsive", "media-queries", "mobile-first"]
+  },
+  {
+    "questionKey": "percentage-height-parent",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du setzt height: 100% auf ein div, aber es hat keinen Effekt — das div ist nur so hoch wie sein Inhalt. Was ist los?",
+    "referenceAnswer": "Prozentuale Höhen erfordern, dass der Parent eine explizit definierte Höhe hat. Wenn die Höhe des Parents auto ist (der Default), kann der Browser nicht berechnen, worauf sich 100% beziehen, und fällt auf auto zurück — das Element passt sich seinem Inhalt an. Damit height: 100% funktioniert, muss man eine explizite Höhe auf jedem Vorfahren bis zum Root setzen — typischerweise html, body { height: 100% } und dann height: 100% auf jedem Container in der Kette. Eine einfachere moderne Alternative ist min-height: 100vh auf dem äußersten Container oder Flexbox mit flex-grow: 1 zum Füllen des restlichen Platzes. Dieses Problem tritt regelmäßig auf, wenn Entwickler versuchen, einen Footer am unteren Rand des Viewports zu fixieren.",
+    "keyPoints": [
+      "prozentuale Höhe erfordert eine explizit definierte Höhe auf dem Parent",
+      "auto-Höhe (der Default) lässt prozentuale Höhe auf Inhaltsgröße zurückfallen",
+      "die Höhenkette muss bis html und body durchgesetzt werden",
+      "100vh oder Flexbox mit flex-grow: 1 sind einfachere moderne Alternativen"
+    ],
+    "tags": ["css", "layout", "height", "common-mistakes"]
+  },
+  {
+    "questionKey": "viewport-height-mobile-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du baust eine Full-Screen Hero-Section mit height: 100vh, und auf Desktop sieht es perfekt aus, aber auf Mobile wird Inhalt von der Adressleiste des Browsers verdeckt. Warum?",
+    "referenceAnswer": "Auf mobilen Browsern bezieht sich 100vh auf die maximale Viewport-Höhe, also wenn die Adressleiste komplett eingeklappt ist. Beim ersten Laden der Seite ist die Adressleiste aber sichtbar, wodurch der tatsächlich sichtbare Bereich kleiner als 100vh ist. Das schiebt Inhalt unter den sichtbaren Bereich und kann wichtige Elemente oder Call-to-Action-Buttons verstecken. Die Lösung sind die neueren Viewport-Units: dvh (Dynamic Viewport Height) passt sich an, wenn die Adressleiste erscheint oder verschwindet, und svh (Small Viewport Height) nutzt den kleinstmöglichen Viewport. Für breitere Browser-Unterstützung kann man als JavaScript-Fallback window.innerHeight als CSS Custom Property setzen. Das ist einer der am häufigsten gemeldeten Mobile-Layout-Bugs in Produktion.",
+    "keyPoints": [
+      "100vh auf Mobile schließt den Bereich hinter der Adressleiste ein",
+      "der sichtbare Bereich ist kleiner als 100vh, wenn die Adressleiste angezeigt wird",
+      "dvh passt sich dynamisch an Adressleisten-Änderungen an",
+      "svh nutzt den kleinsten Viewport und stellt sicher, dass Inhalt immer sichtbar ist"
+    ],
+    "tags": ["css", "responsive", "viewport-units", "mobile"]
+  },
+  {
+    "questionKey": "form-fieldset-legend-usage",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du <fieldset> und <legend> in einem Formular verwenden, und was bieten sie, was ein <div> mit Überschrift nicht kann?",
+    "referenceAnswer": "Man verwendet <fieldset>, um zusammengehörige Formular-Controls zu gruppieren, die einen gemeinsamen Zweck haben — zum Beispiel Radio Buttons für die Zahlungsmethode oder eine Gruppe von Adressfeldern. <legend> liefert eine Beschriftung für diese Gruppe. Anders als ein <div> mit Überschrift erzeugen <fieldset> und <legend> eine semantische Gruppierung, die Screenreader automatisch ansagen — wenn ein User per Tab in die Gruppe navigiert, liest der Screenreader den Legend-Text als Kontext für jedes Control darin. Bei einem <div> mit Überschrift kann der Screenreader die Überschrift nicht mit den Controls assoziieren. Das macht einen echten Unterschied für User, die komplexe Formulare mit mehreren Abschnitten ausfüllen.",
+    "keyPoints": [
+      "fieldset gruppiert zusammengehörige Form-Controls semantisch",
+      "legend liefert eine barrierefreie Beschriftung, die Screenreader ansagen",
+      "Screenreader assoziieren die Legend mit jedem Control innerhalb des Fieldsets",
+      "div mit Überschrift hat keine semantische Verbindung zu den Controls"
+    ],
+    "tags": ["html", "forms", "accessibility", "semantic"]
+  },
+  {
+    "questionKey": "anchor-href-hash-antipattern",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Warum gilt <a href=\"#\"> mit Click-Handler als schlechte Praxis, und was sollte man stattdessen verwenden?",
+    "referenceAnswer": "Die Verwendung von <a href=\"#\"> mit Click-Handler verursacht mehrere Probleme: Es scrollt die Seite nach oben, wenn man nicht preventDefault() aufruft, es fügt ein # zur URL-History hinzu, sodass der Zurück-Button sich unerwartet verhält, und Screenreader kündigen es als Link an, was User glauben lässt, es würde irgendwohin navigieren. Wenn die Aktion nicht zu einer URL navigiert, sollte man stattdessen <button> verwenden — das kommuniziert die richtige Intention, handhabt Keyboard-Interaktion korrekt und verschmutzt nicht die Browser-History. Wenn man tatsächlich einen Link braucht, der auch JavaScript ausführt, verwendet man ein echtes href mit einer sinnvollen Fallback-URL. Das href=\"#\"-Pattern ist ein Überbleibsel aus der frühen Webentwicklung, das man in modernem Code vermeiden sollte.",
+    "keyPoints": [
+      "href='#' scrollt nach oben und verschmutzt die Browser-History",
+      "Screenreader kündigen es als Navigations-Link an",
+      "button für Aktionen verwenden, die nicht navigieren",
+      "wenn ein Link nötig ist, eine echte Fallback-URL im href angeben"
+    ],
+    "tags": ["html", "semantic", "accessibility", "links"]
+  },
+  {
+    "questionKey": "html-lang-attribute-missing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du das lang-Attribut auf dem <html>-Element weglässt?",
+    "referenceAnswer": "Ohne lang-Attribut wissen Screenreader nicht, welche Sprache für die Aussprache verwendet werden soll — sie könnten deutschen Text mit englischen Ausspracheregeln vorlesen oder umgekehrt, was den Inhalt für sehbehinderte User unverständlich macht. Browser nutzen lang auch für die korrekte Silbentrennung, Anführungszeichen-Stile und die Rechtschreibprüfung. Suchmaschinen nutzen es, um die Sprache des Inhalts für korrekte Indexierung und Ranking zu verstehen. Die Lösung ist einfach: lang=\"de\" oder den passenden Sprachcode auf dem <html>-Tag setzen. Es ist eine einzige Zeile Code, taucht aber regelmäßig in Accessibility-Audit-Fehlern auf, weil sie leicht übersehen wird.",
+    "keyPoints": [
+      "Screenreader nutzen lang für die Wahl der Ausspracheregeln",
+      "Browser nutzen es für Silbentrennung, Anführungszeichen und Rechtschreibprüfung",
+      "Suchmaschinen nutzen es für sprachspezifische Indexierung",
+      "eine Zeile Code, die regelmäßig in Accessibility-Audits fehlschlägt"
+    ],
+    "tags": ["html", "accessibility", "i18n", "structure"]
+  },
+  {
+    "questionKey": "form-enter-key-submit",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Ein User drückt Enter in einem Text-Input innerhalb eines Formulars, aber nichts passiert — das Formular wird nicht abgeschickt. Was könnte die Ursache sein?",
+    "referenceAnswer": "Implizite Formularübermittlung erfordert, dass ein Submit-Button im Formular vorhanden ist (ein <button type=\"submit\"> oder <input type=\"submit\">), oder bei Formularen mit mehreren Text-Inputs einen expliziten Submit-Button. Wenn das Formular keinen Submit-Button hat — zum Beispiel weil die Übermittlung komplett in JavaScript mit einem Click-Handler auf einem normalen Button gehandhabt wird — löst Enter keine Submission aus. Eine weitere häufige Ursache ist, dass der Button im Formular type=\"button\" statt type=\"submit\" hat, oder dass ein JavaScript-Event-Handler preventDefault() auf dem Submit-Event des Formulars aufruft. Die Lösung: sicherstellen, dass das Formular einen echten Submit-Button hat und das Submit-Event des Formulars handeln statt das Click-Event eines Buttons.",
+    "keyPoints": [
+      "implizite Submission erfordert einen Submit-Button im Formular",
+      "type='button' am einzigen Button verhindert Enter-Submission",
+      "preventDefault() auf dem Submit-Event blockiert die Übermittlung",
+      "das Submit-Event des Formulars handeln, nicht das Click-Event eines Buttons"
+    ],
+    "tags": ["html", "forms", "keyboard", "behavior"]
+  },
+  {
+    "questionKey": "flexbox-space-between-gap",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen justify-content: space-between und der gap-Property in Flexbox für Abstände zwischen Items?",
+    "referenceAnswer": "space-between verteilt Items so, dass das erste und letzte bündig an den Containerkanten sitzen und dazwischen gleichmäßig Platz verteilt wird. Die gap-Property setzt einen festen Abstand zwischen Items, ohne die Kanten zu beeinflussen. Der entscheidende visuelle Unterschied: space-between drückt das erste und letzte Item an die Kanten, was unschön aussehen kann, wenn man konsistentes Padding um den Container will. gap liefert vorhersagbaren, festen Abstand, unabhängig davon, wie viele Items es gibt oder wie sie umbrechen. Ein praktisches Problem mit space-between ist, dass bei nur zwei Items diese an die gegenüberliegenden Kanten springen, was oft nicht gewollt ist. gap handhabt das sauber, weil es nur Abstand zwischen benachbarten Items einfügt.",
+    "keyPoints": [
+      "space-between drückt das erste und letzte Item an die Containerkanten",
+      "gap setzt einen festen Abstand zwischen Items ohne Kantenwirkung",
+      "space-between mit zwei Items erzeugt eine unschöne Kante-zu-Kante-Aufteilung",
+      "gap liefert konsistenten Abstand unabhängig von der Anzahl der Items"
+    ],
+    "tags": ["css", "flexbox", "layout", "spacing"]
+  },
+  {
+    "questionKey": "inline-vs-block-layout-behavior",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "html-css",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du setzt width und height auf ein <span>, aber die Werte haben keinen Effekt. Warum?",
+    "referenceAnswer": "Ein <span> ist standardmäßig ein Inline-Element, und Inline-Elemente ignorieren width- und height-Properties — sie nehmen nur so viel Platz ein wie ihr Inhalt. Damit width und height greifen, muss man display auf block, inline-block oder flex ändern. inline-block ist die häufigste Wahl, wenn das Element Dimensionen respektieren, aber trotzdem im Textfluss neben anderen Elementen bleiben soll. Das gilt auch für vertikales Margin und Padding: Inline-Elemente akzeptieren zwar horizontales Padding und Margin, aber vertikales Padding schiebt benachbarte Zeilen nicht weg, was zu überlappendem Inhalt führt. Den Unterschied zwischen inline und block zu verstehen ist grundlegend für das Debugging von unerwartetem Größenverhalten.",
+    "keyPoints": [
+      "Inline-Elemente ignorieren width und height",
+      "display: inline-block lässt Dimensionen wirken und bleibt im Textfluss",
+      "vertikales Padding auf Inline-Elementen beeinflusst das umgebende Layout nicht",
+      "span ist inline, div ist block — standardmäßig"
+    ],
+    "tags": ["css", "display", "layout", "inline-block"]
+  }
+]

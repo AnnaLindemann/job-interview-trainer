@@ -23,21 +23,21 @@ type HistoryQuestionGroupDto = {
 };
 
 export async function GET() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Unauthorized",
-      },
-      {
-        status: 401,
-      },
-    );
-  }
-
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Unauthorized",
+        },
+        {
+          status: 401,
+        },
+      );
+    }
+
     const attempts = await prisma.attempt.findMany({
       where: {
         session: {
@@ -49,27 +49,23 @@ export async function GET() {
       },
       select: {
         id: true,
+        questionKey: true,
+        questionTextSnapshot: true,
+        referenceAnswerSnapshot: true,
+        topicSlug: true,
+        language: true,
+        difficulty: true,
         finalAnswer: true,
         inputMode: true,
         usedVoice: true,
         createdAt: true,
-        question: {
-          select: {
-            id: true,
-            questionText: true,
-            referenceAnswer: true,
-            topicSlug: true,
-            language: true,
-            difficulty: true,
-          },
-        },
       },
     });
 
     const groupsMap = new Map<string, HistoryQuestionGroupDto>();
 
     for (const attempt of attempts) {
-      const existingGroup = groupsMap.get(attempt.question.id);
+      const existingGroup = groupsMap.get(attempt.questionKey);
 
       const attemptItem: HistoryAttemptDto = {
         id: attempt.id,
@@ -80,13 +76,13 @@ export async function GET() {
       };
 
       if (!existingGroup) {
-        groupsMap.set(attempt.question.id, {
-          questionId: attempt.question.id,
-          questionText: attempt.question.questionText,
-          referenceAnswer: attempt.question.referenceAnswer,
-          topicSlug: attempt.question.topicSlug,
-          language: attempt.question.language,
-          difficulty: attempt.question.difficulty,
+        groupsMap.set(attempt.questionKey, {
+          questionId: attempt.questionKey,
+          questionText: attempt.questionTextSnapshot,
+          referenceAnswer: attempt.referenceAnswerSnapshot,
+          topicSlug: attempt.topicSlug,
+          language: attempt.language,
+          difficulty: attempt.difficulty,
           latestAttemptAt: attempt.createdAt.toISOString(),
           attempts: [attemptItem],
         });
@@ -97,14 +93,12 @@ export async function GET() {
       existingGroup.attempts.push(attemptItem);
     }
 
-    const historyItems = Array.from(groupsMap.values());
-
     return NextResponse.json({
       ok: true,
-      data: historyItems,
+      data: Array.from(groupsMap.values()),
     });
   } catch (error) {
-    console.error("Failed to load history", error);
+    console.error("HISTORY GET ERROR:", error);
 
     return NextResponse.json(
       {

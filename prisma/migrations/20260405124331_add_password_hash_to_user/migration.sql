@@ -1,8 +1,9 @@
-/*
-  Warnings:
+ALTER TABLE "User"
+ADD COLUMN "passwordHash" TEXT;
 
-  - Added the required column `passwordHash` to the `User` table without a default value. This is not possible if the table is not empty.
+UPDATE "User"
+SET "passwordHash" = 'TEMP_PASSWORD_HASH'
+WHERE "passwordHash" IS NULL;
 
-*/
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "passwordHash" TEXT NOT NULL;
+ALTER TABLE "User"
+ALTER COLUMN "passwordHash" SET NOT NULL;

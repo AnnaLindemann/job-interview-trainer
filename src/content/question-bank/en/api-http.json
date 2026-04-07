@@ -1,0 +1,645 @@
+[
+  {
+    "questionKey": "content-type-missing-400",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A frontend sends a POST request with a JSON body, but the server responds with 400 Bad Request and the body appears empty on the server side. What is the most likely cause?",
+    "referenceAnswer": "The most likely cause is a missing or incorrect Content-Type header. If the client doesn't send Content-Type: application/json, many servers won't attempt to parse the body as JSON, leaving it empty or unparsed. The server then rejects the request because the expected fields are missing. This commonly happens when using fetch() without explicitly setting headers, or when a developer copies a curl command that doesn't include the content type. The fix is to always include Content-Type: application/json when sending JSON payloads.",
+    "keyPoints": [
+      "missing Content-Type header prevents JSON body parsing",
+      "the server sees an empty or raw body without the correct content type",
+      "fetch() does not always set Content-Type: application/json by default",
+      "always set Content-Type explicitly when sending JSON"
+    ],
+    "tags": [
+      "http",
+      "headers",
+      "content-type",
+      "json",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "get-with-body-unreliable",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A developer sends complex filter criteria in the body of a GET request. It works in Postman but fails in production. Why is this unreliable?",
+    "referenceAnswer": "The HTTP specification does not define semantics for a body in a GET request. While some tools like Postman allow it, many proxies, CDNs, and HTTP clients strip or ignore the body of GET requests. In production, a reverse proxy like Nginx or a caching layer may discard the body entirely, causing the server to receive an empty request. The correct approach is to send filter criteria as query parameters for GET requests, or switch to POST if the criteria are too complex or sensitive for the URL. This is a protocol-level design constraint, not just a convention.",
+    "keyPoints": [
+      "GET request bodies have no defined semantics in the HTTP spec",
+      "proxies and CDNs may strip the body from GET requests",
+      "works in Postman but fails through infrastructure in production",
+      "use query params or switch to POST for complex filters"
+    ],
+    "tags": [
+      "http",
+      "get",
+      "request-body",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "status-200-for-everything-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "An API always returns 200 OK, even for errors — it puts an error message in the response body instead. What problems does this cause for the client?",
+    "referenceAnswer": "Returning 200 for errors undermines the HTTP contract that clients typically rely on. HTTP client libraries, interceptors, and fetch's response.ok check use the status code to determine success or failure. If the status is always 200, error-handling logic never triggers and the client treats errors as successful responses. Caching layers may also cache error responses as valid data because they see a 200. Additionally, monitoring tools that track 4xx/5xx rates can't detect problems. The fix is to use appropriate status codes (400, 404, 500, etc.) so that each layer in the stack — client code, proxies, monitoring — can correctly identify the outcome.",
+    "keyPoints": [
+      "response.ok and catch blocks rely on status codes, not body content",
+      "caching layers may cache error responses with 200 as valid",
+      "monitoring tools can't detect failures when everything is 200",
+      "use proper status codes so every layer can identify the outcome"
+    ],
+    "tags": [
+      "http",
+      "status-codes",
+      "api-design",
+      "error-handling"
+    ]
+  },
+  {
+    "questionKey": "204-vs-200-empty-response",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When should an API return 204 No Content instead of 200 OK?",
+    "referenceAnswer": "204 No Content is the appropriate response when the request was successful but there is intentionally no body to return — for example, after a DELETE that removes a resource, or a PUT that updates a resource when the client doesn't need the updated data back. 200 OK conventionally suggests a response body is present, so returning 200 with an empty body can confuse clients that try to parse it as JSON and get a parse error. A common mistake is returning 200 with an empty string after a DELETE, which causes JSON.parse('') to throw on the client side. Using 204 signals clearly that no body should be expected.",
+    "keyPoints": [
+      "204 means success with intentionally no response body",
+      "200 conventionally suggests a body is present — empty body can cause parse errors",
+      "common after DELETE or update operations that don't return data",
+      "prevents JSON.parse errors on empty response bodies"
+    ],
+    "tags": [
+      "http",
+      "status-codes",
+      "204",
+      "200",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "put-vs-patch-semantics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between PUT and PATCH, and what bug can occur if the client uses PUT when it should use PATCH?",
+    "referenceAnswer": "PUT replaces the entire resource with the provided representation, while PATCH applies a partial update to specific fields. If a client sends a PUT with only the fields it wants to change — say { name: 'Anna' } — and the server follows PUT semantics correctly, all other fields like email and role may be reset to their defaults or removed, because PUT means 'this is the complete new version'. This is a common data loss bug: the client intended to update one field but accidentally wiped the others. PATCH avoids this by only modifying the fields included in the request body. Use PUT when the client provides the complete resource, and PATCH for partial updates.",
+    "keyPoints": [
+      "PUT replaces the entire resource, PATCH updates specific fields",
+      "sending a partial body with PUT can wipe unincluded fields",
+      "this causes data loss bugs when PUT is used for partial updates",
+      "PATCH is correct for updating individual fields"
+    ],
+    "tags": [
+      "http",
+      "methods",
+      "put",
+      "patch",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "query-params-sensitive-data-risk",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why is sending a password or API key as a query parameter a security risk, even over HTTPS?",
+    "referenceAnswer": "Query parameters are part of the URL, which gets logged in multiple places even over HTTPS: browser history, server access logs, proxy logs, and referrer headers when navigating to external links. HTTPS encrypts the URL during transport, but once the request arrives, the full URL including query parameters is typically logged in plaintext. An API key in the URL like /api/data?key=secret123 can end up in log files accessible to anyone with server access. Sensitive data should be sent in the request body (for POST) or in headers (like the Authorization header for tokens). This is a protocol-level concern, not just a best practice.",
+    "keyPoints": [
+      "URLs with query params are logged in server logs, browser history, and proxies",
+      "HTTPS encrypts in transit but logs store the full URL in plaintext",
+      "referrer headers can leak the URL to third-party sites",
+      "use Authorization headers or request body for sensitive data"
+    ],
+    "tags": [
+      "http",
+      "security",
+      "query-params",
+      "headers",
+      "auth"
+    ]
+  },
+  {
+    "questionKey": "idempotency-retry-safety",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What does it mean for an HTTP method to be idempotent, and why does this matter when a request is retried due to a network timeout?",
+    "referenceAnswer": "An idempotent method produces the same server-side result whether called once or multiple times with the same input. GET, PUT, and DELETE are defined as idempotent — fetching a resource twice returns the same data, replacing a resource twice leaves it in the same state, and deleting an already-deleted resource is a no-op. POST is not idempotent — sending the same POST twice can create duplicate records. This matters when a network timeout causes the client to retry: retrying a GET or PUT is generally safe, but retrying a POST without precautions can create duplicate orders or payments. To make POST safer, APIs can accept an idempotency key in a header so the server recognizes and ignores duplicate submissions.",
+    "keyPoints": [
+      "idempotent means repeated calls produce the same server-side result",
+      "GET, PUT, DELETE are defined as idempotent; POST is not",
+      "retrying a POST can create duplicate records",
+      "idempotency keys prevent duplicate side effects on retry"
+    ],
+    "tags": [
+      "http",
+      "idempotency",
+      "methods",
+      "reliability"
+    ]
+  },
+  {
+    "questionKey": "401-vs-403-distinction",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between 401 Unauthorized and 403 Forbidden, and what goes wrong if you return the wrong one?",
+    "referenceAnswer": "401 means the client is not authenticated — it hasn't provided valid credentials, or the token has expired. The correct client response is to prompt for login or refresh the token. 403 means the client is authenticated but doesn't have permission for this specific resource — they're logged in, but their role doesn't allow the action. Returning 403 when the token is expired confuses the client: it won't attempt to re-authenticate because 403 says 'you're logged in, just not allowed'. Returning 401 when the user simply lacks permissions prompts unnecessary login flows. The distinction matters because frontend auth logic typically checks the status code to decide whether to redirect to login (401) or show a 'not allowed' message (403).",
+    "keyPoints": [
+      "401 = not authenticated, 403 = authenticated but not authorized",
+      "wrong code causes incorrect client behavior (login redirect vs error message)",
+      "expired tokens should return 401, not 403",
+      "frontend auth flows branch on this distinction"
+    ],
+    "tags": [
+      "http",
+      "status-codes",
+      "auth",
+      "401",
+      "403"
+    ]
+  },
+  {
+    "questionKey": "json-malformed-body-handling",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A client sends a request with a body that looks like JSON but has a trailing comma or unquoted keys. What status code should the server return, and why?",
+    "referenceAnswer": "The server should return 400 Bad Request because the body is syntactically invalid JSON. Trailing commas and unquoted keys are valid in JavaScript objects but not in JSON — JSON is a strict subset with different rules. The server's JSON parser will fail to parse the body and should respond with a 400 and a clear error message indicating the parsing failure. A common mistake is returning 500 Internal Server Error when the JSON parser throws, which suggests a server bug rather than a client mistake. The error response should ideally include what went wrong so the client developer can fix the payload.",
+    "keyPoints": [
+      "trailing commas and unquoted keys are valid JS but invalid JSON",
+      "the server should return 400, not 500, for malformed client input",
+      "500 implies a server bug, 400 signals a client-side problem",
+      "error response should describe what failed in the parsing"
+    ],
+    "tags": [
+      "http",
+      "json",
+      "parsing",
+      "status-codes",
+      "400"
+    ]
+  },
+  {
+    "questionKey": "pagination-api-design-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "An API returns all 50,000 products in a single GET response. What problems does this cause, and how should pagination be designed?",
+    "referenceAnswer": "Returning all records at once causes high memory usage on the server, large response payloads that slow down the network, and long parsing times on the client that can freeze the UI. The solution is pagination: the client requests a specific page or range, and the server returns a subset. Common patterns are offset-based (?page=2&limit=20), which is simple but can produce inconsistent results when data changes between requests, and cursor-based (?cursor=abc&limit=20), which uses a reference point and is more reliable for frequently changing data. The response should include metadata like total count and a link or cursor for the next page so the client knows whether more data exists. Without pagination, even moderate traffic can overwhelm both the server and the client.",
+    "keyPoints": [
+      "large responses cause high memory, slow network, and frozen UIs",
+      "offset pagination is simple but can be inconsistent when data changes between requests",
+      "cursor pagination is more reliable for frequently changing data",
+      "response should include total count and next-page cursor or link"
+    ],
+    "tags": [
+      "http",
+      "pagination",
+      "api-design",
+      "performance"
+    ]
+  },
+  {
+    "questionKey": "cors-preflight-blocked",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your frontend on localhost:3000 calls an API on localhost:8080. A simple GET works, but a POST with JSON body fails with a CORS error. Why does the POST fail when the GET succeeds?",
+    "referenceAnswer": "A POST with Content-Type: application/json is not a 'simple' request under CORS rules — it triggers a preflight OPTIONS request that the browser sends automatically before the actual POST. If the server doesn't handle the OPTIONS method and respond with the correct Access-Control-Allow-Origin, Access-Control-Allow-Methods, and Access-Control-Allow-Headers headers, the browser blocks the actual POST without ever sending it. A simple GET with no custom headers doesn't trigger a preflight, which is why it works. The fix is to configure the server to respond to OPTIONS requests with the appropriate CORS headers, or to use a CORS middleware that handles this automatically.",
+    "keyPoints": [
+      "POST with application/json triggers a preflight OPTIONS request",
+      "simple GET requests without custom headers skip the preflight",
+      "the server must respond to OPTIONS with correct CORS headers",
+      "CORS middleware handles preflight responses automatically"
+    ],
+    "tags": [
+      "http",
+      "cors",
+      "preflight",
+      "debugging"
+    ]
+  },
+  {
+    "questionKey": "cache-control-stale-data",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A user updates their profile, but the next GET request still returns the old data. The database has the correct updated value. What could cause this?",
+    "referenceAnswer": "The most likely cause is HTTP caching. If the GET endpoint returns a Cache-Control header like max-age=3600, the browser or an intermediate proxy serves the cached response for up to an hour without contacting the server at all. The database is correct, but the client never asks for fresh data. This is a common issue when caching headers are applied broadly to all API responses without considering which resources are frequently updated. The fix depends on the situation: set Cache-Control: no-cache or no-store for resources that must always be fresh, or use ETag-based conditional requests so the client can check if its cached copy is still valid without downloading the full response every time.",
+    "keyPoints": [
+      "Cache-Control max-age causes the browser to skip the server entirely",
+      "the database is correct but the client uses stale cached data",
+      "no-cache forces revalidation, no-store prevents caching entirely",
+      "ETag with If-None-Match allows efficient conditional revalidation"
+    ],
+    "tags": [
+      "http",
+      "caching",
+      "cache-control",
+      "stale-data"
+    ]
+  },
+  {
+    "questionKey": "etag-conditional-get",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How does an ETag help reduce bandwidth when a client repeatedly fetches the same resource, and what status code does the server return when the data hasn't changed?",
+    "referenceAnswer": "An ETag is a fingerprint of the response content that the server includes in the response header. On subsequent requests, the client sends the ETag back in an If-None-Match header. If the server's current ETag matches, the data hasn't changed, so the server returns 304 Not Modified with no body — saving bandwidth and processing time. If the data has changed, the server returns 200 with the new body and a new ETag. This is especially useful for large responses or high-traffic endpoints where the data changes infrequently. A common mistake is generating the ETag from a timestamp instead of the content hash, which causes unnecessary 200 responses when the server restarts but the data is unchanged.",
+    "keyPoints": [
+      "ETag is a content fingerprint sent in the response header",
+      "client sends it back via If-None-Match on subsequent requests",
+      "304 Not Modified means data hasn't changed — no body is sent",
+      "ETag should be based on content, not timestamps"
+    ],
+    "tags": [
+      "http",
+      "etag",
+      "caching",
+      "304",
+      "performance"
+    ]
+  },
+  {
+    "questionKey": "rate-limiting-429-retry",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Your app starts getting 429 Too Many Requests responses from a third-party API. What does this mean, and how should the client handle it?",
+    "referenceAnswer": "429 means the client has exceeded the rate limit set by the API — it has sent too many requests in a given time window. The response often includes a Retry-After header indicating how many seconds to wait before trying again. The client should respect this header and pause requests, then retry. A common mistake is immediately retrying in a tight loop when receiving a 429, which can make the situation worse and potentially get the client's IP or API key banned. Proper handling involves implementing exponential backoff: wait an increasing amount of time between retries. In production, consider adding request throttling or queuing on the client side to stay within the API's rate limits proactively.",
+    "keyPoints": [
+      "429 means the client exceeded the API's rate limit",
+      "Retry-After header tells the client when to try again",
+      "retrying immediately in a loop worsens the problem",
+      "use exponential backoff and client-side throttling"
+    ],
+    "tags": [
+      "http",
+      "rate-limiting",
+      "429",
+      "retry"
+    ]
+  },
+  {
+    "questionKey": "accept-header-negotiation",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the Accept header used for, and what happens if the client sends Accept: application/xml to a JSON-only API?",
+    "referenceAnswer": "The Accept header tells the server what response formats the client can handle. If a client sends Accept: application/xml to an API that only produces JSON, the server should ideally return 406 Not Acceptable, indicating it cannot satisfy the requested format. In practice, many APIs ignore the Accept header and always return JSON regardless, which works until a client strictly validates the response format and rejects it. The best practice is for JSON APIs to check the Accept header and return 406 if the client explicitly requests a format the server doesn't support. Clients consuming JSON APIs should send Accept: application/json to be explicit about expectations.",
+    "keyPoints": [
+      "Accept tells the server which response format the client expects",
+      "406 Not Acceptable means the server can't produce the requested format",
+      "many APIs ignore Accept and always return JSON",
+      "explicit Accept: application/json avoids ambiguity"
+    ],
+    "tags": [
+      "http",
+      "headers",
+      "accept",
+      "content-negotiation"
+    ]
+  },
+  {
+    "questionKey": "api-versioning-breaking-change",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You rename a field in the API response from userName to username. Existing mobile clients start crashing. What went wrong, and how should API changes like this be handled?",
+    "referenceAnswer": "Renaming a response field is a breaking change — existing clients are parsing the old field name and get undefined when it disappears. Unlike web apps that can be redeployed instantly, mobile apps and third-party integrations may run older versions for months. The safest approach is to keep both fields temporarily (userName and username) and deprecate the old one with documentation, or to introduce API versioning (e.g., /v1/users vs /v2/users, or a version header). Adding new fields is generally non-breaking, but removing or renaming fields breaks clients that depend on them. Any field removal should be preceded by a deprecation period with monitoring to see if old clients still use it.",
+    "keyPoints": [
+      "renaming or removing a response field is a breaking change",
+      "mobile and third-party clients may use old field names for months",
+      "keep both fields during a deprecation period",
+      "API versioning (URL or header) isolates breaking changes"
+    ],
+    "tags": [
+      "http",
+      "api-versioning",
+      "breaking-changes",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "inconsistent-error-shape",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Different endpoints in your API return errors in different formats — one returns { error: 'msg' }, another returns { message: 'msg', code: 123 }, and a third returns a plain string. Why is this a problem?",
+    "referenceAnswer": "Inconsistent error shapes force the client to write special-case error handling for each endpoint. A generic error interceptor that reads response.error will miss errors from endpoints that use response.message or return a plain string, causing unhandled errors or confusing user-facing messages. The fix is to define a standard error response format across the entire API — for example, always return { error: { message: string, code?: string } } — and enforce it in a centralized error-handling middleware. This lets the client parse every error the same way with a single piece of code. Inconsistent error shapes are one of the most common causes of unhelpful 'Something went wrong' messages in frontends.",
+    "keyPoints": [
+      "inconsistent shapes force per-endpoint error handling in the client",
+      "a generic error interceptor misses non-standard formats",
+      "define one error format and enforce it in centralized error handling",
+      "consistent errors enable a single client-side error parser"
+    ],
+    "tags": [
+      "http",
+      "error-handling",
+      "api-design",
+      "response-format"
+    ]
+  },
+  {
+    "questionKey": "timeout-server-still-processing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A client sets a 5-second timeout on an API request. The request times out, so the client shows an error. But the server actually completed the operation successfully. What problems does this create?",
+    "referenceAnswer": "The client and server are now out of sync: the client thinks the operation failed, but the server performed it successfully. If the user retries, they may create a duplicate order or trigger the action twice. This is especially dangerous for non-idempotent operations like payments. The timeout only means the client stopped waiting — it doesn't cancel the server-side work. Solutions include making critical operations idempotent so retries are safe, returning a 202 Accepted with a job ID for long-running operations so the client can poll for the result, or using longer timeouts with a loading indicator instead of a short timeout with an error. The key insight is that a client-side timeout tells you nothing about whether the server succeeded or failed.",
+    "keyPoints": [
+      "client timeout doesn't cancel server-side processing",
+      "the operation may have succeeded despite the timeout error",
+      "retrying non-idempotent operations can cause duplicates",
+      "use 202 Accepted with polling for long-running operations"
+    ],
+    "tags": [
+      "http",
+      "timeout",
+      "reliability",
+      "async-operations"
+    ]
+  },
+  {
+    "questionKey": "409-conflict-concurrent-update",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Two users edit the same document simultaneously. User A saves first, then User B saves and overwrites User A's changes without knowing they existed. What status code and mechanism can prevent this?",
+    "referenceAnswer": "This is a lost update problem, and 409 Conflict is the appropriate status code when the server detects it. The prevention mechanism is optimistic concurrency control: the server includes a version number or ETag with each resource. When User B sends their update, they include the version they originally loaded. The server compares it to the current version — if it's changed since User B loaded the data (because User A saved in between), the server rejects the request with 409 Conflict instead of silently overwriting. User B can then reload the latest version, merge their changes, and try again. Without this check, the last write silently wins and data loss goes undetected.",
+    "keyPoints": [
+      "409 Conflict signals that the update conflicts with the current state",
+      "version numbers or ETags enable optimistic concurrency control",
+      "the client sends its known version; the server rejects if it's outdated",
+      "without this, last-write-wins causes silent data loss"
+    ],
+    "tags": [
+      "http",
+      "409",
+      "concurrency",
+      "optimistic-locking"
+    ]
+  },
+  {
+    "questionKey": "delete-404-vs-204-on-missing",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A client sends DELETE /users/42, but the user was already deleted. Should the server return 404 Not Found or 204 No Content?",
+    "referenceAnswer": "Both approaches are valid, and the right choice depends on the API's design philosophy. Returning 204 treats DELETE as idempotent: the resource doesn't exist, which is the desired end state, so the operation 'succeeded'. This simplifies client retry logic because the client doesn't need to distinguish between 'deleted now' and 'was already gone'. Returning 404 is more informative: it tells the client the resource was already missing, which can help detect bugs like deleting the wrong ID. The key is to be consistent across the API — mixing both approaches for different resources confuses clients. Most REST APIs lean toward 204 for idempotency, but 404 is equally defensible if documented.",
+    "keyPoints": [
+      "204 treats DELETE as idempotent — desired state is already achieved",
+      "404 is more informative but complicates retry logic",
+      "consistency across the API matters more than the specific choice",
+      "most REST APIs lean toward 204 for idempotency"
+    ],
+    "tags": [
+      "http",
+      "delete",
+      "idempotency",
+      "status-codes",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "cors-credentials-cookie-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your frontend uses fetch with credentials: 'include' to send cookies to a cross-origin API, but the cookies are never sent. The CORS headers seem correct. What could be wrong?",
+    "referenceAnswer": "When sending credentials (cookies) cross-origin, Access-Control-Allow-Origin cannot be set to the wildcard *. It must be the exact origin of the requesting site (e.g., https://frontend.example.com), and Access-Control-Allow-Credentials must be set to true. Even if the server returns Access-Control-Allow-Origin: *, browsers silently drop the credentials when the wildcard is used. This is a security measure to prevent any website from sending authenticated requests to your API. The fix is to configure the server to echo back the specific request origin (from the Origin header) and set Allow-Credentials: true. Additionally, the cookies themselves must have SameSite=None and Secure attributes for cross-origin use in modern browsers.",
+    "keyPoints": [
+      "Access-Control-Allow-Origin cannot be * when credentials are included",
+      "the server must return the exact requesting origin, not a wildcard",
+      "Access-Control-Allow-Credentials: true is also required",
+      "cookies need SameSite=None and Secure for cross-origin requests"
+    ],
+    "tags": [
+      "http",
+      "cors",
+      "cookies",
+      "credentials",
+      "security"
+    ]
+  },
+  {
+    "questionKey": "authorization-bearer-format-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A developer sends the auth token as Authorization: <token> instead of Authorization: Bearer <token>. The server rejects it with 401. Why does the format matter?",
+    "referenceAnswer": "The Authorization header follows a scheme + credentials format defined by HTTP. Bearer is the scheme that tells the server how to interpret the value that follows. Without the 'Bearer ' prefix, the server's auth middleware doesn't recognize the token format and treats the request as unauthenticated. This is not just a convention — server-side auth libraries parse the header by splitting on the space character and extracting the token from the second part. Sending the raw token without the scheme causes the parsing to fail. Other schemes like Basic (for username:password) exist, so the scheme prefix is how the server knows which authentication strategy to apply.",
+    "keyPoints": [
+      "Authorization header follows scheme + credentials format",
+      "Bearer prefix tells the server how to interpret the token",
+      "auth libraries parse by splitting on the space character",
+      "without the prefix, the server can't identify the auth scheme"
+    ],
+    "tags": [
+      "http",
+      "auth",
+      "headers",
+      "bearer-token"
+    ]
+  },
+  {
+    "questionKey": "422-vs-400-validation-errors",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A client sends well-formed JSON, but the email field contains an invalid email address. Should the server return 400 or 422?",
+    "referenceAnswer": "400 Bad Request typically indicates a syntactic problem — the request itself is malformed (invalid JSON, missing required headers). 422 Unprocessable Entity means the request is syntactically correct but semantically invalid — the JSON is valid, but the data doesn't pass business validation rules. So an invalid email in otherwise valid JSON is more precisely a 422. However, many APIs use 400 for both cases, which is acceptable and simpler. The important thing is to include a clear error body with field-level details like { errors: [{ field: 'email', message: 'invalid format' }] } so the client can display specific feedback. Consistency matters more than the exact code — pick one approach and use it everywhere.",
+    "keyPoints": [
+      "400 typically means syntactically malformed request",
+      "422 means syntactically valid but semantically invalid data",
+      "many APIs use 400 for both, which is acceptable",
+      "field-level error details matter more than the exact status code"
+    ],
+    "tags": [
+      "http",
+      "validation",
+      "status-codes",
+      "400",
+      "422"
+    ]
+  },
+  {
+    "questionKey": "response-envelope-tradeoff",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "An API wraps every response in { data: ..., error: null, status: 200 }. What are the drawbacks of this envelope pattern?",
+    "referenceAnswer": "The envelope pattern duplicates information that HTTP already provides: the status code is in the response status, and the error/success distinction is communicated via status codes. Clients must now unwrap every response to get the actual data, adding boilerplate. It also undermines HTTP tooling — caching proxies, monitoring dashboards, and client interceptors all rely on the HTTP status code, not on a custom JSON field. If the HTTP status is always 200 and the real status is buried in the body, those tools stop working. The pattern made more sense in environments where clients couldn't reliably access HTTP status codes (like early JSONP), but in modern APIs, using HTTP status codes directly with a flat response body is simpler and more compatible with the ecosystem.",
+    "keyPoints": [
+      "envelopes duplicate information HTTP already provides",
+      "clients need extra unwrapping code for every response",
+      "HTTP tooling and proxies rely on status codes, not body fields",
+      "flat responses with proper HTTP status codes are simpler and more compatible"
+    ],
+    "tags": [
+      "http",
+      "api-design",
+      "response-format",
+      "patterns"
+    ]
+  },
+  {
+    "questionKey": "large-payload-413-status",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A client uploads a large JSON payload and gets a 413 Payload Too Large response. What does this mean, and where is the limit usually configured?",
+    "referenceAnswer": "413 Payload Too Large means the request body exceeds the size limit configured on the server or an intermediary like a reverse proxy. In Node.js/Express, express.json() defaults to a 100KB limit; Nginx defaults to 1MB for client_max_body_size. Either layer can reject the request before the application code ever sees it. A common debugging trap is fixing the Express limit but forgetting the Nginx limit, so the request still fails. The fix is to increase the limit at each layer that enforces one: express.json({ limit: '10mb' }) for Express, and client_max_body_size 10m for Nginx. However, raising limits without bound is a security risk — attackers can send huge payloads to exhaust server memory.",
+    "keyPoints": [
+      "413 means the body exceeds the server's configured size limit",
+      "limits exist at multiple layers: app framework, reverse proxy",
+      "fix must be applied at every layer that enforces a limit",
+      "unlimited payload sizes are a denial-of-service risk"
+    ],
+    "tags": [
+      "http",
+      "413",
+      "payload",
+      "security",
+      "configuration"
+    ]
+  },
+  {
+    "questionKey": "post-201-location-header",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "After creating a new resource with POST, should the API return 200 or 201, and what header should accompany the response?",
+    "referenceAnswer": "The correct status code for a successful resource creation is 201 Created, not 200 OK. 201 specifically communicates that a new resource was created as a result of the request, which is more precise than the generic 200 success. The response should include a Location header pointing to the URL of the newly created resource (e.g., Location: /api/users/42) so the client knows where to find it. The response body typically includes the created resource with its server-generated fields like id and timestamps. Returning 200 instead of 201 works but loses this semantic distinction, making it harder for clients and monitoring tools to differentiate between creation and other successful operations.",
+    "keyPoints": [
+      "201 Created is the correct code for successful resource creation",
+      "Location header should point to the URL of the new resource",
+      "response body typically includes the created resource with generated fields",
+      "200 works but loses the semantic distinction of creation"
+    ],
+    "tags": [
+      "http",
+      "201",
+      "location-header",
+      "post",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "batch-partial-failure-design",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "An API endpoint accepts a batch of 100 items to create. 95 succeed but 5 fail validation. What status code should the response use, and how should the result be structured?",
+    "referenceAnswer": "There's no single perfect HTTP status code for partial success. Returning 200 with per-item results is common: the response body contains an array where each item has its own status and any error details — { results: [{ id: 1, status: 'created' }, { id: 2, status: 'error', error: 'invalid email' }] }. Some APIs use 207 Multi-Status (from WebDAV) for this purpose. Returning 400 would be misleading because most items succeeded; returning 200 is slightly imprecise but practical. The critical requirement is that the response body clearly indicates which items failed and why, so the client can retry only the failed items. Without per-item status, the client has to guess which items were created and which weren't, potentially creating duplicates on retry.",
+    "keyPoints": [
+      "no single HTTP status perfectly represents partial success",
+      "200 with per-item results is the most common approach",
+      "207 Multi-Status is an alternative from the WebDAV spec",
+      "per-item error details are essential for client-side retry logic"
+    ],
+    "tags": [
+      "http",
+      "batch",
+      "partial-failure",
+      "api-design"
+    ]
+  },
+  {
+    "questionKey": "exponential-backoff-retries",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your client retries failed API requests immediately in a loop. During a brief server outage, this makes the problem much worse. What is the correct retry strategy?",
+    "referenceAnswer": "Immediate retries in a tight loop create a thundering herd effect: when the server recovers, it's hit by a flood of accumulated retries from all clients simultaneously, which can cause another outage. The correct strategy is exponential backoff: wait 1 second before the first retry, 2 seconds before the second, 4 seconds before the third, and so on, typically with a random jitter added to avoid all clients retrying at the exact same moment. Cap the number of retries (usually 3-5) and the maximum wait time. Only retry on transient errors (5xx, network failures, 429) — don't retry 4xx errors because those indicate a client-side problem that won't be fixed by retrying. This pattern protects both the server and the client from cascading failures.",
+    "keyPoints": [
+      "immediate retries cause thundering herd on server recovery",
+      "exponential backoff increases wait time between retries",
+      "jitter randomizes retry timing to avoid synchronized retries",
+      "only retry transient errors (5xx, network), not client errors (4xx)"
+    ],
+    "tags": [
+      "http",
+      "retry",
+      "backoff",
+      "reliability",
+      "resilience"
+    ]
+  },
+  {
+    "questionKey": "options-preflight-purpose",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You see OPTIONS requests in your server logs that you never sent from the frontend. Where do they come from and why?",
+    "referenceAnswer": "These are CORS preflight requests sent automatically by the browser before certain cross-origin requests. When a frontend makes a cross-origin request that isn't 'simple' — for example, it uses a custom header, or sends Content-Type: application/json — the browser first sends an OPTIONS request to ask the server whether the actual request is allowed. The server must respond with appropriate Access-Control-Allow-* headers. If it doesn't handle OPTIONS at all, or returns an error, the browser blocks the actual request without sending it. The OPTIONS requests don't appear in the frontend's network code because they're initiated by the browser internally. They're visible only in server logs and the browser's DevTools network tab.",
+    "keyPoints": [
+      "OPTIONS requests are CORS preflight checks sent by the browser automatically",
+      "they're triggered by non-simple cross-origin requests",
+      "the server must respond with Access-Control-Allow-* headers",
+      "the frontend code never sends these — the browser does"
+    ],
+    "tags": [
+      "http",
+      "cors",
+      "options",
+      "preflight"
+    ]
+  },
+  {
+    "questionKey": "link-header-resource-discovery",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "api-http",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A paginated API response includes the next page URL in the response body, but another API puts it in a Link header. What are the tradeoffs?",
+    "referenceAnswer": "Putting pagination links in the body (e.g., { data: [...], next: '/api/items?page=3' }) is simpler for clients to parse since they're already reading the JSON body, and the links are visible alongside the data. Putting them in a Link header (Link: </api/items?page=3>; rel=\"next\") separates metadata from data, keeps the response body focused on the resource, and follows the HTTP standard for hypermedia links. The tradeoff is that Link headers require parsing a different format and some frontend developers overlook response headers entirely. In practice, most JSON APIs use the body approach because JSON clients naturally look at the body. The Link header approach is more common in APIs that aim for strict REST/hypermedia compliance. Whichever you choose, always include a way for the client to discover the next page without constructing URLs manually.",
+    "keyPoints": [
+      "body links are easier for JSON clients to parse",
+      "Link headers separate metadata from resource data",
+      "most JSON APIs put pagination links in the body",
+      "always provide discoverable next-page URLs rather than making clients guess"
+    ],
+    "tags": [
+      "http",
+      "pagination",
+      "link-header",
+      "api-design"
+    ]
+  }
+]
