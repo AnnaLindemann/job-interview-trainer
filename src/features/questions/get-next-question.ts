@@ -26,17 +26,20 @@ export async function getNextQuestion(params: GetNextQuestionParams) {
     return null;
   }
 
-  const attempts = await prisma.attempt.findMany({
+  const practicedQuestions = await prisma.practicedQuestion.findMany({
     where: {
-      sessionId,
+      userId,
+      roleSlug: session.roleSlug,
+      topicSlug: session.topicSlug,
+      language: session.language,
     },
     select: {
       questionKey: true,
     },
   });
 
-  const attemptedQuestionKeys = new Set(
-    attempts.map((attempt) => attempt.questionKey),
+  const practicedQuestionKeys = new Set(
+    practicedQuestions.map((item) => item.questionKey),
   );
 
   const questions = await getQuestionsForPractice({
@@ -45,8 +48,13 @@ export async function getNextQuestion(params: GetNextQuestionParams) {
     language: session.language,
   });
 
+  if (questions.length === 0) {
+    return null;
+  }
+
   return (
-    questions.find((question) => !attemptedQuestionKeys.has(question.questionKey)) ??
-    null
+    questions.find(
+      (question) => !practicedQuestionKeys.has(question.questionKey),
+    ) ?? questions[0]
   );
 }

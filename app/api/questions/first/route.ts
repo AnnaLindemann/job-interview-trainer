@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     const question = await getFirstQuestion({
+      userId: session.user.id,
       roleSlug,
       topicSlug,
       language,

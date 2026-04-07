@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     const language = body.language.trim();
 
     const question = await getFirstQuestion({
+      userId: session.user.id,
       roleSlug,
       topicSlug,
       language,
