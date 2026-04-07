@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
+import { LogoutButton } from "@/components/auth/logout-button";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import {
   AnswerForm,
   type AnswerFormSubmitPayload,
@@ -9,7 +11,6 @@ import {
 import { FeedbackCard } from "@/components/practice/feedback-card";
 import { PracticeSetupForm } from "@/components/practice/practice-setup-form";
 import { QuestionCard } from "@/components/practice/question-card";
-import { LogoutButton } from "@/components/auth/logout-button";
 
 type PracticeLanguage = "en" | "de";
 
@@ -350,12 +351,15 @@ export default function HomePageClient() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-10">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
           <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="inline-flex rounded-full border border-teal-200 bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-800 shadow-sm">
                 AI Interview Practice
               </span>
 
-              <LogoutButton />
+              <div className="flex flex-wrap items-center gap-3">
+                <InstallAppButton />
+                <LogoutButton />
+              </div>
             </div>
 
             <div className="rounded-3xl border border-teal-100 bg-white/90 p-6 shadow-sm sm:p-8">
