@@ -10,6 +10,7 @@ export type HistoryQuestionItem = {
   questionId: string;
   questionText: string;
   referenceAnswer: string;
+  roleSlug: string;
   topicSlug: string;
   language: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";

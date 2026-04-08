@@ -15,6 +15,7 @@ type HistoryQuestionGroupDto = {
   questionId: string;
   questionText: string;
   referenceAnswer: string;
+  roleSlug: string;
   topicSlug: string;
   language: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";
@@ -52,6 +53,7 @@ export async function GET() {
         questionKey: true,
         questionTextSnapshot: true,
         referenceAnswerSnapshot: true,
+        roleSlug: true,
         topicSlug: true,
         language: true,
         difficulty: true,
@@ -65,7 +67,14 @@ export async function GET() {
     const groupsMap = new Map<string, HistoryQuestionGroupDto>();
 
     for (const attempt of attempts) {
-      const existingGroup = groupsMap.get(attempt.questionKey);
+      const groupKey = [
+        attempt.roleSlug,
+        attempt.topicSlug,
+        attempt.language,
+        attempt.questionKey,
+      ].join("::");
+
+      const existingGroup = groupsMap.get(groupKey);
 
       const attemptItem: HistoryAttemptDto = {
         id: attempt.id,
@@ -76,10 +85,11 @@ export async function GET() {
       };
 
       if (!existingGroup) {
-        groupsMap.set(attempt.questionKey, {
+        groupsMap.set(groupKey, {
           questionId: attempt.questionKey,
           questionText: attempt.questionTextSnapshot,
           referenceAnswer: attempt.referenceAnswerSnapshot,
+          roleSlug: attempt.roleSlug,
           topicSlug: attempt.topicSlug,
           language: attempt.language,
           difficulty: attempt.difficulty,
