@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "generate:sw": "tsx tools/generate-sw.ts",
+    "dev": "tsx tools/generate-sw.ts && next dev",
+    "build": "tsx tools/generate-sw.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

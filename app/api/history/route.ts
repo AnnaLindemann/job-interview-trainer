@@ -12,7 +12,7 @@ type HistoryAttemptDto = {
 };
 
 type HistoryQuestionGroupDto = {
-  questionId: string;
+  questionKey: string | null;
   questionText: string;
   referenceAnswer: string;
   roleSlug: string;
@@ -86,7 +86,7 @@ export async function GET() {
 
       if (!existingGroup) {
         groupsMap.set(groupKey, {
-          questionId: attempt.questionKey,
+          questionKey: attempt.questionKey ?? null,
           questionText: attempt.questionTextSnapshot,
           referenceAnswer: attempt.referenceAnswerSnapshot,
           roleSlug: attempt.roleSlug,

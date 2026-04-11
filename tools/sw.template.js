@@ -1,4 +1,4 @@
-const CACHE_NAME = "ai-interview-practice-static-77822f8058";
+const CACHE_NAME = "__CACHE_NAME__";
 const STATIC_ASSETS = ["/manifest.webmanifest", "/icon", "/apple-icon"];
 
 self.addEventListener("install", (event) => {

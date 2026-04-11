@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
@@ -25,6 +26,19 @@ type QuestionDto = {
 };
 
 type StartPracticeResponse =
+  | {
+      ok: true;
+      data: {
+        sessionId: string;
+        question: QuestionDto;
+      };
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+type RepeatPracticeResponse =
   | {
       ok: true;
       data: {
@@ -111,6 +125,8 @@ type QuestionBankMetaResponse =
     };
 
 export default function HomePageClient() {
+  const searchParams = useSearchParams();
+
   const [topicSlug, setTopicSlug] = useState("javascript");
   const [language, setLanguage] = useState("en");
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
@@ -138,6 +154,7 @@ export default function HomePageClient() {
   } | null>(null);
 
   const feedbackRef = useRef<HTMLDivElement | null>(null);
+  const repeatRequestStartedRef = useRef(false);
 
   useEffect(() => {
     async function loadMeta() {
@@ -183,6 +200,95 @@ export default function HomePageClient() {
       });
     }
   }, [attemptResult]);
+
+  useEffect(() => {
+    if (isLoadingMeta) {
+      return;
+    }
+
+    const mode = searchParams.get("mode");
+    const repeatRoleSlug = searchParams.get("roleSlug");
+    const repeatTopicSlug = searchParams.get("topicSlug");
+    const repeatLanguage = searchParams.get("language");
+    const repeatQuestionKey = searchParams.get("questionKey");
+
+    if (mode !== "repeat") {
+      repeatRequestStartedRef.current = false;
+      return;
+    }
+
+    if (
+      !repeatRoleSlug ||
+      !repeatTopicSlug ||
+      !repeatLanguage ||
+      !repeatQuestionKey
+    ) {
+      setError("Repeat link is incomplete");
+      return;
+    }
+
+    const safeRepeatRoleSlug = repeatRoleSlug;
+    const safeRepeatTopicSlug = repeatTopicSlug;
+    const safeRepeatLanguage = repeatLanguage;
+    const safeRepeatQuestionKey = repeatQuestionKey;
+
+    if (repeatRequestStartedRef.current) {
+      return;
+    }
+
+    repeatRequestStartedRef.current = true;
+
+    async function loadRepeatQuestion() {
+      try {
+        setIsStarting(true);
+        setError(null);
+        setAnswer("");
+        setAttemptResult(null);
+        setAnswerFormResetKey((prev) => prev + 1);
+
+        setTopicSlug(safeRepeatTopicSlug);
+        setLanguage(safeRepeatLanguage);
+
+        const response = await fetch("/api/practice/repeat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            roleSlug: safeRepeatRoleSlug,
+            topicSlug: safeRepeatTopicSlug,
+            language: safeRepeatLanguage,
+            questionKey: safeRepeatQuestionKey,
+          }),
+        });
+
+        const result: RepeatPracticeResponse = await response.json();
+
+        if (!response.ok || !result.ok) {
+          setSessionId(null);
+          setCurrentQuestion(null);
+          setError(result.ok ? "Failed to repeat question" : result.error);
+          return;
+        }
+
+        setSessionId(result.data.sessionId);
+        setCurrentQuestion(result.data.question);
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      } catch {
+        setSessionId(null);
+        setCurrentQuestion(null);
+        setError("Failed to load repeat question");
+      } finally {
+        setIsStarting(false);
+      }
+    }
+
+    void loadRepeatQuestion();
+  }, [isLoadingMeta, searchParams]);
 
   async function handleStartPractice(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -389,7 +495,7 @@ export default function HomePageClient() {
               languageOptions={languageOptions}
               isStarting={isStarting}
               onTopicChange={setTopicSlug}
-              onLanguageChange={setLanguage}
+              onLanguageChange={(value) => setLanguage(value)}
               onSubmit={handleStartPractice}
             />
           )}

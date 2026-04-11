@@ -33,13 +33,16 @@ export function HistoryQuestionCard(props: HistoryQuestionCardProps) {
 
   const latestAttempt = item.attempts[0];
   const previousAttempts = getPreviousAttempts(item.attempts);
+  const repeatQuestionKey = item.questionKey ?? "";
+const hasRepeatQuestion = repeatQuestionKey.length > 0;
 
-  const repeatHref =
-    `/?mode=repeat` +
+const repeatHref = hasRepeatQuestion
+  ? `/?mode=repeat` +
     `&roleSlug=${encodeURIComponent(item.roleSlug)}` +
     `&topicSlug=${encodeURIComponent(item.topicSlug)}` +
     `&language=${encodeURIComponent(item.language)}` +
-    `&questionKey=${encodeURIComponent(item.questionId)}`;
+    `&questionKey=${encodeURIComponent(repeatQuestionKey)}`
+  : "/history";
 
   return (
     <article className="rounded-3xl border border-teal-100 bg-white p-5 shadow-sm sm:p-6">
@@ -101,12 +104,18 @@ export function HistoryQuestionCard(props: HistoryQuestionCardProps) {
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <Link
-          href={repeatHref}
-          className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-500"
-        >
-          Repeat question
-        </Link>
+        {hasRepeatQuestion ? (
+          <Link
+            href={repeatHref}
+            className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-500"
+          >
+            Repeat question
+          </Link>
+        ) : (
+          <span className="inline-flex items-center justify-center rounded-2xl bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-500">
+            Repeat unavailable
+          </span>
+        )}
 
         {previousAttempts.length > 0 ? (
           <button

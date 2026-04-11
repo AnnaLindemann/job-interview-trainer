@@ -7,7 +7,7 @@ export type HistoryAttemptItem = {
 };
 
 export type HistoryQuestionItem = {
-  questionId: string;
+  questionKey: string | null;
   questionText: string;
   referenceAnswer: string;
   roleSlug: string;

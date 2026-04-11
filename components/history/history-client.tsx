@@ -11,6 +11,25 @@ import { HistoryQuestionCard } from "@/components/history/history-question-card"
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
+function getHistoryItemKey(item: HistoryQuestionItem, index: number): string {
+  if (item.questionKey) {
+    return [
+      item.roleSlug,
+      item.topicSlug,
+      item.language,
+      item.questionKey,
+    ].join("::");
+  }
+
+  return [
+    item.roleSlug,
+    item.topicSlug,
+    item.language,
+    item.latestAttemptAt,
+    index,
+  ].join("::");
+}
+
 export function HistoryClient() {
   const [items, setItems] = useState<HistoryQuestionItem[]>([]);
   const [status, setStatus] = useState<LoadState>("idle");
@@ -137,8 +156,11 @@ export function HistoryClient() {
 
         {status === "success" && items.length > 0 ? (
           <section className="space-y-4">
-            {items.map((item) => (
-              <HistoryQuestionCard key={item.questionId} item={item} />
+            {items.map((item, index) => (
+              <HistoryQuestionCard
+                key={getHistoryItemKey(item, index)}
+                item={item}
+              />
             ))}
           </section>
         ) : null}

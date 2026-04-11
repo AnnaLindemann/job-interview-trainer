@@ -1,17 +1,11 @@
 import { auth } from "@/auth";
-import { prisma } from "@/src/db/prisma";
 import { PrintPageActions } from "@/components/question-bank/print-page-actions";
+import { getQuestionBankItemsForUser } from "@/src/features/questions/get-question-bank-items";
+import { parseQuestionId } from "@/src/features/questions/question-bank-list";
 
 type PrintPageSearchParams = Promise<{
   ids?: string;
 }>;
-
-function formatDate(value: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value);
-}
 
 function parseIds(rawIds: string | undefined): string[] {
   if (!rawIds) {
@@ -64,28 +58,44 @@ export default async function PrintQuestionBankPage({
     );
   }
 
-  const practicedQuestions = await prisma.practicedQuestion.findMany({
-    where: {
-      id: {
-        in: ids,
-      },
-      userId: session.user.id,
-    },
-    select: {
-      id: true,
-      questionKey: true,
-      questionTextSnapshot: true,
-      referenceAnswerSnapshot: true,
-      roleSlug: true,
-      topicSlug: true,
-      language: true,
-      difficulty: true,
-      addedAt: true,
-    },
-  });
+  const parsedSelections = ids
+    .map((id) => ({
+      questionId: id,
+      identity: parseQuestionId(id),
+    }))
+    .filter(
+      (
+        item,
+      ): item is {
+        questionId: string;
+        identity: NonNullable<ReturnType<typeof parseQuestionId>>;
+      } => item.identity !== null,
+    );
+
+  const filterKeys = Array.from(
+    new Set(
+      parsedSelections.map(
+        (item) => `${item.identity.topicSlug}__${item.identity.language}`,
+      ),
+    ),
+  );
+
+  const groupedItems = await Promise.all(
+    filterKeys.map(async (filterKey) => {
+      const [topicSlug, language] = filterKey.split("__");
+
+      return getQuestionBankItemsForUser({
+        userId: session.user.id,
+        topicSlug,
+        language,
+      });
+    }),
+  );
+
+  const allLoadedItems = groupedItems.flat();
 
   const itemsById = new Map(
-    practicedQuestions.map((item) => [item.id, item] as const),
+    allLoadedItems.map((item) => [item.questionId, item] as const),
   );
 
   const orderedItems = ids
@@ -122,7 +132,7 @@ export default async function PrintQuestionBankPage({
         <div className="space-y-6">
           {orderedItems.map((item, index) => (
             <article
-              key={item.id}
+              key={item.questionId}
               className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm print:break-inside-avoid print:shadow-none"
             >
               <div className="mb-4 flex flex-wrap gap-2 text-xs font-medium text-gray-500">
@@ -138,7 +148,7 @@ export default async function PrintQuestionBankPage({
               </div>
 
               <h2 className="text-lg font-semibold text-gray-900">
-                {item.questionTextSnapshot}
+                {item.questionText}
               </h2>
 
               <div className="mt-5 rounded-xl bg-gray-50 p-4">
@@ -146,12 +156,17 @@ export default async function PrintQuestionBankPage({
                   Reference answer
                 </p>
                 <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                  {item.referenceAnswerSnapshot}
+                  {item.referenceAnswer}
                 </p>
               </div>
 
               <p className="mt-5 text-xs text-gray-500">
-                Added: {formatDate(item.addedAt)}
+                {item.answeredAt
+                  ? `Answered: ${new Intl.DateTimeFormat("en-GB", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(item.answeredAt))}`
+                  : "Not answered yet"}
               </p>
             </article>
           ))}
