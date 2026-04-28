@@ -1,0 +1,82 @@
+[
+  {
+    "questionKey": "image-vs-container-difference",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between a Docker image and a container, and how do they relate to each other?",
+    "referenceAnswer": "An image is a read-only template that contains everything needed to run an application — the OS base, dependencies, code, and configuration. A container is a running instance of an image, like a process created from that template. You can run multiple containers from the same image, and each container has its own writable layer on top of the read-only image layers. A common misconception is thinking that changes made inside a container modify the image — they don't. When the container is removed, those changes are lost unless you explicitly committed them to a new image or used a volume.",
+    "keyPoints": [
+      "an image is a read-only template, a container is a running instance",
+      "multiple containers can run from the same image",
+      "changes inside a container do not modify the original image",
+      "container data is lost on removal unless persisted with volumes"
+    ],
+    "tags": ["docker", "images", "containers", "basics"]
+  },
+  {
+    "questionKey": "container-stops-immediately",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You run docker run with your image, but the container exits immediately. What are the most common reasons this happens?",
+    "referenceAnswer": "A container runs as long as its main process is alive. If the main process finishes or crashes, the container stops. The most common reasons are: the Dockerfile's CMD or ENTRYPOINT runs a command that completes instantly (like echo or a script with no long-running process), the application crashes on startup due to a missing environment variable or config error, or the process runs in the background (daemonizes) and the foreground process exits. To debug, check the logs with docker logs <container> and the exit code. For a web server, make sure it runs in the foreground — for example, node server.js rather than a background daemon.",
+    "keyPoints": [
+      "a container lives only as long as its main process",
+      "CMD that finishes instantly causes the container to stop",
+      "application crashes on startup cause immediate exit",
+      "check docker logs and exit code to diagnose"
+    ],
+    "tags": ["docker", "containers", "debugging", "cmd"]
+  },
+  {
+    "questionKey": "port-mapping-not-reachable",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your app runs on port 3000 inside a Docker container, but you can't reach it from your browser at localhost:3000. What is likely missing?",
+    "referenceAnswer": "By default, container ports are not exposed to the host machine. You need to map the container's port to a host port using the -p flag: docker run -p 3000:3000 maps host port 3000 to container port 3000. The left side is the host port, the right side is the container port — they don't have to match. Another common cause is the app inside the container listening on 127.0.0.1 instead of 0.0.0.0 — inside a container, 127.0.0.1 only accepts connections from within the container itself. The fix is to bind the app to 0.0.0.0 so it accepts connections from the host through the port mapping.",
+    "keyPoints": [
+      "container ports are not exposed to the host by default",
+      "-p host:container maps ports between host and container",
+      "app must listen on 0.0.0.0, not 127.0.0.1, inside the container",
+      "host port and container port do not have to be the same number"
+    ],
+    "tags": ["docker", "port-mapping", "networking", "debugging"]
+  },
+  {
+    "questionKey": "volume-persist-data",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "You store uploaded files inside a Docker container, but they disappear every time the container is restarted. Why, and how do you fix it?",
+    "referenceAnswer": "Container filesystems are ephemeral — when a container is removed and recreated, all data written inside it is gone. To persist data across restarts, use a Docker volume or a bind mount. A volume is managed by Docker and stored outside the container's filesystem: docker run -v mydata:/app/uploads maps a named volume to the container path. A bind mount maps a host directory directly: -v ./uploads:/app/uploads. Volumes are the recommended approach for data that needs to survive container lifecycle. A common mistake is storing important data (like database files or uploads) inside the container without a volume and losing everything on the next docker-compose down.",
+    "keyPoints": [
+      "container filesystems are ephemeral — data is lost on removal",
+      "volumes persist data outside the container's filesystem",
+      "bind mounts map a host directory into the container",
+      "always use volumes for data that must survive container restarts"
+    ],
+    "tags": ["docker", "volumes", "data-persistence", "basics"]
+  },
+  {
+    "questionKey": "dockerfile-rebuild-after-code-change",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You change your application code, but the running container still serves the old version. What did you forget, and how does Docker's build cache affect this?",
+    "referenceAnswer": "Changing your source code on the host does not automatically update the code inside a running container — unless you have a bind mount pointing to the source directory. If you're using a Dockerfile that copies code with COPY . ., you need to rebuild the image with docker build and then recreate the container. Docker's build cache reuses layers that haven't changed: if your COPY instruction is after a layer that changed, it and all subsequent layers are rebuilt. A common optimization is to copy package.json and install dependencies before copying the rest of the code, so dependency installation is cached unless package.json changes. Without this, every code change triggers a full dependency reinstall.",
+    "keyPoints": [
+      "code changes on the host don't appear in the container without rebuild or bind mount",
+      "rebuild the image and recreate the container after code changes",
+      "Docker caches layers and rebuilds from the first changed layer onward",
+      "copy package.json first to cache dependency installation"
+    ],
+    "tags": ["docker", "dockerfile", "build-cache", "development"]
+  }
+]

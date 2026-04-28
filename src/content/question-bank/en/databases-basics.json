@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "primary-key-vs-foreign-key",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between a primary key and a foreign key, and what happens if you try to insert a row with a foreign key value that doesn't exist in the referenced table?",
+    "referenceAnswer": "A primary key uniquely identifies each row in a table and cannot be null or duplicated. A foreign key is a column that references the primary key of another table, creating a relationship between them. If you try to insert a row with a foreign key value that doesn't exist in the referenced table, the database rejects the insert with a foreign key constraint violation. A common beginner mistake is deleting a row from the parent table without realizing that child rows still reference it — this either fails or cascades deletes depending on how the constraint is configured.",
+    "keyPoints": [
+      "primary key uniquely identifies each row",
+      "foreign key references another table's primary key",
+      "inserting an invalid foreign key triggers a constraint error",
+      "deleting referenced rows requires cascade or manual cleanup"
+    ],
+    "tags": ["databases", "primary-key", "foreign-key", "constraints"]
+  },
+  {
+    "questionKey": "sql-join-missing-rows",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You join a users table with an orders table, but some users have no orders. Why might those users disappear from the results, and how would you fix it?",
+    "referenceAnswer": "An INNER JOIN only returns rows where both tables have a matching record, so users without orders are silently dropped from the result. To include users even when they have no orders, use a LEFT JOIN — this returns all rows from the left table (users) and fills in NULL for the order columns where no match exists. A common junior mistake is using INNER JOIN by default and then being confused why certain users are missing from reports. When debugging, check whether the join type matches your intent: do you want only matched rows, or all rows from one side?",
+    "keyPoints": [
+      "INNER JOIN excludes rows without matches in both tables",
+      "LEFT JOIN keeps all rows from the left table",
+      "missing matches produce NULL in the joined columns",
+      "wrong join type silently drops data from results"
+    ],
+    "tags": ["databases", "joins", "sql", "debugging"]
+  },
+  {
+    "questionKey": "index-when-to-add",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your app's user list page is loading slowly because the query filters by email. What would you check first, and how does adding an index help?",
+    "referenceAnswer": "Without an index on the email column, the database performs a full table scan — it checks every single row to find matches, which gets slow as the table grows. Adding an index on email creates a sorted lookup structure that lets the database find matching rows without scanning everything, similar to a book index. However, indexes are not free: they slow down INSERT and UPDATE operations because the index must be updated too, and they use additional disk space. A practical rule is to add indexes on columns you frequently filter, sort, or join on, but avoid indexing every column blindly.",
+    "keyPoints": [
+      "missing index causes full table scan on large tables",
+      "index creates a fast lookup structure for the column",
+      "indexes slow down writes and use extra storage",
+      "index columns you frequently filter or join on"
+    ],
+    "tags": ["databases", "indexes", "performance", "sql"]
+  },
+  {
+    "questionKey": "relational-vs-non-relational-choice",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you choose a relational database like PostgreSQL over a non-relational one like MongoDB for a new project?",
+    "referenceAnswer": "A relational database is a strong default when your data has clear relationships — for example users, orders, and products that reference each other. It enforces structure through schemas and constraints, which prevents invalid data from entering the system. A non-relational database like MongoDB is useful when your data shape varies a lot or you need to store flexible documents without a fixed schema. A common beginner mistake is choosing MongoDB because it feels simpler, then struggling with data consistency issues that a relational database would have prevented through foreign keys and constraints.",
+    "keyPoints": [
+      "relational databases enforce structure via schemas and constraints",
+      "non-relational databases allow flexible document shapes",
+      "relational is a good default for data with clear relationships",
+      "skipping constraints can cause data consistency problems"
+    ],
+    "tags": ["databases", "relational", "non-relational", "architecture"]
+  },
+  {
+    "questionKey": "normalization-duplicate-data-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You notice that a customer's address is stored in every order row. What problem does this cause, and how would you restructure it?",
+    "referenceAnswer": "Storing the same address in every order row means that if the customer updates their address, you have to find and update every order row — miss one and your data is inconsistent. This is a classic normalization problem: the address should live in its own table (or in the customers table) and be referenced by a foreign key from the orders table. That way, updating the address once updates it everywhere. The tradeoff is that reading an order now requires a JOIN to get the address, but this is a small cost compared to the risk of stale or conflicting data scattered across hundreds of rows.",
+    "keyPoints": [
+      "duplicate data causes update anomalies across rows",
+      "normalization moves repeated data to its own table",
+      "foreign keys link related tables instead of duplicating data",
+      "tradeoff: normalized queries need JOINs but data stays consistent"
+    ],
+    "tags": ["databases", "normalization", "design", "data-integrity"]
+  },
+  {
+    "questionKey": "null-vs-empty-string-column",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What is the difference between storing NULL and an empty string in a database column, and why does it matter for queries?",
+    "referenceAnswer": "NULL means the value is unknown or missing — it is not the same as an empty string, which is a known value that happens to be blank. This matters because NULL behaves differently in queries: WHERE name = '' does not match NULL rows, and WHERE name != 'Anna' also skips NULLs because any comparison with NULL returns unknown, not true or false. You need IS NULL or IS NOT NULL to filter for missing values. A common bug is assuming empty string and NULL are interchangeable, then wondering why COUNT or WHERE conditions return unexpected results.",
+    "keyPoints": [
+      "NULL means unknown/missing, empty string is a known blank value",
+      "comparisons with NULL return unknown, not true or false",
+      "use IS NULL / IS NOT NULL to filter missing values",
+      "mixing NULL and empty string causes unexpected query results"
+    ],
+    "tags": ["databases", "null", "sql", "data-types"]
+  },
+  {
+    "questionKey": "one-to-many-relationship-design",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How would you design the relationship between a blog post and its comments in a relational database?",
+    "referenceAnswer": "This is a one-to-many relationship: one blog post can have many comments, but each comment belongs to exactly one post. You create a posts table and a comments table, then add a post_id foreign key column in the comments table that references the primary key of the posts table. This way, you can find all comments for a post by querying WHERE post_id = ?. A common mistake is storing comments as a comma-separated string inside the posts table — this makes it impossible to query, sort, or paginate individual comments and breaks as soon as a comment contains a comma.",
+    "keyPoints": [
+      "one-to-many: one post has many comments",
+      "foreign key in the comments table references the posts table",
+      "query comments by filtering on the foreign key",
+      "storing related data as a string in one column breaks querying"
+    ],
+    "tags": ["databases", "relationships", "one-to-many", "design"]
+  },
+  {
+    "questionKey": "many-to-many-junction-table",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "How would you model the relationship between students and courses, where a student can enroll in many courses and a course can have many students?",
+    "referenceAnswer": "This is a many-to-many relationship, which you model using a junction table (also called a join table or pivot table). You create a student_courses table with two foreign keys: student_id referencing the students table and course_id referencing the courses table. Each row in the junction table represents one enrollment. To find all courses for a student, you join students to student_courses to courses. A common mistake is trying to store multiple course IDs in a single column using comma-separated values — this prevents proper querying, constraint enforcement, and joining.",
+    "keyPoints": [
+      "many-to-many requires a junction table with two foreign keys",
+      "each row in the junction table represents one relationship",
+      "join through the junction table to get related data",
+      "comma-separated IDs in one column prevent proper queries and constraints"
+    ],
+    "tags": ["databases", "relationships", "many-to-many", "design"]
+  },
+  {
+    "questionKey": "select-star-production-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why is using SELECT * in production queries generally a bad idea?",
+    "referenceAnswer": "SELECT * returns every column in the table, including ones your application doesn't need. This wastes bandwidth and memory, especially on tables with large text or blob columns. It also creates a hidden coupling: if someone adds a new column to the table, your query suddenly returns extra data that your code may not expect. Explicitly listing the columns you need — SELECT name, email FROM users — makes the query self-documenting and protects against schema changes breaking your application. The exception is quick debugging or exploration in a database client, where SELECT * is convenient.",
+    "keyPoints": [
+      "SELECT * fetches unnecessary columns, wasting bandwidth",
+      "new columns added to the table silently appear in results",
+      "explicit column lists make queries self-documenting",
+      "SELECT * is fine for ad-hoc debugging but not production code"
+    ],
+    "tags": ["databases", "sql", "queries", "best-practices"]
+  },
+  {
+    "questionKey": "where-vs-having-filter",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "What is the difference between WHERE and HAVING in SQL, and when would you use each?",
+    "referenceAnswer": "WHERE filters individual rows before any grouping happens, while HAVING filters groups after GROUP BY has been applied. For example, to find categories with more than 10 products, you GROUP BY category and use HAVING COUNT(*) > 10 — you cannot use WHERE here because COUNT is an aggregate that only exists after grouping. A common mistake is putting aggregate conditions in the WHERE clause, which throws an error, or putting non-aggregate conditions in HAVING, which works but is less efficient because it filters later in the pipeline. Use WHERE to reduce the dataset early, then HAVING only for conditions on aggregated results.",
+    "keyPoints": [
+      "WHERE filters rows before grouping",
+      "HAVING filters groups after GROUP BY",
+      "aggregate functions like COUNT cannot be used in WHERE",
+      "put non-aggregate conditions in WHERE for better performance"
+    ],
+    "tags": ["databases", "sql", "queries", "aggregation"]
+  },
+  {
+    "questionKey": "auto-increment-id-gaps",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Your auto-incrementing ID column shows gaps — for example, it jumps from 5 to 8. Is this a bug, and should you fix it?",
+    "referenceAnswer": "No, this is normal. Gaps appear when rows are deleted, when INSERT operations are rolled back, or when the database pre-allocates IDs in batches for performance. Auto-increment IDs are meant to be unique identifiers, not sequential counters. Trying to fill the gaps is risky and unnecessary: it adds complexity, can cause race conditions with concurrent inserts, and breaks external references that already use those IDs. If you need a sequential number for display (like invoice numbers), use a separate counter column with explicit logic instead of relying on the primary key.",
+    "keyPoints": [
+      "gaps in auto-increment IDs are normal and expected",
+      "deleted rows and rollbacks cause gaps",
+      "auto-increment IDs are unique identifiers, not counters",
+      "never try to reuse or fill gaps in primary keys"
+    ],
+    "tags": ["databases", "primary-key", "auto-increment", "design"]
+  },
+  {
+    "questionKey": "cascade-delete-danger",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You set up ON DELETE CASCADE on a foreign key. A team member deletes a user from the database, and suddenly all their orders, reviews, and comments are gone too. What went wrong?",
+    "referenceAnswer": "ON DELETE CASCADE automatically deletes all child rows when the parent row is removed. If the user table is referenced by orders, reviews, and comments through cascading foreign keys, deleting one user wipes all their related data across multiple tables. This can be useful for cleanup but dangerous when you actually want to keep that data — for example, order history for accounting. Safer alternatives include ON DELETE SET NULL, which blanks the foreign key instead of deleting the row, or ON DELETE RESTRICT, which blocks the delete entirely until child rows are handled manually. The choice depends on whether the child data has independent value.",
+    "keyPoints": [
+      "ON DELETE CASCADE removes all child rows automatically",
+      "cascading through multiple tables can delete more data than expected",
+      "SET NULL keeps the child row but removes the reference",
+      "RESTRICT blocks deletion until child rows are handled"
+    ],
+    "tags": ["databases", "foreign-key", "cascade", "constraints"]
+  },
+  {
+    "questionKey": "unique-constraint-vs-primary-key",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you use a UNIQUE constraint instead of making a column the primary key?",
+    "referenceAnswer": "A table can only have one primary key, but it can have multiple UNIQUE constraints. Use a UNIQUE constraint when a column must have no duplicates but is not the main identifier for the row. For example, a users table might use an auto-increment id as the primary key but add a UNIQUE constraint on email to prevent duplicate accounts. The key difference is that a primary key cannot be NULL and is often used for joins and foreign keys, while a UNIQUE column can allow one NULL value in most databases. A common mistake is using email as the primary key — it works until a user wants to change their email, which then requires updating every foreign key reference.",
+    "keyPoints": [
+      "a table has one primary key but can have many UNIQUE constraints",
+      "UNIQUE ensures no duplicates on non-primary columns",
+      "primary keys cannot be NULL, UNIQUE columns usually allow one NULL",
+      "using a changeable value as primary key complicates foreign key updates"
+    ],
+    "tags": ["databases", "constraints", "primary-key", "unique"]
+  },
+  {
+    "questionKey": "insert-missing-required-column",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you run an INSERT and forget to include a column that has a NOT NULL constraint and no default value?",
+    "referenceAnswer": "The database rejects the insert with an error saying the column cannot be null. NOT NULL means the column must always have a value — the database will not guess one for you unless a DEFAULT is defined. This is actually a safety feature: it prevents incomplete data from entering the system. A common beginner pattern is removing NOT NULL constraints to make errors go away, which fixes the insert but allows bad data into the database. The better fix is to either provide the value in the INSERT or add a sensible DEFAULT when the column was created.",
+    "keyPoints": [
+      "NOT NULL without a DEFAULT rejects inserts missing that column",
+      "the database does not guess values for required columns",
+      "removing NOT NULL hides the problem but allows bad data",
+      "add a DEFAULT value if the column should have a fallback"
+    ],
+    "tags": ["databases", "constraints", "not-null", "sql"]
+  },
+  {
+    "questionKey": "sql-injection-basic",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "A developer builds a SQL query by concatenating user input directly into the string. What can go wrong, and how do you prevent it?",
+    "referenceAnswer": "This opens the door to SQL injection: an attacker can submit input like ' OR 1=1 -- which alters the query logic, potentially bypassing login checks or dumping entire tables. The fix is to use parameterized queries (prepared statements), where user input is passed as a parameter and the database treats it as data, never as executable SQL. Every modern database driver and ORM supports this. A common mistake is trying to fix injection by escaping special characters manually — this is error-prone and has been bypassed many times. Always use parameterized queries, never string concatenation for user input.",
+    "keyPoints": [
+      "string concatenation allows SQL injection attacks",
+      "attackers can alter query logic or extract data",
+      "parameterized queries treat input as data, not SQL code",
+      "manual escaping is error-prone — use prepared statements"
+    ],
+    "tags": ["databases", "sql-injection", "security", "queries"]
+  },
+  {
+    "questionKey": "transaction-partial-failure",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You need to transfer money between two accounts: subtract from one and add to the other. What happens if the server crashes after the subtraction but before the addition?",
+    "referenceAnswer": "Without a transaction, the money disappears — it's been subtracted from one account but never added to the other. A transaction wraps both operations into a single atomic unit: either both succeed (COMMIT) or both are undone (ROLLBACK). If the server crashes mid-transaction, the database automatically rolls back the incomplete changes on restart. This is the classic use case for transactions: any operation where partial completion would leave your data in a broken state. A common mistake is running multi-step database operations without a transaction and assuming the code will always complete.",
+    "keyPoints": [
+      "without a transaction, partial failure leaves data inconsistent",
+      "transactions make multiple operations atomic — all or nothing",
+      "COMMIT saves changes, ROLLBACK undoes them",
+      "database auto-rolls-back incomplete transactions on crash"
+    ],
+    "tags": ["databases", "transactions", "data-integrity", "acid"]
+  },
+  {
+    "questionKey": "group-by-aggregate-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How would you count the number of orders per customer using SQL?",
+    "referenceAnswer": "You use GROUP BY combined with an aggregate function: SELECT customer_id, COUNT(*) AS order_count FROM orders GROUP BY customer_id. GROUP BY collapses all rows with the same customer_id into one group, and COUNT(*) counts the rows in each group. A common mistake is selecting a column that is not in the GROUP BY and not wrapped in an aggregate — most databases reject this because there's no single value to display for the group. If you also want the customer's name, you either add it to GROUP BY or join back to the customers table after grouping.",
+    "keyPoints": [
+      "GROUP BY groups rows with the same value",
+      "aggregate functions like COUNT operate on each group",
+      "non-aggregated columns must be in the GROUP BY clause",
+      "join to other tables if you need additional columns"
+    ],
+    "tags": ["databases", "sql", "aggregation", "group-by"]
+  },
+  {
+    "questionKey": "order-by-without-index",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What does ORDER BY do, and why might sorting a large table be slow?",
+    "referenceAnswer": "ORDER BY sorts the result set by one or more columns, either ascending (ASC, the default) or descending (DESC). On a small table this is instant, but on a large table without an index on the sorted column, the database must load all matching rows into memory and sort them — this is called a filesort and can be very slow. An index on the column can help because the data is already stored in sorted order, letting the database read it in sequence. A practical tip is to always combine ORDER BY with LIMIT when you only need the top results, so the database can stop early instead of sorting everything.",
+    "keyPoints": [
+      "ORDER BY sorts results by specified columns",
+      "sorting large tables without an index is slow (filesort)",
+      "an index on the sort column avoids the extra sorting step",
+      "combine ORDER BY with LIMIT to avoid sorting the entire table"
+    ],
+    "tags": ["databases", "sql", "sorting", "performance"]
+  },
+  {
+    "questionKey": "limit-offset-pagination",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "How does LIMIT/OFFSET pagination work, and what problem does it have on large tables?",
+    "referenceAnswer": "LIMIT restricts how many rows are returned, and OFFSET skips a number of rows before starting. For example, LIMIT 10 OFFSET 20 returns rows 21–30. This is the simplest way to paginate, but it gets slow on large offsets because the database still has to scan and discard all the skipped rows. On page 1000 with 10 items per page, the database reads 10000 rows and throws away 9990 of them. A better approach for deep pagination is cursor-based pagination, where you filter using WHERE id > last_seen_id LIMIT 10 — this uses the index and skips nothing.",
+    "keyPoints": [
+      "LIMIT controls how many rows are returned",
+      "OFFSET skips rows, but the database still reads them",
+      "large offsets cause slow queries because skipped rows are scanned",
+      "cursor-based pagination avoids this by filtering on the last seen ID"
+    ],
+    "tags": ["databases", "sql", "pagination", "performance"]
+  },
+  {
+    "questionKey": "not-null-default-value-design",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When should you use a DEFAULT value on a column, and when should you leave it without one?",
+    "referenceAnswer": "Use a DEFAULT when the column has a sensible fallback that most rows should start with — for example, DEFAULT false for an is_active flag or DEFAULT NOW() for a created_at timestamp. Leave the default off when the value must always be explicitly provided, like a user's email or a product's price — forcing the application to supply it prevents incomplete data. A common mistake is setting DEFAULT '' on a required text column just to avoid NOT NULL errors, which hides the fact that real data is missing. Defaults should reflect actual business logic, not work around lazy inserts.",
+    "keyPoints": [
+      "use DEFAULT for sensible fallbacks like timestamps or flags",
+      "omit DEFAULT when the value must always be explicitly provided",
+      "DEFAULT '' hides missing data instead of preventing it",
+      "defaults should reflect business logic, not avoid constraint errors"
+    ],
+    "tags": ["databases", "design", "constraints", "defaults"]
+  },
+  {
+    "questionKey": "varchar-vs-text-choice",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "When would you use VARCHAR(255) versus TEXT for a string column?",
+    "referenceAnswer": "VARCHAR with a length limit is useful when you want to enforce a maximum size — for example, a username limited to 50 characters or an email limited to 255. TEXT is for content with no practical upper bound, like blog post bodies or user comments. In PostgreSQL, VARCHAR and TEXT perform identically under the hood — the length limit on VARCHAR is purely a constraint, not a performance optimization. A common mistake is using VARCHAR(255) everywhere by habit without considering whether the limit makes sense for the data. Pick the type based on whether a length constraint adds value for your use case.",
+    "keyPoints": [
+      "VARCHAR enforces a maximum character length",
+      "TEXT allows strings of any length",
+      "in PostgreSQL, performance is the same for both types",
+      "choose based on whether a length constraint is meaningful"
+    ],
+    "tags": ["databases", "data-types", "design", "sql"]
+  },
+  {
+    "questionKey": "boolean-column-vs-string-flag",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "A developer stores a user's active status as a string column with values 'yes' and 'no'. What problems does this create?",
+    "referenceAnswer": "Using a string for a boolean value allows invalid data like 'Yes', 'YES', 'true', '1', or typos like 'yse' — the database cannot enforce that only two values are allowed unless you add a CHECK constraint. It also makes queries error-prone: WHERE active = 'yes' misses rows with 'Yes' unless you add case-insensitive handling. A BOOLEAN column only accepts true or false, so the database enforces correctness at the storage level. It also uses less storage and makes queries cleaner: WHERE active = true. Use the data type that best represents the actual data, not a flexible string for everything.",
+    "keyPoints": [
+      "string columns allow typos and inconsistent casing",
+      "BOOLEAN enforces only true/false at the database level",
+      "string comparisons require case handling in queries",
+      "use the most specific data type for the data you're storing"
+    ],
+    "tags": ["databases", "data-types", "design", "constraints"]
+  },
+  {
+    "questionKey": "update-without-where-clause",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What happens if you run an UPDATE statement and forget the WHERE clause?",
+    "referenceAnswer": "The UPDATE applies to every row in the table. For example, UPDATE users SET role = 'admin' without a WHERE clause makes every user an admin. This is one of the most common and dangerous SQL mistakes, especially in production. There is no built-in undo — unless you are inside a transaction and can ROLLBACK, or you have a recent backup. The safest habit is to always write the WHERE clause first before the SET clause, or test with a SELECT using the same WHERE condition before running the UPDATE. Some database tools also offer a safe mode that rejects UPDATE and DELETE without WHERE.",
+    "keyPoints": [
+      "UPDATE without WHERE modifies every row in the table",
+      "there is no undo outside of transactions or backups",
+      "write the WHERE clause before the SET clause as a safety habit",
+      "test the condition with a SELECT before running UPDATE"
+    ],
+    "tags": ["databases", "sql", "mistakes", "safety"]
+  },
+  {
+    "questionKey": "delete-vs-soft-delete",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When would you use a soft delete instead of actually deleting a row from the database?",
+    "referenceAnswer": "A soft delete adds a deleted_at timestamp or is_deleted flag instead of removing the row, so the data is hidden from normal queries but still recoverable. This is useful when you need an audit trail, undo functionality, or when other parts of the system still reference that row. The downside is that every query must include WHERE deleted_at IS NULL to exclude soft-deleted rows, which is easy to forget and can leak deleted data. A hard DELETE permanently removes the row, which is simpler but irreversible. Choose soft delete when the data has legal, compliance, or business value after removal, and hard delete when the data is truly disposable.",
+    "keyPoints": [
+      "soft delete marks rows as deleted without removing them",
+      "useful for audit trails and undo functionality",
+      "every query must filter out soft-deleted rows — easy to forget",
+      "hard delete is simpler but irreversible"
+    ],
+    "tags": ["databases", "design", "soft-delete", "data-integrity"]
+  },
+  {
+    "questionKey": "schema-migration-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Why do teams use migration files to change the database schema instead of modifying tables directly?",
+    "referenceAnswer": "Migration files are versioned, ordered scripts that track every change to the schema — adding columns, creating tables, modifying constraints. They ensure that every developer's local database and the production database evolve through the same steps in the same order. Without migrations, one developer might add a column locally that doesn't exist on other machines, causing crashes. Migrations also support rollback: each migration file typically has an up (apply) and down (revert) function. A common mistake is editing the database directly in production and forgetting to create a migration, which causes the schema to drift from what the code expects.",
+    "keyPoints": [
+      "migrations are versioned scripts that track schema changes",
+      "they ensure all environments apply the same changes in order",
+      "each migration has an up (apply) and down (rollback) step",
+      "editing the database directly causes schema drift"
+    ],
+    "tags": ["databases", "migrations", "schema", "deployment"]
+  },
+  {
+    "questionKey": "count-null-surprise",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You run COUNT(email) and COUNT(*) on the same table and get different results. Why?",
+    "referenceAnswer": "COUNT(*) counts all rows regardless of values, while COUNT(email) only counts rows where the email column is not NULL. If some users have no email set, COUNT(email) returns a smaller number than COUNT(*). This catches people off guard when they expect them to be the same. The same rule applies to other aggregate functions: SUM, AVG, and MIN all skip NULL values, which can silently distort calculations if you don't account for it. When you want to count all rows, always use COUNT(*). When you specifically want to count non-null values in a column, use COUNT(column).",
+    "keyPoints": [
+      "COUNT(*) counts all rows, COUNT(column) skips NULLs",
+      "aggregate functions like SUM and AVG also skip NULLs",
+      "this can silently distort calculations",
+      "use COUNT(*) when you want total row count"
+    ],
+    "tags": ["databases", "sql", "null", "aggregation"]
+  },
+  {
+    "questionKey": "composite-primary-key-use-case",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "When would you use a composite primary key instead of a single auto-increment ID?",
+    "referenceAnswer": "A composite primary key uses two or more columns together to uniquely identify a row. It's useful in junction tables: for example, a student_courses table might use (student_id, course_id) as the composite key, which automatically prevents a student from enrolling in the same course twice. You could use a separate auto-increment ID, but then you'd need an additional UNIQUE constraint on the two columns anyway. The tradeoff is that composite keys make foreign key references from other tables more complex, and ORMs sometimes handle them awkwardly. Use a composite key when the combination of columns is the natural identifier for the row.",
+    "keyPoints": [
+      "composite key uses multiple columns as the primary key",
+      "natural fit for junction tables like student_courses",
+      "automatically prevents duplicate combinations",
+      "ORMs sometimes handle composite keys less cleanly"
+    ],
+    "tags": ["databases", "primary-key", "composite-key", "design"]
+  },
+  {
+    "questionKey": "like-query-wildcard-performance",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You use WHERE name LIKE '%anna%' to search for users. Why might this be slow, and what is the difference from LIKE 'anna%'?",
+    "referenceAnswer": "A leading wildcard in LIKE '%anna%' means the database cannot use an index — it has to check every single row because the match could start anywhere in the string. This results in a full table scan. LIKE 'anna%' only matches strings starting with 'anna', which can use a B-tree index because the database knows where to start looking in the sorted index. For full-text search across large datasets, databases offer dedicated full-text search features (like PostgreSQL's tsvector) that are much faster than LIKE with wildcards. A common mistake is using LIKE '%...%' for search functionality and being surprised when it's slow on tables with thousands of rows.",
+    "keyPoints": [
+      "leading wildcard prevents index usage and causes full table scan",
+      "trailing wildcard only (LIKE 'x%') can use a B-tree index",
+      "full-text search features are faster for text search at scale",
+      "LIKE with leading wildcards gets slow as the table grows"
+    ],
+    "tags": ["databases", "sql", "performance", "search"]
+  },
+  {
+    "questionKey": "enum-column-pros-cons",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Your table has a status column that should only allow 'pending', 'active', and 'closed'. How would you enforce this at the database level?",
+    "referenceAnswer": "You can use an ENUM type or a CHECK constraint to restrict the column to those specific values. An ENUM defines the allowed values as part of the column type, and the database rejects any insert or update with a value not in the list. A CHECK constraint achieves the same thing: CHECK (status IN ('pending', 'active', 'closed')). The tradeoff with ENUM is that adding or removing values later often requires altering the column type, which can be painful on large tables. A CHECK constraint or a separate lookup table with a foreign key can be easier to modify. The key point is to enforce valid values at the database level, not just in application code.",
+    "keyPoints": [
+      "ENUM restricts a column to a predefined set of values",
+      "CHECK constraint achieves similar enforcement",
+      "modifying ENUM values requires ALTER on the column",
+      "enforce allowed values at the database level, not just in code"
+    ],
+    "tags": ["databases", "constraints", "enum", "design"]
+  },
+  {
+    "questionKey": "timestamp-timezone-confusion",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your app shows the wrong creation time for users in different time zones. What is likely going wrong at the database level?",
+    "referenceAnswer": "The most likely problem is storing timestamps without timezone information. If you use TIMESTAMP WITHOUT TIME ZONE, the database stores the raw time value without knowing which timezone it represents — so 14:00 might mean 14:00 Berlin or 14:00 Tokyo depending on who inserted it. Using TIMESTAMP WITH TIME ZONE (or TIMESTAMPTZ in PostgreSQL) stores everything in UTC internally and converts to the client's timezone on retrieval. A common mistake is storing local times and then comparing them across time zones, which produces wrong results. The safe pattern is to always store in UTC and convert to the user's timezone only for display.",
+    "keyPoints": [
+      "timestamps without timezone info cause confusion across time zones",
+      "TIMESTAMPTZ stores in UTC and converts on retrieval",
+      "storing local times breaks comparisons across time zones",
+      "always store in UTC and convert for display"
+    ],
+    "tags": ["databases", "timestamps", "timezone", "data-types"]
+  }
+]

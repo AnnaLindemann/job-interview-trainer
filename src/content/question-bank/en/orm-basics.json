@@ -1,0 +1,82 @@
+[
+  {
+    "questionKey": "orm-purpose-vs-raw-sql",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "What problem does an ORM solve, and when might you still write raw SQL instead?",
+    "referenceAnswer": "An ORM (Object-Relational Mapper) lets you interact with the database using your programming language's objects and methods instead of writing SQL strings. This reduces boilerplate, prevents many SQL injection risks, and makes code more readable for developers who aren't fluent in SQL. However, ORMs can generate inefficient queries for complex operations — things like aggregations, subqueries, or bulk updates are often simpler and faster as raw SQL. A common mistake is forcing everything through the ORM even when the query would be a one-liner in SQL, which can result in slow, unreadable ORM chains. Use the ORM for standard CRUD and switch to raw SQL when the query gets complex.",
+    "keyPoints": [
+      "ORM maps database tables to language objects and methods",
+      "reduces boilerplate and helps prevent SQL injection",
+      "complex queries can be simpler and faster as raw SQL",
+      "use ORM for CRUD, raw SQL for complex queries"
+    ],
+    "tags": ["orm", "sql", "architecture", "tradeoffs"]
+  },
+  {
+    "questionKey": "n-plus-one-query-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You load a list of 50 blog posts, and for each post you access post.author. The page is slow and your logs show 51 database queries. What is happening?",
+    "referenceAnswer": "This is the N+1 problem: the ORM runs one query to load 50 posts, then one additional query per post to load each author — 1 + 50 = 51 queries. This happens because the ORM lazy-loads relations by default, only fetching related data when you first access it. The fix is eager loading: telling the ORM to load posts and their authors in one or two queries upfront, using something like include, with, or joinedLoad depending on the ORM. In Prisma this would be findMany({ include: { author: true } }). The performance difference is dramatic — 51 queries can take seconds, while 1–2 queries return in milliseconds.",
+    "keyPoints": [
+      "N+1: one query for the list, one more per item for the relation",
+      "caused by lazy loading of relations",
+      "eager loading fetches related data in one or two queries",
+      "the performance difference grows with the number of items"
+    ],
+    "tags": ["orm", "n-plus-one", "performance", "queries"]
+  },
+  {
+    "questionKey": "migration-vs-direct-schema-change",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "en",
+    "difficulty": "EASY",
+    "questionText": "Why does your ORM generate migration files when you change a model, instead of just updating the database directly?",
+    "referenceAnswer": "Migration files are versioned, ordered scripts that record every schema change — adding a column, creating a table, changing a constraint. They ensure that every developer's local database and the production database apply the same changes in the same order. If the ORM just modified the database directly, there would be no record of what changed, other developers wouldn't know what to run, and rolling back a mistake would be nearly impossible. Each migration typically has an up step (apply the change) and a down step (revert it). A common mistake is editing the database by hand and then having the ORM's migration state drift out of sync with the actual schema.",
+    "keyPoints": [
+      "migrations are versioned scripts that track schema changes",
+      "they keep all environments in sync",
+      "each migration has up (apply) and down (revert) steps",
+      "manual database edits cause migration state drift"
+    ],
+    "tags": ["orm", "migrations", "schema", "workflow"]
+  },
+  {
+    "questionKey": "orm-validation-vs-database-constraint",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "Your ORM model has a validation that email must be unique. Is that enough, or do you also need a UNIQUE constraint in the database?",
+    "referenceAnswer": "ORM-level validation alone is not enough — you need the database constraint too. ORM validation runs in your application code, which means it can be bypassed by direct database access, scripts, or race conditions. For example, two requests checking uniqueness at the same time might both pass the ORM check and insert duplicate emails. A UNIQUE constraint in the database is enforced at the storage level and prevents duplicates regardless of how data enters the system. Use ORM validation for user-friendly error messages and the database constraint as the actual safety net. A common mistake is relying only on ORM validation and finding duplicate data in production after a concurrent request slipped through.",
+    "keyPoints": [
+      "ORM validation runs in application code and can be bypassed",
+      "concurrent requests can pass ORM uniqueness checks simultaneously",
+      "database UNIQUE constraint prevents duplicates at the storage level",
+      "use both: ORM for UX, database constraint for safety"
+    ],
+    "tags": ["orm", "validation", "constraints", "data-integrity"]
+  },
+  {
+    "questionKey": "orm-relation-definition-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "en",
+    "difficulty": "MEDIUM",
+    "questionText": "You define a one-to-many relation in your ORM between User and Post, but when you query a user's posts, you get an empty array even though posts exist in the database. What could be wrong?",
+    "referenceAnswer": "The most likely cause is a mismatch between the ORM relation definition and the actual database schema. For example, the foreign key column in the posts table might be named user_id, but the ORM model expects userId or authorId. Another common cause is forgetting to define the inverse side of the relation — some ORMs need both sides declared. It's also possible the foreign key column exists but contains NULLs because the application never set it when creating posts. To debug, check the actual SQL the ORM generates (most ORMs have a logging option), verify the column name matches, and inspect the data directly in the database.",
+    "keyPoints": [
+      "foreign key column name mismatch between ORM and database",
+      "some ORMs require both sides of the relation to be defined",
+      "foreign key column might exist but contain NULLs",
+      "enable ORM query logging to see the actual SQL generated"
+    ],
+    "tags": ["orm", "relations", "debugging", "foreign-key"]
+  }
+]

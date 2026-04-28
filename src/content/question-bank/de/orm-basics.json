@@ -1,0 +1,82 @@
+[
+  {
+    "questionKey": "orm-purpose-vs-raw-sql",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Welches Problem löst ein ORM, und wann würdest du trotzdem eher direkt SQL schreiben?",
+    "referenceAnswer": "Ein ORM (Object-Relational Mapper) ermöglicht die Interaktion mit der Datenbank über Objekte und Methoden der Programmiersprache, statt SQL-Strings zu schreiben. Das reduziert Boilerplate, verhindert viele SQL-Injection-Risiken und macht den Code lesbarer für Entwickler, die nicht fließend SQL sprechen. Allerdings erzeugen ORMs bei komplexen Operationen oft ineffiziente Queries — Dinge wie Aggregationen, Subqueries oder Bulk-Updates sind als direktes SQL häufig einfacher und schneller. Ein häufiger Fehler ist, alles durch das ORM zu zwingen, auch wenn die Query als SQL ein Einzeiler wäre, was zu langsamen und schwer lesbaren ORM-Ketten führt. Das ORM für Standard-CRUD nutzen und bei komplexen Queries auf Raw SQL wechseln.",
+    "keyPoints": [
+      "ORM bildet Datenbanktabellen auf Objekte und Methoden der Sprache ab",
+      "reduziert Boilerplate und hilft SQL Injection zu verhindern",
+      "komplexe Queries sind als direktes SQL oft einfacher und schneller",
+      "ORM für CRUD, Raw SQL für komplexe Queries"
+    ],
+    "tags": ["orm", "sql", "architecture", "tradeoffs"]
+  },
+  {
+    "questionKey": "n-plus-one-query-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du lädst eine Liste von 50 Blogposts, und für jeden Post greifst du auf post.author zu. Die Seite ist langsam und in den Logs siehst du 51 Datenbank-Queries. Was passiert da?",
+    "referenceAnswer": "Das ist das N+1-Problem: Das ORM führt eine Query aus, um 50 Posts zu laden, und dann eine zusätzliche Query pro Post, um den jeweiligen Autor zu laden — 1 + 50 = 51 Queries. Das passiert, weil das ORM Relationen standardmäßig per Lazy Loading lädt und die verknüpften Daten erst abruft, wenn man zum ersten Mal darauf zugreift. Die Lösung ist Eager Loading: dem ORM sagen, dass es Posts und ihre Autoren in ein oder zwei Queries von Anfang an laden soll, über etwas wie include, with oder joinedLoad je nach ORM. In Prisma wäre das findMany({ include: { author: true } }). Der Performance-Unterschied ist enorm — 51 Queries können Sekunden dauern, während 1–2 Queries in Millisekunden zurückkommen.",
+    "keyPoints": [
+      "N+1: eine Query für die Liste, eine weitere pro Eintrag für die Relation",
+      "verursacht durch Lazy Loading von Relationen",
+      "Eager Loading holt verknüpfte Daten in ein oder zwei Queries",
+      "der Performance-Unterschied wächst mit der Anzahl der Einträge"
+    ],
+    "tags": ["orm", "n-plus-one", "performance", "queries"]
+  },
+  {
+    "questionKey": "migration-vs-direct-schema-change",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Warum erzeugt dein ORM Migrationsdateien, wenn du ein Model änderst, statt die Datenbank direkt anzupassen?",
+    "referenceAnswer": "Migrationsdateien sind versionierte, geordnete Skripte, die jede Schema-Änderung festhalten — Spalten hinzufügen, Tabellen erstellen, Constraints ändern. Sie stellen sicher, dass die lokale Datenbank jedes Entwicklers und die Produktionsdatenbank dieselben Änderungen in derselben Reihenfolge durchlaufen. Wenn das ORM die Datenbank direkt ändern würde, gäbe es keinen Nachweis, was geändert wurde, andere Entwickler wüssten nicht, was sie ausführen müssen, und das Zurückrollen eines Fehlers wäre nahezu unmöglich. Jede Migration hat typischerweise einen Up-Schritt (Änderung anwenden) und einen Down-Schritt (zurücksetzen). Ein häufiger Fehler ist, die Datenbank von Hand zu bearbeiten, sodass der Migrationsstatus des ORMs nicht mehr mit dem tatsächlichen Schema übereinstimmt.",
+    "keyPoints": [
+      "Migrations sind versionierte Skripte, die Schema-Änderungen nachverfolgen",
+      "sie halten alle Umgebungen synchron",
+      "jede Migration hat einen Up-Schritt (anwenden) und einen Down-Schritt (zurücksetzen)",
+      "manuelle Datenbankänderungen verursachen Drift im Migrationsstatus"
+    ],
+    "tags": ["orm", "migrations", "schema", "workflow"]
+  },
+  {
+    "questionKey": "orm-validation-vs-database-constraint",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Dein ORM-Model hat eine Validierung, dass die E-Mail eindeutig sein muss. Reicht das aus, oder brauchst du auch einen UNIQUE Constraint in der Datenbank?",
+    "referenceAnswer": "ORM-Validierung allein reicht nicht — man braucht auch den Datenbank-Constraint. Die ORM-Validierung läuft im Anwendungscode, das heißt, sie kann durch direkten Datenbankzugriff, Skripte oder Race Conditions umgangen werden. Zum Beispiel könnten zwei gleichzeitige Requests die ORM-Prüfung beide bestehen und doppelte E-Mails einfügen. Ein UNIQUE Constraint in der Datenbank wird auf Speicherebene erzwungen und verhindert Duplikate, egal wie die Daten ins System gelangen. ORM-Validierung für benutzerfreundliche Fehlermeldungen verwenden und den Datenbank-Constraint als eigentliches Sicherheitsnetz. Ein häufiger Fehler ist, sich nur auf die ORM-Validierung zu verlassen und dann in Produktion doppelte Daten zu finden, weil ein gleichzeitiger Request durchgerutscht ist.",
+    "keyPoints": [
+      "ORM-Validierung läuft im Anwendungscode und kann umgangen werden",
+      "gleichzeitige Requests können ORM-Eindeutigkeitsprüfungen gleichzeitig bestehen",
+      "Datenbank-UNIQUE-Constraint verhindert Duplikate auf Speicherebene",
+      "beides verwenden: ORM für UX, Datenbank-Constraint für Sicherheit"
+    ],
+    "tags": ["orm", "validation", "constraints", "data-integrity"]
+  },
+  {
+    "questionKey": "orm-relation-definition-mistake",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "orm-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du definierst eine One-to-Many-Relation in deinem ORM zwischen User und Post, aber wenn du die Posts eines Users abfragst, bekommst du ein leeres Array, obwohl Posts in der Datenbank existieren. Was könnte falsch sein?",
+    "referenceAnswer": "Die wahrscheinlichste Ursache ist ein Mismatch zwischen der Relationsdefinition im ORM und dem tatsächlichen Datenbankschema. Zum Beispiel könnte die Foreign-Key-Spalte in der Posts-Tabelle user_id heißen, aber das ORM-Model erwartet userId oder authorId. Eine weitere häufige Ursache ist, die Gegenseite der Relation nicht definiert zu haben — manche ORMs erfordern, dass beide Seiten deklariert werden. Es ist auch möglich, dass die Foreign-Key-Spalte existiert, aber NULLs enthält, weil die Anwendung den Wert beim Erstellen der Posts nie gesetzt hat. Zum Debuggen das tatsächliche SQL prüfen, das das ORM generiert (die meisten ORMs haben eine Logging-Option), den Spaltennamen abgleichen und die Daten direkt in der Datenbank inspizieren.",
+    "keyPoints": [
+      "Mismatch beim Foreign-Key-Spaltennamen zwischen ORM und Datenbank",
+      "manche ORMs erfordern, dass beide Seiten der Relation definiert werden",
+      "Foreign-Key-Spalte könnte existieren, aber NULLs enthalten",
+      "ORM-Query-Logging aktivieren, um das tatsächlich generierte SQL zu sehen"
+    ],
+    "tags": ["orm", "relations", "debugging", "foreign-key"]
+  }
+]

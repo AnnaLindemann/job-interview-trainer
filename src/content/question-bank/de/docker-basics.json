@@ -1,0 +1,82 @@
+[
+  {
+    "questionKey": "image-vs-container-difference",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen einem Docker Image und einem Container, und wie hängen die beiden zusammen?",
+    "referenceAnswer": "Ein Image ist ein schreibgeschütztes Template, das alles enthält, was zum Ausführen einer Anwendung nötig ist — Basis-OS, Abhängigkeiten, Code und Konfiguration. Ein Container ist eine laufende Instanz eines Images, vergleichbar mit einem Prozess, der aus diesem Template erstellt wird. Man kann mehrere Container vom selben Image starten, und jeder Container hat seinen eigenen beschreibbaren Layer über den schreibgeschützten Image-Layers. Ein verbreitetes Missverständnis ist, dass Änderungen innerhalb eines Containers das Image verändern — tun sie nicht. Wenn der Container entfernt wird, sind diese Änderungen weg, es sei denn, man hat sie in ein neues Image committed oder ein Volume verwendet.",
+    "keyPoints": [
+      "ein Image ist ein schreibgeschütztes Template, ein Container ist eine laufende Instanz",
+      "mehrere Container können vom selben Image laufen",
+      "Änderungen im Container verändern das ursprüngliche Image nicht",
+      "Container-Daten gehen beim Entfernen verloren, außer sie werden mit Volumes persistiert"
+    ],
+    "tags": ["docker", "images", "containers", "basics"]
+  },
+  {
+    "questionKey": "container-stops-immediately",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du startest docker run mit deinem Image, aber der Container beendet sich sofort. Was sind die häufigsten Ursachen dafür?",
+    "referenceAnswer": "Ein Container läuft nur so lange, wie sein Hauptprozess aktiv ist. Wenn der Hauptprozess beendet wird oder abstürzt, stoppt der Container. Die häufigsten Ursachen sind: Der CMD oder ENTRYPOINT im Dockerfile führt einen Befehl aus, der sofort fertig ist (wie echo oder ein Skript ohne dauerhaft laufenden Prozess), die Anwendung crasht beim Start wegen einer fehlenden Umgebungsvariable oder eines Konfigurationsfehlers, oder der Prozess läuft im Hintergrund (daemonisiert) und der Vordergrundprozess beendet sich. Zum Debuggen die Logs mit docker logs <container> und den Exit-Code prüfen. Bei einem Webserver sicherstellen, dass er im Vordergrund läuft — zum Beispiel node server.js statt eines Hintergrund-Daemons.",
+    "keyPoints": [
+      "ein Container lebt nur so lange wie sein Hauptprozess",
+      "ein CMD, der sofort fertig ist, lässt den Container stoppen",
+      "Anwendungscrashs beim Start verursachen sofortigen Exit",
+      "docker logs und Exit-Code zum Diagnostizieren prüfen"
+    ],
+    "tags": ["docker", "containers", "debugging", "cmd"]
+  },
+  {
+    "questionKey": "port-mapping-not-reachable",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Deine App läuft auf Port 3000 im Docker-Container, aber du erreichst sie im Browser unter localhost:3000 nicht. Was fehlt wahrscheinlich?",
+    "referenceAnswer": "Standardmäßig sind Container-Ports nicht nach außen zum Host freigegeben. Man muss den Container-Port mit dem -p Flag auf einen Host-Port mappen: docker run -p 3000:3000 mappt Host-Port 3000 auf Container-Port 3000. Die linke Seite ist der Host-Port, die rechte der Container-Port — die müssen nicht übereinstimmen. Eine weitere häufige Ursache ist, dass die App im Container auf 127.0.0.1 statt auf 0.0.0.0 lauscht — innerhalb eines Containers akzeptiert 127.0.0.1 nur Verbindungen aus dem Container selbst. Die Lösung ist, die App auf 0.0.0.0 zu binden, damit sie Verbindungen vom Host über das Port-Mapping annimmt.",
+    "keyPoints": [
+      "Container-Ports sind standardmäßig nicht zum Host freigegeben",
+      "-p host:container mappt Ports zwischen Host und Container",
+      "die App muss im Container auf 0.0.0.0 lauschen, nicht auf 127.0.0.1",
+      "Host-Port und Container-Port müssen nicht dieselbe Nummer sein"
+    ],
+    "tags": ["docker", "port-mapping", "networking", "debugging"]
+  },
+  {
+    "questionKey": "volume-persist-data",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Du speicherst hochgeladene Dateien in einem Docker-Container, aber sie verschwinden bei jedem Neustart. Warum, und wie behebst du das?",
+    "referenceAnswer": "Container-Dateisysteme sind kurzlebig — wenn ein Container entfernt und neu erstellt wird, sind alle darin geschriebenen Daten weg. Um Daten über Neustarts hinweg zu erhalten, verwendet man ein Docker Volume oder ein Bind Mount. Ein Volume wird von Docker verwaltet und außerhalb des Container-Dateisystems gespeichert: docker run -v mydata:/app/uploads mappt ein benanntes Volume auf den Container-Pfad. Ein Bind Mount mappt ein Host-Verzeichnis direkt: -v ./uploads:/app/uploads. Volumes sind der empfohlene Ansatz für Daten, die den Container-Lebenszyklus überleben müssen. Ein häufiger Fehler ist, wichtige Daten (wie Datenbankdateien oder Uploads) ohne Volume im Container zu speichern und beim nächsten docker-compose down alles zu verlieren.",
+    "keyPoints": [
+      "Container-Dateisysteme sind kurzlebig — Daten gehen beim Entfernen verloren",
+      "Volumes persistieren Daten außerhalb des Container-Dateisystems",
+      "Bind Mounts mappen ein Host-Verzeichnis in den Container",
+      "für Daten, die Container-Neustarts überleben müssen, immer Volumes verwenden"
+    ],
+    "tags": ["docker", "volumes", "data-persistence", "basics"]
+  },
+  {
+    "questionKey": "dockerfile-rebuild-after-code-change",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "docker-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du änderst deinen Anwendungscode, aber der laufende Container liefert immer noch die alte Version aus. Was hast du vergessen, und wie beeinflusst Dockers Build Cache das?",
+    "referenceAnswer": "Code-Änderungen auf dem Host erscheinen nicht automatisch im laufenden Container — es sei denn, man hat ein Bind Mount auf das Quellverzeichnis. Wenn man ein Dockerfile mit COPY . . verwendet, muss man das Image mit docker build neu bauen und den Container neu erstellen. Dockers Build Cache verwendet Layer wieder, die sich nicht geändert haben: Wenn die COPY-Anweisung nach einem geänderten Layer kommt, werden dieser und alle folgenden Layer neu gebaut. Eine gängige Optimierung ist, zuerst package.json zu kopieren und Abhängigkeiten zu installieren, bevor man den restlichen Code kopiert — so wird die Dependency-Installation gecacht, solange sich package.json nicht ändert. Ohne das löst jede Code-Änderung eine komplette Neuinstallation der Abhängigkeiten aus.",
+    "keyPoints": [
+      "Code-Änderungen auf dem Host erscheinen ohne Rebuild oder Bind Mount nicht im Container",
+      "Image neu bauen und Container neu erstellen nach Code-Änderungen",
+      "Docker cacht Layer und baut ab dem ersten geänderten Layer alles neu",
+      "package.json zuerst kopieren, um die Dependency-Installation zu cachen"
+    ],
+    "tags": ["docker", "dockerfile", "build-cache", "development"]
+  }
+]

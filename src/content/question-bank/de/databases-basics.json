@@ -1,0 +1,482 @@
+[
+  {
+    "questionKey": "primary-key-vs-foreign-key",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was unterscheidet einen Primary Key von einem Foreign Key, und was passiert beim Einfügen einer Zeile, wenn der Foreign-Key-Wert in der referenzierten Tabelle nicht existiert?",
+    "referenceAnswer": "Ein Primary Key identifiziert jede Zeile in einer Tabelle eindeutig und darf weder null noch doppelt sein. Ein Foreign Key ist eine Spalte, die auf den Primary Key einer anderen Tabelle verweist und so eine Beziehung zwischen den Tabellen herstellt. Wenn man versucht, eine Zeile mit einem Foreign-Key-Wert einzufügen, der in der referenzierten Tabelle nicht existiert, lehnt die Datenbank den Insert mit einer Constraint Violation ab. Ein häufiger Anfängerfehler ist, eine Zeile aus der Elterntabelle zu löschen, ohne zu beachten, dass noch Child-Rows darauf verweisen — das schlägt entweder fehl oder löst ein Cascade Delete aus, je nach Konfiguration.",
+    "keyPoints": [
+      "Primary Key identifiziert jede Zeile eindeutig",
+      "Foreign Key verweist auf den Primary Key einer anderen Tabelle",
+      "ungültiger Foreign Key löst einen Constraint-Fehler aus",
+      "Löschen referenzierter Zeilen erfordert Cascade oder manuelle Bereinigung"
+    ],
+    "tags": ["databases", "primary-key", "foreign-key", "constraints"]
+  },
+  {
+    "questionKey": "sql-join-missing-rows",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du joinst eine Users-Tabelle mit einer Orders-Tabelle, aber manche User haben keine Bestellungen. Warum könnten diese User im Ergebnis fehlen, und wie würdest du das beheben?",
+    "referenceAnswer": "Ein INNER JOIN gibt nur Zeilen zurück, bei denen beide Tabellen einen passenden Eintrag haben — User ohne Bestellungen werden also stillschweigend aus dem Ergebnis entfernt. Um alle User anzuzeigen, auch wenn sie keine Bestellungen haben, verwendet man einen LEFT JOIN — dieser gibt alle Zeilen der linken Tabelle (Users) zurück und füllt die Order-Spalten mit NULL, wo kein Match existiert. Ein typischer Anfängerfehler ist, INNER JOIN als Standard zu verwenden und sich dann zu wundern, warum bestimmte User in Reports fehlen. Beim Debugging sollte man prüfen, ob der Join-Typ zur Absicht passt: will man nur gematchte Zeilen oder alle Zeilen einer Seite?",
+    "keyPoints": [
+      "INNER JOIN schließt Zeilen ohne Match in beiden Tabellen aus",
+      "LEFT JOIN behält alle Zeilen der linken Tabelle",
+      "fehlende Matches erzeugen NULL in den gejointen Spalten",
+      "falscher Join-Typ lässt Daten stillschweigend verschwinden"
+    ],
+    "tags": ["databases", "joins", "sql", "debugging"]
+  },
+  {
+    "questionKey": "index-when-to-add",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Die User-Liste deiner App lädt langsam, weil die Query nach E-Mail filtert. Was würdest du zuerst prüfen, und wie hilft ein Index?",
+    "referenceAnswer": "Ohne einen Index auf der E-Mail-Spalte führt die Datenbank einen Full Table Scan durch — sie prüft jede einzelne Zeile, um Treffer zu finden, was mit wachsender Tabelle immer langsamer wird. Ein Index auf der Spalte erstellt eine sortierte Lookup-Struktur, mit der die Datenbank passende Zeilen finden kann, ohne alles zu durchsuchen — ähnlich wie ein Stichwortverzeichnis in einem Buch. Allerdings sind Indizes nicht kostenlos: Sie verlangsamen INSERT- und UPDATE-Operationen, weil sie bei jeder Änderung mitgepflegt werden müssen, und belegen zusätzlichen Speicherplatz. Eine praktische Regel ist, Spalten zu indexieren, nach denen man häufig filtert, sortiert oder joint — aber nicht blind jede Spalte.",
+    "keyPoints": [
+      "fehlender Index verursacht Full Table Scan bei großen Tabellen",
+      "ein Index erstellt eine schnelle Lookup-Struktur für die Spalte",
+      "Indizes verlangsamen Schreiboperationen und brauchen Speicher",
+      "Spalten indexieren, nach denen häufig gefiltert oder gejoined wird"
+    ],
+    "tags": ["databases", "indexes", "performance", "sql"]
+  },
+  {
+    "questionKey": "relational-vs-non-relational-choice",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du eine relationale Datenbank wie PostgreSQL gegenüber einer nicht-relationalen wie MongoDB für ein neues Projekt bevorzugen?",
+    "referenceAnswer": "Eine relationale Datenbank ist eine gute Wahl, wenn die Daten klare Beziehungen haben — zum Beispiel User, Bestellungen und Produkte, die aufeinander verweisen. Sie erzwingt Struktur durch Schemas und Constraints, was verhindert, dass ungültige Daten ins System gelangen. Eine nicht-relationale Datenbank wie MongoDB ist nützlich, wenn die Datenstruktur stark variiert oder man flexible Dokumente ohne festes Schema speichern muss. Ein häufiger Anfängerfehler ist, MongoDB zu wählen, weil es einfacher wirkt, und dann mit Dateninkonsistenzen zu kämpfen, die eine relationale Datenbank durch Foreign Keys und Constraints verhindert hätte.",
+    "keyPoints": [
+      "relationale Datenbanken erzwingen Struktur durch Schemas und Constraints",
+      "nicht-relationale Datenbanken erlauben flexible Dokumentstrukturen",
+      "relational ist ein guter Standard bei Daten mit klaren Beziehungen",
+      "fehlende Constraints können zu Dateninkonsistenzen führen"
+    ],
+    "tags": ["databases", "relational", "non-relational", "architecture"]
+  },
+  {
+    "questionKey": "normalization-duplicate-data-bug",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Dir fällt auf, dass die Adresse eines Kunden in jeder Bestellzeile gespeichert ist. Welches Problem verursacht das, und wie würdest du die Struktur ändern?",
+    "referenceAnswer": "Wenn dieselbe Adresse in jeder Bestellzeile gespeichert ist, muss man bei einer Adressänderung jede einzelne Bestellzeile finden und aktualisieren — übersieht man eine, hat man inkonsistente Daten. Das ist ein klassisches Normalisierungsproblem: Die Adresse sollte in einer eigenen Tabelle (oder in der Kunden-Tabelle) liegen und per Foreign Key aus der Bestelltabelle referenziert werden. So aktualisiert man die Adresse an einer Stelle und sie ist überall korrekt. Der Tradeoff ist, dass das Lesen einer Bestellung jetzt einen JOIN braucht, aber das ist ein geringer Preis im Vergleich zum Risiko von veralteten oder widersprüchlichen Daten über Hunderte von Zeilen.",
+    "keyPoints": [
+      "duplizierte Daten verursachen Update-Anomalien über mehrere Zeilen",
+      "Normalisierung verschiebt wiederholte Daten in eine eigene Tabelle",
+      "Foreign Keys verknüpfen Tabellen statt Daten zu duplizieren",
+      "Tradeoff: normalisierte Queries brauchen JOINs, aber Daten bleiben konsistent"
+    ],
+    "tags": ["databases", "normalization", "design", "data-integrity"]
+  },
+  {
+    "questionKey": "null-vs-empty-string-column",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was ist der Unterschied zwischen NULL und einem leeren String in einer Datenbankspalte, und warum ist das für Queries relevant?",
+    "referenceAnswer": "NULL bedeutet, dass der Wert unbekannt oder nicht vorhanden ist — das ist nicht dasselbe wie ein leerer String, der ein bekannter, aber leerer Wert ist. Das ist für Queries wichtig, weil NULL sich anders verhält: WHERE name = '' findet keine NULL-Zeilen, und WHERE name != 'Anna' überspringt NULLs ebenfalls, weil jeder Vergleich mit NULL den Wert unknown ergibt, nicht true oder false. Man braucht IS NULL oder IS NOT NULL, um fehlende Werte zu filtern. Ein häufiger Bug ist, NULL und leeren String als austauschbar zu behandeln und sich dann zu wundern, warum COUNT oder WHERE unerwartete Ergebnisse liefern.",
+    "keyPoints": [
+      "NULL bedeutet unbekannt/fehlend, leerer String ist ein bekannter leerer Wert",
+      "Vergleiche mit NULL ergeben unknown, nicht true oder false",
+      "IS NULL / IS NOT NULL zum Filtern fehlender Werte verwenden",
+      "Verwechslung von NULL und leerem String führt zu unerwarteten Query-Ergebnissen"
+    ],
+    "tags": ["databases", "null", "sql", "data-types"]
+  },
+  {
+    "questionKey": "one-to-many-relationship-design",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wie würdest du die Beziehung zwischen einem Blogpost und seinen Kommentaren in einer relationalen Datenbank modellieren?",
+    "referenceAnswer": "Das ist eine One-to-Many-Beziehung: Ein Blogpost kann viele Kommentare haben, aber jeder Kommentar gehört zu genau einem Post. Man erstellt eine Posts-Tabelle und eine Comments-Tabelle und fügt in der Comments-Tabelle eine Spalte post_id als Foreign Key hinzu, die auf den Primary Key der Posts-Tabelle verweist. So kann man alle Kommentare zu einem Post mit WHERE post_id = ? abfragen. Ein häufiger Fehler ist, Kommentare als kommaseparierten String in der Posts-Tabelle zu speichern — das macht es unmöglich, einzelne Kommentare abzufragen, zu sortieren oder zu paginieren, und bricht, sobald ein Kommentar ein Komma enthält.",
+    "keyPoints": [
+      "One-to-Many: ein Post hat viele Kommentare",
+      "Foreign Key in der Comments-Tabelle verweist auf die Posts-Tabelle",
+      "Kommentare über den Foreign Key filtern",
+      "zusammenhängende Daten als String in einer Spalte zu speichern verhindert sinnvolles Querying"
+    ],
+    "tags": ["databases", "relationships", "one-to-many", "design"]
+  },
+  {
+    "questionKey": "many-to-many-junction-table",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Wie würdest du die Beziehung zwischen Studierenden und Kursen modellieren, wenn Studierende mehrere Kurse belegen können und ein Kurs viele Studierende haben kann?",
+    "referenceAnswer": "Das ist eine Many-to-Many-Beziehung, die man über eine Zwischentabelle (auch Junction Table oder Pivot Table genannt) abbildet. Man erstellt eine Tabelle student_courses mit zwei Foreign Keys: student_id, der auf die Students-Tabelle verweist, und course_id, der auf die Courses-Tabelle verweist. Jede Zeile in der Zwischentabelle steht für eine Einschreibung. Um alle Kurse eines Studierenden zu finden, joint man Students über student_courses zu Courses. Ein häufiger Fehler ist, mehrere Kurs-IDs kommasepariert in einer Spalte zu speichern — das verhindert ordentliches Querying, Constraint-Prüfung und Joining.",
+    "keyPoints": [
+      "Many-to-Many erfordert eine Zwischentabelle mit zwei Foreign Keys",
+      "jede Zeile in der Zwischentabelle repräsentiert eine Beziehung",
+      "über die Zwischentabelle joinen, um verknüpfte Daten zu holen",
+      "kommaseparierte IDs in einer Spalte verhindern ordentliche Queries und Constraints"
+    ],
+    "tags": ["databases", "relationships", "many-to-many", "design"]
+  },
+  {
+    "questionKey": "select-star-production-problem",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Warum ist SELECT * in Produktiv-Queries meistens keine gute Idee?",
+    "referenceAnswer": "SELECT * gibt jede Spalte der Tabelle zurück, auch solche, die die Anwendung gar nicht braucht. Das verschwendet Bandbreite und Speicher, besonders bei Tabellen mit großen Text- oder Blob-Spalten. Außerdem entsteht eine versteckte Kopplung: Wenn jemand eine neue Spalte zur Tabelle hinzufügt, taucht sie plötzlich im Ergebnis auf, womit der Code eventuell nicht rechnet. Explizit die benötigten Spalten zu benennen — SELECT name, email FROM users — macht die Query selbstdokumentierend und schützt vor Problemen bei Schema-Änderungen. Die Ausnahme ist schnelles Debugging oder Exploration in einem Datenbank-Client, wo SELECT * praktisch ist.",
+    "keyPoints": [
+      "SELECT * holt unnötige Spalten und verschwendet Bandbreite",
+      "neue Spalten tauchen unbemerkt im Ergebnis auf",
+      "explizite Spaltenlisten machen Queries selbstdokumentierend",
+      "SELECT * ist für Ad-hoc-Debugging in Ordnung, aber nicht für Produktiv-Code"
+    ],
+    "tags": ["databases", "sql", "queries", "best-practices"]
+  },
+  {
+    "questionKey": "where-vs-having-filter",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Was ist der Unterschied zwischen WHERE und HAVING in SQL, und wann verwendest du was?",
+    "referenceAnswer": "WHERE filtert einzelne Zeilen, bevor gruppiert wird, während HAVING Gruppen filtert, nachdem GROUP BY angewendet wurde. Um zum Beispiel Kategorien mit mehr als 10 Produkten zu finden, gruppiert man mit GROUP BY category und filtert mit HAVING COUNT(*) > 10 — WHERE geht hier nicht, weil COUNT ein Aggregat ist, das erst nach der Gruppierung existiert. Ein häufiger Fehler ist, Aggregat-Bedingungen in die WHERE-Klausel zu setzen, was einen Fehler wirft, oder Nicht-Aggregat-Bedingungen in HAVING zu packen, was funktioniert, aber weniger effizient ist, weil es später in der Pipeline filtert. WHERE nutzen, um den Datensatz früh zu reduzieren, und HAVING nur für Bedingungen auf aggregierte Ergebnisse.",
+    "keyPoints": [
+      "WHERE filtert Zeilen vor der Gruppierung",
+      "HAVING filtert Gruppen nach GROUP BY",
+      "Aggregat-Funktionen wie COUNT können nicht in WHERE verwendet werden",
+      "Nicht-Aggregat-Bedingungen in WHERE setzen für bessere Performance"
+    ],
+    "tags": ["databases", "sql", "queries", "aggregation"]
+  },
+  {
+    "questionKey": "auto-increment-id-gaps",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Deine Auto-Increment-ID-Spalte hat Lücken — zum Beispiel springt sie von 5 auf 8. Ist das ein Bug, und solltest du das reparieren?",
+    "referenceAnswer": "Nein, das ist normal. Lücken entstehen, wenn Zeilen gelöscht werden, wenn INSERT-Operationen zurückgerollt werden oder wenn die Datenbank IDs in Batches vorab reserviert. Auto-Increment-IDs sind als eindeutige Identifikatoren gedacht, nicht als lückenlose Zähler. Die Lücken füllen zu wollen ist riskant und unnötig: Es erhöht die Komplexität, kann bei gleichzeitigen Inserts zu Race Conditions führen und bricht externe Referenzen, die diese IDs bereits verwenden. Wenn man eine lückenlose Nummer zur Anzeige braucht (wie Rechnungsnummern), sollte man eine separate Zähler-Spalte mit eigener Logik verwenden.",
+    "keyPoints": [
+      "Lücken in Auto-Increment-IDs sind normal und erwartet",
+      "gelöschte Zeilen und Rollbacks verursachen Lücken",
+      "Auto-Increment-IDs sind eindeutige Identifikatoren, keine Zähler",
+      "niemals versuchen, Lücken in Primary Keys zu füllen"
+    ],
+    "tags": ["databases", "primary-key", "auto-increment", "design"]
+  },
+  {
+    "questionKey": "cascade-delete-danger",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du hast ON DELETE CASCADE auf einem Foreign Key eingerichtet. Ein Teammitglied löscht einen User aus der Datenbank, und plötzlich sind alle Bestellungen, Bewertungen und Kommentare dieses Users weg. Was ist passiert?",
+    "referenceAnswer": "ON DELETE CASCADE löscht automatisch alle Child-Rows, wenn die Parent-Row entfernt wird. Wenn die Users-Tabelle über kaskadierende Foreign Keys von Orders, Reviews und Comments referenziert wird, löscht das Entfernen eines Users alle zugehörigen Daten über mehrere Tabellen hinweg. Das kann für Bereinigung nützlich sein, ist aber gefährlich, wenn man die Daten eigentlich behalten will — zum Beispiel Bestellhistorie für die Buchhaltung. Sicherere Alternativen sind ON DELETE SET NULL, das den Foreign Key auf NULL setzt statt die Zeile zu löschen, oder ON DELETE RESTRICT, das das Löschen blockiert, bis die Child-Rows manuell behandelt wurden. Die Wahl hängt davon ab, ob die verknüpften Daten einen eigenständigen Wert haben.",
+    "keyPoints": [
+      "ON DELETE CASCADE entfernt automatisch alle Child-Rows",
+      "Kaskadierung über mehrere Tabellen kann mehr Daten löschen als erwartet",
+      "SET NULL behält die Child-Row, entfernt aber die Referenz",
+      "RESTRICT blockiert das Löschen, bis Child-Rows behandelt sind"
+    ],
+    "tags": ["databases", "foreign-key", "cascade", "constraints"]
+  },
+  {
+    "questionKey": "unique-constraint-vs-primary-key",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du einen UNIQUE Constraint verwenden, statt eine Spalte zum Primary Key zu machen?",
+    "referenceAnswer": "Eine Tabelle kann nur einen Primary Key haben, aber beliebig viele UNIQUE Constraints. UNIQUE nutzt man, wenn eine Spalte keine Duplikate haben darf, aber nicht der Haupt-Identifikator der Zeile ist. Zum Beispiel könnte eine Users-Tabelle eine Auto-Increment-id als Primary Key verwenden und zusätzlich einen UNIQUE Constraint auf email setzen, um doppelte Accounts zu verhindern. Der zentrale Unterschied ist, dass ein Primary Key nicht NULL sein kann und oft für Joins und Foreign Keys verwendet wird, während eine UNIQUE-Spalte in den meisten Datenbanken einen NULL-Wert erlaubt. Ein häufiger Fehler ist, die E-Mail als Primary Key zu verwenden — das funktioniert, bis ein User seine E-Mail ändern will, was dann ein Update aller Foreign-Key-Referenzen erfordert.",
+    "keyPoints": [
+      "eine Tabelle hat einen Primary Key, kann aber viele UNIQUE Constraints haben",
+      "UNIQUE stellt Eindeutigkeit bei Nicht-Primärspalten sicher",
+      "Primary Keys können nicht NULL sein, UNIQUE-Spalten erlauben meist einen NULL-Wert",
+      "einen änderbaren Wert als Primary Key zu verwenden erschwert Foreign-Key-Updates"
+    ],
+    "tags": ["databases", "constraints", "primary-key", "unique"]
+  },
+  {
+    "questionKey": "insert-missing-required-column",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du ein INSERT ausführst und eine Spalte vergisst, die einen NOT NULL Constraint hat und keinen Default-Wert?",
+    "referenceAnswer": "Die Datenbank lehnt den Insert mit einem Fehler ab — die Spalte kann nicht null sein. NOT NULL bedeutet, dass die Spalte immer einen Wert haben muss — die Datenbank rät keinen Wert, es sei denn, ein DEFAULT ist definiert. Das ist eigentlich ein Sicherheitsmechanismus: Er verhindert, dass unvollständige Daten ins System gelangen. Ein typisches Anfängermuster ist, NOT NULL Constraints zu entfernen, damit die Fehler verschwinden — das löst zwar den Insert, lässt aber fehlerhafte Daten in die Datenbank. Die bessere Lösung ist, den Wert im INSERT mitzugeben oder einen sinnvollen DEFAULT bei der Erstellung der Spalte zu definieren.",
+    "keyPoints": [
+      "NOT NULL ohne DEFAULT lehnt Inserts ab, bei denen die Spalte fehlt",
+      "die Datenbank rät keine Werte für Pflichtspalten",
+      "NOT NULL zu entfernen versteckt das Problem, lässt aber schlechte Daten rein",
+      "einen DEFAULT-Wert setzen, wenn die Spalte einen Fallback haben soll"
+    ],
+    "tags": ["databases", "constraints", "not-null", "sql"]
+  },
+  {
+    "questionKey": "sql-injection-basic",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Ein Entwickler baut eine SQL-Query, indem er User-Input direkt in den String konkateniert. Was kann schiefgehen, und wie verhindert man das?",
+    "referenceAnswer": "Das öffnet die Tür für SQL Injection: Ein Angreifer kann Input wie ' OR 1=1 -- einschleusen, was die Query-Logik verändert und potenziell Login-Checks umgeht oder ganze Tabellen ausliest. Die Lösung sind Parameterized Queries (Prepared Statements), bei denen der User-Input als Parameter übergeben wird und die Datenbank ihn als Daten behandelt, nie als ausführbares SQL. Jeder moderne Datenbank-Treiber und jedes ORM unterstützt das. Ein häufiger Fehler ist, Injection durch manuelles Escapen von Sonderzeichen zu verhindern — das ist fehleranfällig und wurde schon oft umgangen. Immer Parameterized Queries verwenden, nie String-Konkatenation für User-Input.",
+    "keyPoints": [
+      "String-Konkatenation ermöglicht SQL-Injection-Angriffe",
+      "Angreifer können die Query-Logik verändern oder Daten abgreifen",
+      "Parameterized Queries behandeln Input als Daten, nicht als SQL-Code",
+      "manuelles Escaping ist fehleranfällig — Prepared Statements verwenden"
+    ],
+    "tags": ["databases", "sql-injection", "security", "queries"]
+  },
+  {
+    "questionKey": "transaction-partial-failure",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du musst Geld zwischen zwei Konten transferieren: von einem abbuchen und auf das andere aufbuchen. Was passiert, wenn der Server nach der Abbuchung abstürzt, aber vor der Aufbuchung?",
+    "referenceAnswer": "Ohne Transaction verschwindet das Geld — es wurde von einem Konto abgebucht, aber nie dem anderen gutgeschrieben. Eine Transaction fasst beide Operationen zu einer atomaren Einheit zusammen: Entweder gelingen beide (COMMIT) oder beide werden rückgängig gemacht (ROLLBACK). Stürzt der Server mitten in einer Transaction ab, rollt die Datenbank beim Neustart die unvollständigen Änderungen automatisch zurück. Das ist der klassische Anwendungsfall für Transactions: jede Operation, bei der eine teilweise Ausführung die Daten in einen inkonsistenten Zustand bringen würde. Ein häufiger Fehler ist, mehrstufige Datenbankoperationen ohne Transaction auszuführen und davon auszugehen, dass der Code immer vollständig durchläuft.",
+    "keyPoints": [
+      "ohne Transaction führt ein teilweiser Fehler zu inkonsistenten Daten",
+      "Transactions machen mehrere Operationen atomar — alles oder nichts",
+      "COMMIT speichert Änderungen, ROLLBACK macht sie rückgängig",
+      "die Datenbank rollt unvollständige Transactions bei einem Crash automatisch zurück"
+    ],
+    "tags": ["databases", "transactions", "data-integrity", "acid"]
+  },
+  {
+    "questionKey": "group-by-aggregate-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wie würdest du mit SQL die Anzahl der Bestellungen pro Kunde zählen?",
+    "referenceAnswer": "Man nutzt GROUP BY zusammen mit einer Aggregat-Funktion: SELECT customer_id, COUNT(*) AS order_count FROM orders GROUP BY customer_id. GROUP BY fasst alle Zeilen mit derselben customer_id zu einer Gruppe zusammen, und COUNT(*) zählt die Zeilen in jeder Gruppe. Ein häufiger Fehler ist, eine Spalte zu selektieren, die weder in GROUP BY steht noch in einer Aggregat-Funktion steckt — die meisten Datenbanken lehnen das ab, weil es keinen eindeutigen Wert für die Gruppe gibt. Wenn man auch den Namen des Kunden braucht, muss man ihn entweder zu GROUP BY hinzufügen oder nach der Gruppierung an die Customers-Tabelle joinen.",
+    "keyPoints": [
+      "GROUP BY gruppiert Zeilen mit demselben Wert",
+      "Aggregat-Funktionen wie COUNT operieren auf jeder Gruppe",
+      "nicht-aggregierte Spalten müssen in der GROUP-BY-Klausel stehen",
+      "an andere Tabellen joinen, wenn man zusätzliche Spalten braucht"
+    ],
+    "tags": ["databases", "sql", "aggregation", "group-by"]
+  },
+  {
+    "questionKey": "order-by-without-index",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was macht ORDER BY, und warum kann das Sortieren einer großen Tabelle langsam sein?",
+    "referenceAnswer": "ORDER BY sortiert die Ergebnismenge nach einer oder mehreren Spalten, entweder aufsteigend (ASC, Standard) oder absteigend (DESC). Bei kleinen Tabellen geht das sofort, aber bei einer großen Tabelle ohne Index auf der sortierten Spalte muss die Datenbank alle passenden Zeilen in den Speicher laden und sortieren — das nennt sich Filesort und kann sehr langsam sein. Ein Index auf der Spalte hilft, weil die Daten dort bereits sortiert abgelegt sind und die Datenbank sie der Reihe nach lesen kann. Ein praktischer Tipp: ORDER BY immer mit LIMIT kombinieren, wenn man nur die ersten Ergebnisse braucht — so kann die Datenbank frühzeitig abbrechen, statt alles zu sortieren.",
+    "keyPoints": [
+      "ORDER BY sortiert Ergebnisse nach angegebenen Spalten",
+      "Sortieren großer Tabellen ohne Index ist langsam (Filesort)",
+      "ein Index auf der Sortierspalte vermeidet den zusätzlichen Sortierschritt",
+      "ORDER BY mit LIMIT kombinieren, um das Sortieren der gesamten Tabelle zu vermeiden"
+    ],
+    "tags": ["databases", "sql", "sorting", "performance"]
+  },
+  {
+    "questionKey": "limit-offset-pagination",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wie funktioniert Pagination mit LIMIT/OFFSET, und welches Problem hat dieser Ansatz bei großen Tabellen?",
+    "referenceAnswer": "LIMIT begrenzt die Anzahl der zurückgegebenen Zeilen, und OFFSET überspringt eine bestimmte Anzahl davor. Zum Beispiel gibt LIMIT 10 OFFSET 20 die Zeilen 21–30 zurück. Das ist die einfachste Art zu paginieren, wird aber bei großen Offsets langsam, weil die Datenbank trotzdem alle übersprungenen Zeilen lesen und verwerfen muss. Auf Seite 1000 mit 10 Einträgen pro Seite liest die Datenbank 10.000 Zeilen und wirft 9.990 davon weg. Ein besserer Ansatz für tiefe Pagination ist Cursor-basierte Pagination, bei der man mit WHERE id > letzte_gesehene_id LIMIT 10 filtert — das nutzt den Index und überspringt nichts.",
+    "keyPoints": [
+      "LIMIT steuert, wie viele Zeilen zurückgegeben werden",
+      "OFFSET überspringt Zeilen, aber die Datenbank muss sie trotzdem lesen",
+      "große Offsets verursachen langsame Queries, weil übersprungene Zeilen gescannt werden",
+      "Cursor-basierte Pagination umgeht das Problem, indem sie nach der letzten ID filtert"
+    ],
+    "tags": ["databases", "sql", "pagination", "performance"]
+  },
+  {
+    "questionKey": "not-null-default-value-design",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann sollte man einen DEFAULT-Wert auf einer Spalte setzen, und wann besser nicht?",
+    "referenceAnswer": "DEFAULT nutzt man, wenn die Spalte einen sinnvollen Fallback hat, mit dem die meisten Zeilen starten sollten — zum Beispiel DEFAULT false für ein is_active-Flag oder DEFAULT NOW() für einen created_at-Timestamp. Keinen Default setzt man, wenn der Wert immer explizit angegeben werden muss, wie die E-Mail eines Users oder der Preis eines Produkts — das zwingt die Anwendung, den Wert mitzuliefern, und verhindert unvollständige Daten. Ein häufiger Fehler ist, DEFAULT '' auf eine Pflichtspalte zu setzen, nur um NOT-NULL-Fehler zu vermeiden — das versteckt, dass echte Daten fehlen. Defaults sollten echte Geschäftslogik abbilden, nicht Constraint-Fehler umgehen.",
+    "keyPoints": [
+      "DEFAULT für sinnvolle Fallbacks wie Timestamps oder Flags verwenden",
+      "keinen DEFAULT setzen, wenn der Wert immer explizit angegeben werden muss",
+      "DEFAULT '' versteckt fehlende Daten statt sie zu verhindern",
+      "Defaults sollten Geschäftslogik abbilden, nicht Constraint-Fehler umgehen"
+    ],
+    "tags": ["databases", "design", "constraints", "defaults"]
+  },
+  {
+    "questionKey": "varchar-vs-text-choice",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Wann würdest du VARCHAR(255) statt TEXT für eine String-Spalte verwenden?",
+    "referenceAnswer": "VARCHAR mit Längenbegrenzung ist sinnvoll, wenn man eine maximale Größe erzwingen möchte — zum Beispiel ein Username auf 50 Zeichen begrenzt oder eine E-Mail auf 255. TEXT ist für Inhalte ohne praktische Obergrenze, wie Blogpost-Texte oder User-Kommentare. In PostgreSQL sind VARCHAR und TEXT unter der Haube identisch in der Performance — die Längenbegrenzung bei VARCHAR ist rein ein Constraint, keine Performance-Optimierung. Ein häufiger Fehler ist, überall VARCHAR(255) aus Gewohnheit zu verwenden, ohne zu prüfen, ob die Begrenzung für die jeweiligen Daten sinnvoll ist. Den Typ danach wählen, ob eine Längenbegrenzung für den Anwendungsfall einen Mehrwert bringt.",
+    "keyPoints": [
+      "VARCHAR erzwingt eine maximale Zeichenlänge",
+      "TEXT erlaubt Strings beliebiger Länge",
+      "in PostgreSQL ist die Performance bei beiden Typen gleich",
+      "danach entscheiden, ob eine Längenbegrenzung sinnvoll ist"
+    ],
+    "tags": ["databases", "data-types", "design", "sql"]
+  },
+  {
+    "questionKey": "boolean-column-vs-string-flag",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Ein Entwickler speichert den Aktiv-Status eines Users als String-Spalte mit den Werten 'yes' und 'no'. Welche Probleme entstehen dadurch?",
+    "referenceAnswer": "Ein String für einen Boolean-Wert erlaubt ungültige Daten wie 'Yes', 'YES', 'true', '1' oder Tippfehler wie 'yse' — die Datenbank kann nicht erzwingen, dass nur zwei Werte erlaubt sind, es sei denn, man fügt einen CHECK Constraint hinzu. Außerdem sind Queries fehleranfällig: WHERE active = 'yes' übersieht Zeilen mit 'Yes', solange man kein case-insensitives Handling einbaut. Eine BOOLEAN-Spalte akzeptiert nur true oder false, sodass die Datenbank die Korrektheit auf Speicherebene erzwingt. Sie braucht auch weniger Speicher und macht Queries sauberer: WHERE active = true. Den Datentyp verwenden, der die tatsächlichen Daten am besten abbildet, nicht für alles einen flexiblen String.",
+    "keyPoints": [
+      "String-Spalten erlauben Tippfehler und inkonsistente Schreibweisen",
+      "BOOLEAN erzwingt nur true/false auf Datenbankebene",
+      "String-Vergleiche erfordern Case-Handling in Queries",
+      "den spezifischsten Datentyp für die gespeicherten Daten verwenden"
+    ],
+    "tags": ["databases", "data-types", "design", "constraints"]
+  },
+  {
+    "questionKey": "update-without-where-clause",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Was passiert, wenn du ein UPDATE-Statement ausführst und die WHERE-Klausel vergisst?",
+    "referenceAnswer": "Das UPDATE wird auf jede Zeile in der Tabelle angewendet. Zum Beispiel macht UPDATE users SET role = 'admin' ohne WHERE-Klausel jeden User zum Admin. Das ist einer der häufigsten und gefährlichsten SQL-Fehler, besonders in Produktion. Es gibt kein eingebautes Undo — es sei denn, man ist innerhalb einer Transaction und kann ein ROLLBACK machen, oder man hat ein aktuelles Backup. Die sicherste Gewohnheit ist, immer zuerst die WHERE-Klausel zu schreiben, bevor man die SET-Klausel formuliert, oder die Bedingung mit einem SELECT zu testen, bevor man das UPDATE ausführt. Manche Datenbank-Tools bieten auch einen Safe Mode, der UPDATE und DELETE ohne WHERE ablehnt.",
+    "keyPoints": [
+      "UPDATE ohne WHERE ändert jede Zeile in der Tabelle",
+      "es gibt kein Undo außerhalb von Transactions oder Backups",
+      "die WHERE-Klausel zuerst schreiben als Sicherheitsgewohnheit",
+      "die Bedingung mit einem SELECT testen, bevor man UPDATE ausführt"
+    ],
+    "tags": ["databases", "sql", "mistakes", "safety"]
+  },
+  {
+    "questionKey": "delete-vs-soft-delete",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Wann würdest du ein Soft Delete statt eines echten DELETE verwenden?",
+    "referenceAnswer": "Bei einem Soft Delete setzt man einen deleted_at-Timestamp oder ein is_deleted-Flag, statt die Zeile tatsächlich zu entfernen — die Daten sind dann für normale Queries unsichtbar, aber wiederherstellbar. Das ist nützlich, wenn man einen Audit Trail, Undo-Funktionalität braucht oder wenn andere Teile des Systems die Zeile noch referenzieren. Der Nachteil ist, dass jede Query ein WHERE deleted_at IS NULL enthalten muss, um soft-gelöschte Zeilen auszuschließen — das wird leicht vergessen und kann gelöschte Daten leaken. Ein echtes DELETE entfernt die Zeile endgültig, was einfacher ist, aber nicht rückgängig gemacht werden kann. Soft Delete wählen, wenn die Daten nach dem Entfernen noch rechtlichen, Compliance- oder geschäftlichen Wert haben, und hartes DELETE, wenn sie wirklich entbehrlich sind.",
+    "keyPoints": [
+      "Soft Delete markiert Zeilen als gelöscht, ohne sie zu entfernen",
+      "nützlich für Audit Trails und Undo-Funktionalität",
+      "jede Query muss soft-gelöschte Zeilen ausfiltern — wird leicht vergessen",
+      "hartes DELETE ist einfacher, aber unwiderruflich"
+    ],
+    "tags": ["databases", "design", "soft-delete", "data-integrity"]
+  },
+  {
+    "questionKey": "schema-migration-basics",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Warum nutzen Teams Migrationsdateien, um das Datenbankschema zu ändern, statt Tabellen direkt anzupassen?",
+    "referenceAnswer": "Migrationsdateien sind versionierte, geordnete Skripte, die jede Schema-Änderung nachverfolgen — Spalten hinzufügen, Tabellen erstellen, Constraints ändern. Sie stellen sicher, dass die lokale Datenbank jedes Entwicklers und die Produktionsdatenbank dieselben Schritte in derselben Reihenfolge durchlaufen. Ohne Migrations könnte ein Entwickler lokal eine Spalte hinzufügen, die auf anderen Rechnern nicht existiert, was zu Crashes führt. Migrations unterstützen auch Rollback: Jede Migrationsdatei hat typischerweise eine Up-Funktion (anwenden) und eine Down-Funktion (zurücksetzen). Ein häufiger Fehler ist, die Datenbank in Produktion direkt zu bearbeiten und keine Migration dafür zu erstellen, was dazu führt, dass das Schema vom Code abweicht.",
+    "keyPoints": [
+      "Migrations sind versionierte Skripte, die Schema-Änderungen nachverfolgen",
+      "sie stellen sicher, dass alle Umgebungen dieselben Änderungen in derselben Reihenfolge anwenden",
+      "jede Migration hat einen Up-Schritt (anwenden) und einen Down-Schritt (Rollback)",
+      "direkte Datenbankänderungen verursachen Schema-Drift"
+    ],
+    "tags": ["databases", "migrations", "schema", "deployment"]
+  },
+  {
+    "questionKey": "count-null-surprise",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du führst COUNT(email) und COUNT(*) auf derselben Tabelle aus und bekommst unterschiedliche Ergebnisse. Warum?",
+    "referenceAnswer": "COUNT(*) zählt alle Zeilen unabhängig von den Werten, während COUNT(email) nur Zeilen zählt, in denen die E-Mail-Spalte nicht NULL ist. Wenn bei manchen Usern keine E-Mail gesetzt ist, gibt COUNT(email) eine kleinere Zahl zurück als COUNT(*). Das überrascht oft, wenn man erwartet, dass beide gleich sind. Die gleiche Regel gilt für andere Aggregat-Funktionen: SUM, AVG und MIN überspringen ebenfalls NULL-Werte, was Berechnungen verfälschen kann, wenn man das nicht berücksichtigt. Wenn man die Gesamtanzahl aller Zeilen braucht, immer COUNT(*) verwenden. Wenn man gezielt Nicht-NULL-Werte in einer Spalte zählen will, COUNT(spalte) nutzen.",
+    "keyPoints": [
+      "COUNT(*) zählt alle Zeilen, COUNT(spalte) überspringt NULLs",
+      "auch SUM und AVG überspringen NULL-Werte",
+      "das kann Berechnungen stillschweigend verfälschen",
+      "COUNT(*) verwenden, wenn man die Gesamtzeilenanzahl braucht"
+    ],
+    "tags": ["databases", "sql", "null", "aggregation"]
+  },
+  {
+    "questionKey": "composite-primary-key-use-case",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Wann würdest du einen zusammengesetzten Primary Key statt einer einzelnen Auto-Increment-ID verwenden?",
+    "referenceAnswer": "Ein zusammengesetzter Primary Key nutzt zwei oder mehr Spalten gemeinsam, um eine Zeile eindeutig zu identifizieren. Er eignet sich besonders für Zwischentabellen: Zum Beispiel könnte eine student_courses-Tabelle (student_id, course_id) als zusammengesetzten Key verwenden, was automatisch verhindert, dass sich ein Studierender doppelt in denselben Kurs einschreibt. Man könnte zwar eine separate Auto-Increment-ID nutzen, bräuchte dann aber trotzdem einen zusätzlichen UNIQUE Constraint auf die beiden Spalten. Der Tradeoff ist, dass zusammengesetzte Keys Foreign-Key-Referenzen aus anderen Tabellen komplexer machen und ORMs sie manchmal weniger elegant handhaben. Einen zusammengesetzten Key verwenden, wenn die Spaltenkombination der natürliche Identifikator für die Zeile ist.",
+    "keyPoints": [
+      "zusammengesetzter Key nutzt mehrere Spalten als Primary Key",
+      "natürliche Wahl für Zwischentabellen wie student_courses",
+      "verhindert automatisch doppelte Kombinationen",
+      "ORMs handhaben zusammengesetzte Keys manchmal weniger sauber"
+    ],
+    "tags": ["databases", "primary-key", "composite-key", "design"]
+  },
+  {
+    "questionKey": "like-query-wildcard-performance",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Du verwendest WHERE name LIKE '%anna%', um nach Usern zu suchen. Warum kann das langsam sein, und was ist der Unterschied zu LIKE 'anna%'?",
+    "referenceAnswer": "Ein führender Wildcard in LIKE '%anna%' bedeutet, dass die Datenbank keinen Index nutzen kann — sie muss jede einzelne Zeile prüfen, weil der Treffer überall im String beginnen könnte. Das führt zu einem Full Table Scan. LIKE 'anna%' hingegen sucht nur nach Strings, die mit 'anna' beginnen, und kann einen B-Tree-Index nutzen, weil die Datenbank weiß, wo sie im sortierten Index anfangen soll. Für Volltextsuche über große Datensätze bieten Datenbanken eigene Volltextsuche-Features (wie PostgreSQLs tsvector), die deutlich schneller sind als LIKE mit Wildcards. Ein häufiger Fehler ist, LIKE '%...%' für Suchfunktionalität einzusetzen und überrascht zu sein, wenn es bei Tabellen mit tausenden Zeilen langsam wird.",
+    "keyPoints": [
+      "führender Wildcard verhindert Index-Nutzung und verursacht Full Table Scan",
+      "nur abschließender Wildcard (LIKE 'x%') kann einen B-Tree-Index nutzen",
+      "Volltextsuche-Features sind für Textsuche in großem Maßstab schneller",
+      "LIKE mit führendem Wildcard wird mit wachsender Tabelle langsam"
+    ],
+    "tags": ["databases", "sql", "performance", "search"]
+  },
+  {
+    "questionKey": "enum-column-pros-cons",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "EASY",
+    "questionText": "Deine Tabelle hat eine Status-Spalte, die nur 'pending', 'active' und 'closed' erlauben soll. Wie erzwingst du das auf Datenbankebene?",
+    "referenceAnswer": "Man kann einen ENUM-Typ oder einen CHECK Constraint verwenden, um die Spalte auf diese Werte einzuschränken. Ein ENUM definiert die erlaubten Werte als Teil des Spaltentyps, und die Datenbank lehnt jeden Insert oder Update mit einem Wert ab, der nicht in der Liste steht. Ein CHECK Constraint erreicht dasselbe: CHECK (status IN ('pending', 'active', 'closed')). Der Tradeoff bei ENUM ist, dass das Hinzufügen oder Entfernen von Werten oft ein ALTER auf dem Spaltentyp erfordert, was bei großen Tabellen aufwändig sein kann. Ein CHECK Constraint oder eine separate Lookup-Tabelle mit Foreign Key lässt sich leichter anpassen. Der zentrale Punkt ist, gültige Werte auf Datenbankebene zu erzwingen, nicht nur im Anwendungscode.",
+    "keyPoints": [
+      "ENUM beschränkt eine Spalte auf vordefinierte Werte",
+      "CHECK Constraint erreicht eine ähnliche Einschränkung",
+      "Änderungen an ENUM-Werten erfordern ALTER auf der Spalte",
+      "gültige Werte auf Datenbankebene erzwingen, nicht nur im Code"
+    ],
+    "tags": ["databases", "constraints", "enum", "design"]
+  },
+  {
+    "questionKey": "timestamp-timezone-confusion",
+    "roleSlug": "junior-fullstack",
+    "topicSlug": "databases-basics",
+    "language": "de",
+    "difficulty": "MEDIUM",
+    "questionText": "Deine App zeigt für User in verschiedenen Zeitzonen die falsche Erstellungszeit an. Was geht wahrscheinlich auf Datenbankebene schief?",
+    "referenceAnswer": "Das wahrscheinlichste Problem ist, dass Timestamps ohne Zeitzoneninformation gespeichert werden. Wenn man TIMESTAMP WITHOUT TIME ZONE verwendet, speichert die Datenbank den reinen Zeitwert, ohne zu wissen, welche Zeitzone gemeint ist — 14:00 könnte also 14:00 Berlin oder 14:00 Tokyo bedeuten, je nachdem, wer den Eintrag erstellt hat. Mit TIMESTAMP WITH TIME ZONE (oder TIMESTAMPTZ in PostgreSQL) wird intern alles in UTC gespeichert und beim Abrufen in die Zeitzone des Clients umgerechnet. Ein häufiger Fehler ist, lokale Zeiten zu speichern und sie dann über Zeitzonen hinweg zu vergleichen, was falsche Ergebnisse liefert. Das sichere Muster ist, immer in UTC zu speichern und erst für die Anzeige in die Zeitzone des Users umzurechnen.",
+    "keyPoints": [
+      "Timestamps ohne Zeitzoneninformation verursachen Verwirrung über Zeitzonen hinweg",
+      "TIMESTAMPTZ speichert in UTC und rechnet beim Abruf um",
+      "lokale Zeiten speichern bricht Vergleiche über Zeitzonen hinweg",
+      "immer in UTC speichern und erst für die Anzeige umrechnen"
+    ],
+    "tags": ["databases", "timestamps", "timezone", "data-types"]
+  }
+]
